@@ -14,11 +14,12 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
+import { getOrders } from '../../services/storekeeper/orders';
 import SideBar from '../../components/sidebar/SideBar';
 import {
-  resetOrdersFromFile,
+
   updateOrderStatus,
+  setOrders
 } from '../../store/storekeeperOrdersSlice';
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
@@ -40,10 +41,21 @@ const StorekeeperDashboard = () => {
 
   const statusMap = ['PENDING', 'IN_PROGRESS', 'DELIVERED'];
   const orders = useSelector(state => state.storekeeperOrders.orders);
-  const handleReset = () => {
-    dispatch(resetOrdersFromFile());
-    updateOrderStatus(null);
-  };
+  
+   useEffect(() => {
+    // Load orders from backend API when component mounts or token changes
+    const loadOrders = async () => {
+      try {
+        if (!token) return;
+        const ordersData = await getOrders(token);
+        dispatch(setOrders(ordersData));
+      } catch (error) {
+        Alert.alert('Error', error.message || 'Failed to fetch orders');
+      }
+    };
+
+    loadOrders();
+  }, [dispatch, token]);
 
   useEffect(() => {
     const tabIndex = statusMap.findIndex(
@@ -116,6 +128,7 @@ const StorekeeperDashboard = () => {
               updateOrderStatus({
                 orderId: orderId,
                 newStatus: 'CANCELLED',
+                
               }),
             );
           },

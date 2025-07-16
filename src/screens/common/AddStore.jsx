@@ -92,35 +92,21 @@ export default function AddStore() {
   };
 
   useFocusEffect(
-    useCallback(() => {
-      setShowScanner(true);
+  useCallback(() => {
+    setShowScanner(true);
 
-      const handleBack = () => {
-        stopCameraAndNavigate(() => {
-          if (navigation.canGoBack()) navigation.goBack();
-          else safePush('CustomerDashboard');
-        });
-        return true;
-      };
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        console.log('🚫 Hardware back disabled on AddStore');
+        return true; // prevents crash
+      }
+    );
 
-      const unsubNav = navigation.addListener('beforeRemove', e => {
-        e.preventDefault();
-        stopCameraAndNavigate(() => {
-          navigation.dispatch(e.data.action);
-        });
-      });
+    return () => backHandler.remove();
+  }, [])
+);
 
-      const backHandler = BackHandler.addEventListener(
-        'hardwareBackPress',
-        handleBack,
-      );
-
-      return () => {
-        backHandler.remove();
-        unsubNav();
-      };
-    }, [navigation]),
-  );
 
   const handleBarcodeScanned = async e => {
     if (isScanningRef.current) return;

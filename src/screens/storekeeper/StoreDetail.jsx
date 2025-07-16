@@ -127,7 +127,9 @@ const StoreDetail = () => {
     };
 
     try {
+      
       await updateProfile(updatedProfile);
+
       await saveStorekeeperAddress(updatedAddress);
       showToast('success', 'Store details updated successfully.');
       setEditing(false);

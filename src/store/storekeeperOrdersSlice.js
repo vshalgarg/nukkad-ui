@@ -1,15 +1,17 @@
-// store/storekeeperOrdersSlice.js
 import { createSlice } from '@reduxjs/toolkit';
-import ordersData from '../HardcodeData/orderData.js';
+// import ordersData from '../HardcodeData/orderData.js';
 
 const initialState = {
-  orders: [...ordersData],
+  orders: [],
 };
 
 const storekeeperOrdersSlice = createSlice({
   name: 'storekeeperOrders',
   initialState,
   reducers: {
+    setOrders: (state, action) => {
+      state.orders = action.payload;
+    },
     updateOrderStatus: (state, action) => {
       const { orderId, newStatus } = action.payload;
       const order = state.orders.find(order => order.orderId === orderId);
