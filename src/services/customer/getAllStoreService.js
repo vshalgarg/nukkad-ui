@@ -21,11 +21,14 @@ export const getMyStores = async token => {
 
 export const deleteStore = async (storeId, token) => {
   try {
-    const response = await api.delete(`/customer/stores/${storeId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await api.delete(
+      `/nukkad/api/customer/v1/delete/store?storekeeperId=${storeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
     console.log(`🗑️ deleteStore response for ID ${storeId}:`, response.data); // 👈 log here
     return response.data;
   } catch (err) {

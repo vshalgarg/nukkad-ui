@@ -13,6 +13,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import Toast from 'react-native-toast-message';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import CameraIcon from '../../../assets/images/Camera.svg';
 import ProfileImage from '../../../assets/images/ProfileImage.svg';
@@ -71,7 +72,6 @@ const ProfileSetting = () => {
 
   const pickImage = () => {
     const options = { mediaType: 'photo', quality: 1 };
-
     launchImageLibrary(options, response => {
       if (response.didCancel || response.errorCode) return;
       if (response.assets && response.assets[0]?.uri) {
@@ -116,12 +116,12 @@ const ProfileSetting = () => {
   const saveProfile = () => {
     if (!validateProfile()) return;
 
-    const formattedDOB = dobDate.toISOString().split('T')[0]; 
+    const formattedDOB = dobDate.toISOString().split('T')[0];
 
     const updatedProfile = {
       ...profileData,
       ...profile,
-      dob: formattedDOB, 
+      dob: formattedDOB,
     };
 
     updateProfile(updatedProfile);
@@ -129,7 +129,6 @@ const ProfileSetting = () => {
     showToast('success', 'Profile updated successfully');
     safePush('CustomerDashboard');
   };
-  
 
   const handlePress = () => {
     if (profileData?.role === 'storekeeper') safePush('StorekeeperDashboard');
@@ -148,15 +147,16 @@ const ProfileSetting = () => {
             {!loading && profile.image ? (
               <Animated.Image
                 source={{ uri: profile.image }}
-                style={[innerStyle.image, { opacity: fadeAnim }]}
+                style={[innerStyle.image]}
                 onLoad={handleImageLoad}
               />
             ) : (
-              <View style={[innerStyle.image, { opacity: fadeAnim }]}>
+              <View style={[innerStyle.image]}>
                 <ProfileImage height={130} width={130} />
               </View>
             )}
           </TouchableOpacity>
+
           {isEditing && (
             <TouchableOpacity
               onPress={pickImage}
@@ -164,6 +164,31 @@ const ProfileSetting = () => {
             >
               <CameraIcon style={innerStyle.cameraIcon} />
             </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={innerStyle.editButtonWrapper}>
+          {!isEditing ? (
+            <Pressable onPress={() => setIsEditing(true)}>
+              <FontAwesome name="edit" size={28} color="black" />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setIsEditing(false);
+                setProfile({
+                  firstName: profileData.firstName || '',
+                  lastName: profileData.lastName || '',
+                  email: profileData.email || '',
+                  image: profileData.image || null,
+                  role: profileData.role || '',
+                });
+                setDOB(formatDate(profileData.dob));
+                setDobDate(new Date(profileData.dob));
+              }}
+            >
+              <Text style={innerStyle.cancelText}>Cancel</Text>
+            </Pressable>
           )}
         </View>
       </View>
@@ -235,51 +260,21 @@ const ProfileSetting = () => {
         </View>
       </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'flex-end',
-          marginRight: 20,
-        }}
-      >
-        {!isEditing ? (
-          <Pressable onPress={() => setIsEditing(true)}>
-            <Text style={{ color: Colors.primary }}>Edit</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => {
-              setIsEditing(false);
-              setProfile({
-                firstName: profileData.firstName || '',
-                lastName: profileData.lastName || '',
-                email: profileData.email || '',
-                image: profileData.image || null,
-                role: profileData.role || '',
-              });
-              setDOB(formatDate(profileData.dob));
-              setDobDate(new Date(profileData.dob));
-            }}
-          >
-            <Text style={{ color: Colors.reject }}>Cancel</Text>
-          </Pressable>
-        )}
-      </View>
-
-      <View style={innerStyle.buttonContainer}>
-        {isEditing ? (
+      {isEditing && (
+        <View style={innerStyle.buttonContainer}>
           <CustomButton title="Save Changes" onPress={saveProfile} />
-        ) : profile.role === 'customer' ? (
-          <CustomButton
-            title="Delete Account"
-            onPress={handleDeleteAccount}
-            style={{
-              backgroundColor: Colors.reject,
-              borderColor: Colors.reject,
-            }}
-          />
-        ) : null}
-      </View>
+          {profile.role === 'customer' && (
+            <CustomButton
+              title="Delete Account"
+              onPress={handleDeleteAccount}
+              style={{
+                backgroundColor: Colors.reject,
+                borderColor: Colors.reject,
+              }}
+            />
+          )}
+        </View>
+      )}
 
       <Toast />
     </View>
@@ -295,10 +290,33 @@ const innerStyle = StyleSheet.create({
     marginTop: 30,
     marginBottom: 40,
   },
-  profileImageSection: { position: 'relative' },
-  image: { width: 130, height: 130, borderRadius: 75, resizeMode: 'cover' },
+  profileImageSection: { position: 'relative', alignItems: 'center' },
+  image: {
+    width: 130,
+    height: 130,
+    borderRadius: 75,
+    resizeMode: 'cover',
+    overflow: 'hidden',
+  },
   cameraIconContainer: { position: 'absolute', bottom: 0, right: 0 },
   cameraIcon: { height: 42, width: 42 },
+
+  editButtonWrapper: {
+    marginTop: 10,
+    alignSelf: 'flex-end',
+    paddingHorizontal: 20,
+  },
+  editText: {
+    color: Colors.primary,
+    fontSize: Fonts.sizes.base,
+    fontWeight: '600',
+  },
+  cancelText: {
+    color: Colors.reject,
+    fontSize: Fonts.sizes.base,
+    fontWeight: '600',
+  },
+
   profileDetails: { width: '100%', marginTop: 10 },
   row: {
     flexDirection: 'row',
@@ -312,6 +330,7 @@ const innerStyle = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: Fonts.sizes.base,
+    marginHorizontal: 5,
   },
   fullInput: {
     marginBottom: 16,
@@ -344,9 +363,10 @@ const innerStyle = StyleSheet.create({
     fontSize: Fonts.sizes.base,
   },
   buttonContainer: {
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-around',
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 30,
+    paddingHorizontal: 20,
   },
 });

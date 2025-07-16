@@ -17,6 +17,7 @@ export const AddressProvider = ({ children }) => {
   const [mode, setMode] = useState('add');
   const [addressData, setAddressData] = useState(null);
 
+  // Load from AsyncStorage initially
   useEffect(() => {
     const load = async () => {
       const stored = await AsyncStorage.getItem('address');
@@ -32,31 +33,33 @@ export const AddressProvider = ({ children }) => {
     load();
   }, []);
 
+  // Update AsyncStorage when address changes
   useEffect(() => {
     AsyncStorage.setItem('address', JSON.stringify(address));
     const def = address.find(a => a.default);
     setDefaultAddress(def || null);
   }, [address]);
 
+  // Update AsyncStorage when selected changes
   useEffect(() => {
     if (selectedAddressId)
       AsyncStorage.setItem('selectedAddressId', String(selectedAddressId));
   }, [selectedAddressId]);
 
-  const addAddress = async data => {
-    const saved = await addNewAddress(data);
-    const updatedList = [saved, ...address];
-    setAddress(updatedList);
-    setSelectedAddressId(String(saved.id));
+  // 🔥 ADD NEW ADDRESS
+  const addAddress = async (data) => {
+    await addNewAddress(data); // ✅ Save to backend
+    await syncAddressesFromServer(); // ✅ Re-sync all addresses
   };
 
+  // 🔥 UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {
-    const saved = await updateExistingAddress(updated.id, updated);
-    const updatedList = address.map(a => (a.id === saved.id ? saved : a));
-    setAddress(updatedList);
+    await updateExistingAddress(updated.id, updated); // ✅ Update backend
+    await syncAddressesFromServer(); // ✅ Re-fetch list
   };
 
-  const deleteAddress = async id => {
+  // 🔥 DELETE ADDRESS
+  const deleteAddress = async (id) => {
     await deleteAddressFromServer(id);
     const filtered = address.filter(a => a.id !== id);
     setAddress(filtered);
@@ -67,26 +70,33 @@ export const AddressProvider = ({ children }) => {
     }
   };
 
+  // 🔥 MARK DEFAULT
   const markAsDefault = async id => {
     await markAddressAsDefault(id);
-    const updatedList = address.map(a => ({
-      ...a,
-      default: a.id === id,
-    }));
-    setAddress(updatedList);
-    setSelectedAddressId(String(id));
+    await syncAddressesFromServer(); // ✅ will handle setting default + selected
   };
 
+  // 🔄 SYNC FROM SERVER
   const syncAddressesFromServer = async () => {
-    const fresh = await getAllAddresses();
+    const fresh = await getAllAddresses(); // ✅ fetch from server
     setAddress(fresh);
+    await AsyncStorage.setItem('address', JSON.stringify(fresh));
+
     const def = fresh.find(a => a.default);
     if (def) {
       setDefaultAddress(def);
       setSelectedAddressId(String(def.id));
+      await AsyncStorage.setItem('selectedAddressId', String(def.id));
+    } else if (fresh.length > 0) {
+      setSelectedAddressId(String(fresh[0].id));
+      await AsyncStorage.setItem('selectedAddressId', String(fresh[0].id));
+    } else {
+      setSelectedAddressId(null);
+      await AsyncStorage.removeItem('selectedAddressId');
     }
   };
 
+  // CLEAR EVERYTHING
   const resetAddress = async () => {
     setAddress([]);
     setSelectedAddressId(null);
@@ -107,7 +117,7 @@ export const AddressProvider = ({ children }) => {
         deleteAddress,
         markAsDefault,
         syncAddressesFromServer,
-        resetAddress, 
+        resetAddress,
         mode,
         setMode,
         addressData,

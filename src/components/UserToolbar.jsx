@@ -9,8 +9,9 @@ import {
 import { useSelector } from 'react-redux';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 import Entypo from 'react-native-vector-icons/Entypo';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 
 import { useNavigation } from '@react-navigation/native';
@@ -60,13 +61,12 @@ const UserToolbar = ({
               <MaterialIcons name="menu" size={24} color={Colors.secondary} />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity onPress={()=>navigation.goBack()}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
               <Entypo name="chevron-left" size={20} color={Colors.secondary} />
             </TouchableOpacity>
-    
           )}
           <Pressable onPress={handleLocation} style={styles.location}>
-            <Entypo name="shop" size={20} color={Colors.secondary} />
+            <Ionicons name="storefront-outline" size={24} color="black" />
             <Text style={styles.storeName}>{storeName}</Text>
           </Pressable>
         </View>
@@ -74,11 +74,8 @@ const UserToolbar = ({
         <View style={styles.rightSection}>
           {!hideCart && (
             <Pressable onPress={moveToCart} style={styles.iconWrapper}>
-              <SimpleLineIcons
-                name="handbag"
-                size={24}
-                color={Colors.secondary}
-              />
+              <Feather name="shopping-cart" size={24} color="black" />
+
               {totalItems > 0 && (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>
@@ -133,7 +130,9 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     flexDirection: 'row',
+    justifyContent:"space-around",
     alignItems: 'center',
+    width:"20%",
   },
   iconWrapper: {
     marginHorizontal: 10,
