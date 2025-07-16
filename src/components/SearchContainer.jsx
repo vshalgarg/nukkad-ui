@@ -11,7 +11,10 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
   }, [query]);
 
   return (
+
     <View style={styles.container}>
+      <View style={styles.innerContainer}>
+
       <Entypo
         name="magnifying-glass"
         size={20}
@@ -30,25 +33,34 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
         }}
         returnKeyType="search"
       />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    marginVertical: 5,
     paddingHorizontal: 20,
-    position: "relative",
-    justifyContent: "center",
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  innerContainer: {
+    width: '95%',
+    borderWidth: 0.5,
+    position: 'relative',
+    borderRadius: 50,
+    flexDirection: 'row',
+    marginVertical: 10,
+    height:50,
+    alignItems: 'center'  },
   icon: {
-    position: "absolute",
-    left: 35,
-    zIndex: 1,
+    marginLeft: '5%',
   },
   input: {
-    paddingLeft: 40 + 12, 
-    height: 46,
+    width:"85%",
     borderRadius: 999,
     backgroundColor: Colors.bgClr,
     color: Colors.secondary,

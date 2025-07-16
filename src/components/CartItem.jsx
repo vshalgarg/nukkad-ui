@@ -33,7 +33,6 @@ const CartItem = ({
   );
 
   const isDropdownOpen = openDropdownId === product.id;
-  console.log(item?.product.id);
   const handleDelete = async () => {
     try {
       await deleteCartItemAPI(item?.product.id, token);

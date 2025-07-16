@@ -19,9 +19,7 @@ export const createCustomerProfile = async profileData => {
   } catch (error) {
     console.error('❌ Create Profile API Error:', {
       message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      request: profileData,
+      status: error.response?.status
     });
 
     throw new Error(

@@ -24,9 +24,8 @@ const AddressCard = ({
       onPress={source === 'cart' ? onSelect : undefined}
       style={[styles.card, isSelected && styles.selectedCard]}
     >
-      
-
       <View style={styles.contentContainer}>
+        {/* ✅ Address Info */}
         <View style={styles.infoContainer}>
           {item.name && (
             <Text style={styles.nameText} numberOfLines={1}>
@@ -47,8 +46,8 @@ const AddressCard = ({
           </Text>
         </View>
 
+        {/* ✅ Right Actions */}
         <View style={styles.actionContainer}>
-          {/* === If from Cart: show "Change Address" button === */}
           {source === 'cart' ? (
             <Pressable style={styles.changeAddressBtn} onPress={onSelect}>
               <Text style={styles.changeAddressText}>Change Address</Text>
@@ -59,9 +58,20 @@ const AddressCard = ({
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
-                  width:"70"
+                  alignItems:"flex-end",
+                  width: 70,
                 }}
               >
+
+                {!hideDelete && !item.isDefault && source === 'cart' && (
+                  <Pressable
+                    style={[styles.editButton, styles.deleteButton]}
+                    onPress={() => onDelete(item)}
+                  >
+                    <AntDesign name="delete" size={24} color={Colors.reject} />
+                  </Pressable>
+                )}
+              </View>
                 <Pressable
                   style={[styles.editButton, styles.primaryButton]}
                   onPress={() => onEdit(item)}
@@ -73,24 +83,16 @@ const AddressCard = ({
                   />
                 </Pressable>
 
-                {!hideDelete && !item.isDefault && (
-                  <Pressable
-                    style={[styles.editButton, styles.deleteButton]}
-                    onPress={() => onDelete(item)}
-                  >
-                    <AntDesign name="delete" size={24} color={Colors.reject} />
-                  </Pressable>
-                )}
-              </View>
-
-              {!item.isDefault && (
-                <Pressable
-                  onPress={() => onMarkDefault?.(item.id)}
-                  style={styles.defaultBtn}
-                >
-                  <Text style={styles.defaultBtnText}>Mark as Default</Text>
-                </Pressable>
-              )}
+              {!item.isDefault &&
+                source === 'cart'
+                 &&(
+                    <Pressable
+                      onPress={() => onMarkDefault?.(item)}
+                      style={styles.defaultBtn}
+                    >
+                      <Text style={styles.defaultBtnText}>Mark as Default</Text>
+                    </Pressable>
+                  )}
             </View>
           )}
         </View>
@@ -109,7 +111,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     padding: 14,
     position: 'relative',
-    height:'110'
   },
   selectedCard: {
     borderColor: Colors.primary,
@@ -132,7 +133,6 @@ const styles = StyleSheet.create({
   addressLines: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
     marginBottom: 4,
   },
   secondaryText: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     justifyContent: 'space-between',
-    alignItems:"center",
+    alignItems: 'center',
     gap: 5,
   },
   editButton: {
@@ -162,12 +162,6 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     paddingVertical: 4,
-  },
-  editText: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
-    marginLeft: 6,
-    color: Colors.primary,
   },
   defaultBtn: {
     borderWidth: 1.5,

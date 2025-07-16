@@ -47,7 +47,7 @@ const slides = [
   originalSlides[0],
 ];
 
-export default function AutoSlider() {
+const AutoSlider = () => {
   const scrollViewRef = useRef(null);
   const scrollX = useRef(new Animated.Value(fullItemSpace)).current;
   const indexRef = useRef(1);
@@ -101,7 +101,7 @@ export default function AutoSlider() {
   };
 
   return (
-    <View style={{ marginTop: 20 }}>
+    <View>
       <Animated.ScrollView
         ref={scrollViewRef}
         horizontal
@@ -175,7 +175,10 @@ export default function AutoSlider() {
       </View>
     </View>
   );
-}
+};
+
+// ✅ Memoized to avoid unnecessary re-renders
+export default React.memo(AutoSlider);
 
 const styles = StyleSheet.create({
   slideContainer: {

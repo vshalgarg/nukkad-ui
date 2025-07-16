@@ -24,11 +24,14 @@ import { useRoute } from '@react-navigation/native';
 import { createCustomerProfile } from '../../services/customer/customerProfileService';
 import { useAuth } from '../../contexts/authContext';
 import { useDispatch } from 'react-redux';
+import Fonts from '../../styles/font';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 // import { setCartUser } from '../../store/cartSlice';
 
 let pressLock = false;
 
 const CustomerCreateProfile = () => {
+  useBackHandlerControl({ blockBack: true });
   const [name, setName] = useState('');
   const [dob, setDob] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -194,7 +197,7 @@ const CustomerCreateProfile = () => {
       setTimeout(() => {
         pressLock = false;
         safePush('AddStore', { hideBackButton: true });
-      }, 1500);
+      }, 100);
     } catch (err) {
       console.error(err);
       showToast('error', 'Profile creation failed.');
@@ -275,7 +278,7 @@ const CustomerCreateProfile = () => {
                       errors.dob && { borderColor: Colors.reject },
                     ]}
                   >
-                    <Text style={{ color: dob ? Colors.secondary : '#9CA3AF' }}>
+                    <Text style={{ color: dob ? Colors.secondary : Colors.diabledText }}>
                       {dob ? dob.toDateString() : 'Select Date of Birth'}
                     </Text>
                   </View>
@@ -409,11 +412,14 @@ const localStyles = StyleSheet.create({
     color: Colors.reject,
   },
   dobInput: {
+    height: 48,
     padding: 12,
     borderWidth: 1,
     borderColor: Colors.inputBorder,
-    borderRadius: 6,
+    borderRadius: 50,
     backgroundColor: Colors.white,
+    fontSize: Fonts.sizes.base,
+    marginBottom: 9,
   },
   buttonWrapper: {
     marginTop: 40,

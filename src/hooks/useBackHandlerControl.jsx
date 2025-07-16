@@ -1,43 +1,34 @@
-// hooks/useBackHandlerControl.js
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useCallback } from 'react';
+import { BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { getLoggingOut } from '../utils/logoutState';
 
-/**
- * @param {Object} options
- * @param {boolean} options.blockBack - If true, back is fully blocked
- * @param {boolean} options.confirmBack - If true, ask confirmation before back
- */
 export default function useBackHandlerControl({
   blockBack = false,
   confirmBack = false,
 } = {}) {
-  const navigation = useNavigation();
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (blockBack) return true;
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', e => {
-      if (blockBack) {
-        // Fully block back
-        e.preventDefault();
-        return;
-      }
+        if (confirmBack && !getLoggingOut()) {
+          Alert.alert('Exit App', 'Are you sure you want to exit?', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Exit', onPress: () => BackHandler.exitApp() },
+          ]);
+          return true;
+        }
 
-      if (confirmBack) {
-        // Show confirmation before navigating back
-        e.preventDefault();
-        Alert.alert('Confirm Exit', 'Are you sure you want to go back?', [
-          { text: 'Cancel', style: 'cancel', onPress: () => {} },
-          {
-            text: 'Yes',
-            style: 'destructive',
-            onPress: () => navigation.dispatch(e.data.action),
-          },
-        ]);
-      }
+        return false; // allow default back
+      };
 
-      // Else: allow back normally
-    });
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
 
-    return unsubscribe;
-  }, [navigation, blockBack, confirmBack]);
+      return () => subscription.remove();
+    }, [blockBack, confirmBack]),
+  );
 }
