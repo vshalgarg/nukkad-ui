@@ -184,6 +184,7 @@ const MobileOtpScreen = () => {
             maxLength={10}
             value={mobile}
             onTextChange={text => setMobile(text.replace(/[^0-9]/g, ''))}
+            textStyle={{ color: Colors.diabledText }}
           />
 
           <Text

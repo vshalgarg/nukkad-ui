@@ -47,7 +47,7 @@ const RateStore = () => {
     }
 
     try {
-      const storeKeeperId = storeData?.storekeeperId;
+      const storeKeeperId = storeData?.storekeeperId ||storeData.id;
       console.log(storeKeeperId)
 
       await rateStore(
@@ -59,6 +59,7 @@ const RateStore = () => {
         token,
       );
 
+      console.log(feedback);
       Keyboard.dismiss();
       feedbackRef.current?.blur();
       setShowThankYou(true);
