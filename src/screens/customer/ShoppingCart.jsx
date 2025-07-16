@@ -17,7 +17,7 @@ import CartItem from '../../components/CartItem';
 
 import { useAddress } from '../../contexts/addressContext';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../contexts/authContext';
 import { getCartItemsAPI } from '../../services/customer/cartService';
 import { useDispatch, useSelector} from 'react-redux';
@@ -40,19 +40,25 @@ const ShoppingCart = () => {
   const { safeReplace, safePush } = useSafeRouter();
   const { token } = useAuth();
   const navigation = useNavigation();
+  const route= useRoute()
+  const { fromRepeatOrder } = route.params || {};
 
   const dispatch = useDispatch();
+  console.log("selectedAddressId",selectedAddressId)
 
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(true);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
   const {storeData} =useStore();
-  const storeKeeperId = storeData?.storekeeperId;
+  console.log("storeData",storeData)
+  const storeKeeperId = storeData?.storekeeperId||storeData?.id;
 
   const selectedAddress =
-  address.find(item => item.id === selectedAddressId)||
-  address.find(item => item.isDefault) 
+  address.find(item => item.id.toString() === selectedAddressId)||
+  address.find(item => item.isDefault);
+  console.log(selectedAddress);
+
 
   const fetchCartItems = async () => {
     setLoading(true);
@@ -98,7 +104,11 @@ const ShoppingCart = () => {
   };
 
   const handleAddItems = () => {
-    navigation.goBack();
+    if (fromRepeatOrder) {
+      safeReplace('CustomerDashboard');
+    } else {
+      navigation.goBack();
+    }
   };
 
   const handleCompleteOrder = async () => {
@@ -137,6 +147,7 @@ const ShoppingCart = () => {
         unit: item.product.selectedUnit,
       })),
     };
+    console.log("payload",payload );
   
     try {
       const res = await placeOrder(payload, token);
@@ -204,7 +215,7 @@ const ShoppingCart = () => {
 
       <FlatList
         data={cartItems}
-        keyExtractor={item => item.cartItemId?.toString()}
+        keyExtractor={item => item.product.id?.toString()}
         renderItem={({ item }) => (
           <CartItem
             item={item}
@@ -221,13 +232,13 @@ const ShoppingCart = () => {
                 item={selectedAddress}
                 onEdit={handleEditAddress}
                 isSelected={true}
-                source="cart"
-                onSelect={() => safePush('Address', { fromCart: 'true' })}
+                source="cart" 
+                onSelect={() =>
+                  safePush({ name: 'Address', params: { fromCart: 'true' } })
+                }
               />
             ) : (
-              <View style={{justifyContent:"center",alignItems:"center"}}>
-
-              <Pressable onPress={handleAddAddress} >
+              <Pressable onPress={handleAddAddress}>
                 <Ionicons
                   name="add-circle-outline"
                   size={24}
@@ -235,7 +246,6 @@ const ShoppingCart = () => {
                 />
                 <Text style={innerStyle.buttonText}>Add Address</Text>
               </Pressable>
-              </View>
             )}
 
             <Text style={[innerStyle.heading, { marginTop: 20 }]}>

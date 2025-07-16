@@ -16,8 +16,10 @@ import { Camera } from 'react-native-camera-kit';
 import { showToast } from '../utils/toastUtils';
 import Fonts from '../styles/font';
 import Colors from '../styles/colors';
+import useBackHandlerControl from '../hooks/useBackHandlerControl';
 
 const QRScannerBox = forwardRef(({ onScan }, ref) => {
+  useBackHandlerControl({ blockBack: true });
   const [hasPermission, setHasPermission] = useState(Platform.OS === 'ios');
   const [scanned, setScanned] = useState(false);
 

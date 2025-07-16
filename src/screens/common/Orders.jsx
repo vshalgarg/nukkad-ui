@@ -1,4 +1,3 @@
-// Orders.jsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -75,10 +74,26 @@ const Orders = () => {
   };
 
   const applyFilter = () => {
+    const today = new Date();
+    const maxToDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+    );
+
     if (tempFrom && tempTo && tempTo < tempFrom) {
       Alert.alert('Invalid Date', "'To' date must be after 'From' date.");
       return;
     }
+
+    if (tempTo && tempTo > maxToDate) {
+      Alert.alert('Invalid Date', "'To' date cannot be in the future.");
+      return;
+    }
+
     setFromDate(tempFrom);
     setToDate(tempTo);
     setFilterModalVisible(false);
@@ -125,7 +140,7 @@ const Orders = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Sheet Modal */}
+      {/* Filter Modal */}
       <Modal
         visible={filterModalVisible}
         animationType="slide"
@@ -162,7 +177,7 @@ const Orders = () => {
 
             <Text style={localStyles.sectionTitle}>Order Status</Text>
             <View style={localStyles.statusRow}>
-              {['Pending', 'Completed', 'Cancelled'].map(status => (
+              {['PENDING', 'COMPLETED', 'CANCELLED'].map(status => (
                 <TouchableOpacity
                   key={status}
                   style={[
@@ -233,9 +248,21 @@ const Orders = () => {
           }
           mode="date"
           display="default"
+          maximumDate={new Date()}
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
             if (event.type !== 'set') return;
+
+            const today = new Date();
+            const maxToDate = new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate(),
+              23,
+              59,
+              59,
+            );
+
             if (activePicker === 'from') {
               setTempFrom(selectedDate);
               if (tempTo && selectedDate > tempTo) setTempTo(null);
@@ -244,6 +271,13 @@ const Orders = () => {
                 Alert.alert(
                   'Invalid Date',
                   "'To' date cannot be before 'From' date.",
+                );
+                return;
+              }
+              if (selectedDate > maxToDate) {
+                Alert.alert(
+                  'Invalid Date',
+                  "'To' date cannot be in the future.",
                 );
                 return;
               }

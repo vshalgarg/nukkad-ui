@@ -22,7 +22,7 @@ const CustomerOrderCard = ({ order, onPress, isExpanded, expandedView }) => {
   });
 
   const handleRepeatOrder = async () => {
-    if (!order.items || order.items.length === 0) {
+    if (!order.items || order.items.length === 0) { 
       Alert.alert('No items to reorder');
       return;
     }
@@ -59,7 +59,7 @@ const CustomerOrderCard = ({ order, onPress, isExpanded, expandedView }) => {
         dispatch(addToCart(cartItem));
       }
 
-      safePush('ShoppingCart');
+      safePush('ShoppingCart',{ fromRepeatOrder: true });
     } catch (err) {
       console.error('Repeat Order Failed:', err.message || err);
     }
@@ -164,8 +164,6 @@ const styles = StyleSheet.create({
   },
   expanded: {
     marginTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderColor,
     paddingTop: 10,
   },
 });

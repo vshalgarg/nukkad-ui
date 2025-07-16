@@ -17,7 +17,6 @@ import {
 } from '@react-navigation/native';
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 import QRScannerBox from '../../components/QRScannerBox.jsx';
 import { useStore } from '../../contexts/storeContext';
@@ -129,7 +128,7 @@ export default function AddStore() {
       }
 
       await persistStoreIfNew(store);
-      saveStore(store);
+      saveStore(store); // ✅ Sets as default
 
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', { scannedData: store }),
@@ -171,7 +170,7 @@ export default function AddStore() {
       navigation.navigate('CustomerDashboard');
     });
   };
-  
+
   const handleBackPress = () => {
     const canGoBack = navigation.canGoBack?.();
     stopCameraAndNavigate(() => {
@@ -183,13 +182,12 @@ export default function AddStore() {
   return (
     <View style={globalStyles.pageContainer}>
       <View style={{ height: 80 }}>
-       
         <Text
           style={[
             textStyles.subheading,
             {
               textAlign: 'center',
-              marginTop:'5%',
+              marginTop: '5%',
               textAlignVertical: 'center',
             },
           ]}

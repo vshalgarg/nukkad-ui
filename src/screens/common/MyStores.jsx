@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import BackButton from '../../components/BackButton';
@@ -24,18 +24,30 @@ import { useAuth } from '../../contexts/authContext';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
-  const { token } = useAuth(); // assume you have token in context
+  const { token } = useAuth();
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(null);
-  const { saveStore } = useStore();
+  const { saveStore ,storeData} = useStore();
 
   const fetchStores = async () => {
     try {
       setLoading(true);
       const response = await getMyStores(token);
-      console.log('📦 Stores fetched in component:', response); 
+      console.log('📦 Stores fetched in component:', response);
       setStores(response);
+
+      if (response.length === 1) {
+        // ✅ Automatically set the only store as default
+        saveStore(response[0]);
+      } else if (
+        storeData &&
+        !response.some(store => store.storekeeperId === storeData.storekeeperId)
+      ) {
+        // ✅ If current default store no longer exists, clear context
+        saveStore(null);
+      }
+
       if (response.length > 0) setSelectedStoreIndex(0);
     } catch (err) {
       console.error('❌ Failed to fetch stores in component:', err);
@@ -43,6 +55,7 @@ export default function MyStores() {
       setLoading(false);
     }
   };
+  
   
 
   useEffect(() => {
@@ -53,10 +66,13 @@ export default function MyStores() {
     safePush('AddStore');
   };
 
+
   const handleDelete = store => {
+    console.log('🗑️ Delete pressed for:', store);
+
     Alert.alert(
       'Delete Store',
-      `Are you sure you want to delete "${store.shopName}"?`,
+      `Are you sure you want to delete "${store.storeName}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -64,16 +80,29 @@ export default function MyStores() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteStore(store.id, token);
-              await fetchStores(); // re-fetch after deletion
+              const idToDelete = store.id || store.storekeeperId;
+              console.log('✅ Confirmed delete of:', idToDelete);
+
+              // ✅ Clear from context BEFORE delete
+              if (storeData?.storekeeperId === store.storekeeperId) {
+                console.log('🧹 Removing deleted store from context...');
+                saveStore(null); // This clears the store from global context
+              }
+
+              await deleteStore(idToDelete, token);
+              await fetchStores(); // Re-fetch updated store list
             } catch (err) {
-              console.error('Delete failed:', err);
+              console.error(
+                '❌ Delete failed:',
+                err?.response?.data || err.message,
+              );
             }
           },
         },
       ],
     );
   };
+  
 
   const handleSubmit = () => {
     if (selectedStoreIndex !== null) {
@@ -85,27 +114,50 @@ export default function MyStores() {
     }
   };
 
-  const renderItem = ({ item, index }) => (
-    <Pressable
-      style={[
-        innerStyle.card,
-        selectedStoreIndex === index && innerStyle.selectedCard,
-      ]}
-      onPress={() => setSelectedStoreIndex(index)}
-    >
-      <View style={innerStyle.radioContainer}>
-        <View style={innerStyle.iconColumn}>
-          <Text style={innerStyle.shopName}>{item.storeName}</Text>
-          <Text style={innerStyle.address}>{`${item.addressLine1}, ${item.city}`}</Text>
+  const renderItem = ({ item }) => {
+    const isSelected = storeData?.id === item.id;
+
+    const handleSetDefault = () => {
+      saveStore(item);
+    };
+
+    return (
+      <Pressable
+        style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
+      >
+        <View style={innerStyle.radioContainer}>
+          <View style={innerStyle.dataColumn}>
+            <Text style={innerStyle.shopName}>{item.storeName}</Text>
+            <Text
+              style={innerStyle.address}
+            >{`${item.addressLine1}, ${item.city}`}</Text>
+          </View>
+
+          <View style={innerStyle.iconColumn}>
+            <Pressable onPress={() => handleDelete(item)}>
+              <MaterialIcons
+                name="delete-outline"
+                size={24}
+                color={Colors.secondary}
+              />
+            </Pressable>
+            {!isSelected && (
+              <Pressable
+                style={innerStyle.setDefaultBtn}
+                onPress={handleSetDefault}
+              >
+                <Text style={innerStyle.setDefaultText}>Set as Default</Text>
+              </Pressable>
+            )}
+            {isSelected && (
+              <Text style={innerStyle.defaultBadge}>Default Store</Text>
+            )}
+          </View>
         </View>
-        <View style={innerStyle.iconColumn}>
-          <Pressable onPress={() => handleDelete(item)}>
-            <AntDesign name="delete" size={20} color={Colors.reject} />
-          </Pressable>
-        </View>
-      </View>
-    </Pressable>
-  );
+      </Pressable>
+    );
+  };
+  
 
   return (
     <View style={styles.pageContainer}>
@@ -144,7 +196,6 @@ export default function MyStores() {
                 className="bg-white"
                 textClassName="text-black"
               />
-              <CustomButton onPress={handleSubmit} title="Set As Default" />
             </View>
           </>
         )}
@@ -165,6 +216,25 @@ const innerStyle = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
   },
+  setDefaultBtn: {
+    marginTop: 8,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  setDefaultText: {
+    color: Colors.bgClr,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: 'bold',
+  },
+  defaultBadge: {
+    marginTop: 8,
+    color: Colors.primary,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: 'bold',
+  },
+
   addStoreContainer: {
     alignItems: 'center',
     padding: 5,
@@ -208,8 +278,13 @@ const innerStyle = StyleSheet.create({
     alignItems: 'center',
     height: 70,
   },
+  dataColumn: {
+    height: '100%',
+    justifyContent: 'space-around',
+  },
   iconColumn: {
     justifyContent: 'space-around',
+    alignItems: 'flex-end',
     height: '100%',
   },
   shopName: {

@@ -66,7 +66,7 @@ const CartItem = ({
         numericValue >= 0 &&
         amountInput !== originalAmount.current
       ) {
-        updateCartAPI(item.cartItemId, numericValue, token)
+        updateCartAPI(product.id, numericValue, selectedUnit,token)
           .then(() => {
             originalAmount.current = amountInput; // ✅ Update the ref
             dispatch(

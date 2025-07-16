@@ -13,7 +13,7 @@ import {
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AddressCard from '../../components/AddressCard';
@@ -32,19 +32,22 @@ const Address = () => {
     selectedAddressId,
     setSelectedAddressId,
     deleteAddress,
+    setAddress,
+    markAsDefault,
     syncAddressesFromServer,
   } = useAddress();
 
   const navigation = useNavigation();
   const route = useRoute();
-  const fromCart = route.params?.fromCart === 'true';
+  const initialFromCart = route.params?.fromCart === 'true';
+  const [fromCart] = useState(initialFromCart);
+  const hideDelete = fromCart;
 
   const handleSelectAddress = async id => {
-    const selectedId = String(id);
-    setSelectedAddressId(selectedId);
-    await AsyncStorage.setItem('selectedAddressId', selectedId);
-
-    if (fromCart) {
+    console.log('🛒 Address card pressed!');
+    setSelectedAddressId(String(id));
+    await AsyncStorage.setItem('selectedAddressId', String(id));
+    if(fromCart){
       navigation.goBack();
     }
   };
@@ -75,11 +78,11 @@ const Address = () => {
 
             deleteAddress(item.id);
 
-            const remaining = address.filter(a => a.id !== item.id);
-            if (isDeletingDefault && remaining.length > 0) {
-              const fallback = remaining[0];
+            const remainingAddresses = address.filter(a => a.id !== item.id);
+            if (isDeletingDefault && remainingAddresses.length > 0) {
+              const fallback = remainingAddresses[0];
               await handleSelectAddress(fallback.id);
-            } else if (remaining.length === 0) {
+            } else if (remainingAddresses.length === 0) {
               setSelectedAddressId(null);
               await AsyncStorage.removeItem('selectedAddressId');
             }
@@ -88,6 +91,49 @@ const Address = () => {
       ],
     );
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const syncSelectedAddress = async () => {
+        try {
+          const storedSelectedId = await AsyncStorage.getItem(
+            'selectedAddressId',
+          );
+
+          if (
+            storedSelectedId &&
+            address.some(a => String(a.id) === storedSelectedId)
+          ) {
+            setSelectedAddressId(storedSelectedId);
+          } else {
+            const defaultAddr = address.find(a => a.isDefault);
+            const fallback = defaultAddr || address[0];
+
+            if (fallback) {
+              setSelectedAddressId(String(fallback.id));
+              await AsyncStorage.setItem(
+                'selectedAddressId',
+                String(fallback.id),
+              );
+            } else {
+              setSelectedAddressId(null);
+              await AsyncStorage.removeItem('selectedAddressId');
+            }
+          }
+
+          if (route.params?.fromCart) {
+            navigation.setParams({ fromCart: undefined });
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to load selected address:', err.message);
+        }
+      };
+
+      syncSelectedAddress();
+    }, [address]),
+  );
+  
+  
 
   const handleMarkAsDefault = async item => {
     try {
@@ -99,83 +145,24 @@ const Address = () => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-
-      const load = async () => {
-        try {
-          await syncAddressesFromServer();
-
-          const savedId = await AsyncStorage.getItem('selectedAddressId');
-
-          if (savedId) {
-            setSelectedAddressId(savedId);
-          } else {
-            const stored = await AsyncStorage.getItem('address');
-            const list = stored ? JSON.parse(stored) : [];
-
-            const defaultAddr = list.find(a => a.isDefault);
-            if (defaultAddr) {
-              setSelectedAddressId(String(defaultAddr.id));
-              await AsyncStorage.setItem(
-                'selectedAddressId',
-                String(defaultAddr.id),
-              );
-            } else if (list.length > 0) {
-              const first = list[0];
-              setSelectedAddressId(String(first.id));
-              await AsyncStorage.setItem('selectedAddressId', String(first.id));
-            } else {
-              setSelectedAddressId(null);
-              await AsyncStorage.removeItem('selectedAddressId');
-            }
-          }
-
-          if (route.params?.fromCart) {
-            navigation.setParams({ fromCart: undefined });
-          }
-        } catch (err) {
-          console.warn('⚠️ Failed to load default address:', err.message);
-        }
-      };
-
-      if (isActive) {
-        load();
-      }
-
-      return () => {
-        isActive = false;
-      };
-    }, [navigation, route.params]), // <--- ✅ add route.params or force re-run on screen focus
-  );
-  
-
   return (
     <SafeAreaView style={[styles.pageContainer, { flex: 1 }]}>
-      <View style={{ flex: 1 }}>
+      <View style={[styles.pageContainer, { flex: 1 }]}>
         <BackButton title="Delivery Address" />
 
         <FlatList
-          data={[...address].sort((a, b) => b.id - a.id)}
+          data={[...address]}
           keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
             <AddressCard
               item={item}
-              onEdit={() => handleEditAddress(item)}
+              onEdit={handleEditAddress}
+              onDelete={handleDeleteAddress}
+              onSelect={() => handleSelectAddress(item.id)} 
+              onMarkDefault={() => handleMarkAsDefault(item)}
               isSelected={String(item.id) === String(selectedAddressId)}
+              hideDelete={hideDelete || address.length === 1}
               source={fromCart ? 'cart' : 'sidebar'}
-              {...(fromCart
-                ? {
-                    onSelect: () => handleSelectAddress(item.id),
-                    hideDelete: true,
-                    onDelete: undefined,
-                    onMarkDefault: undefined,
-                  }
-                : {
-                    onDelete: () => handleDeleteAddress(item),
-                    onMarkDefault: () => handleMarkAsDefault(item),
-                  })}
             />
           )}
           contentContainerStyle={{

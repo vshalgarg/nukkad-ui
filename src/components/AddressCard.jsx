@@ -1,7 +1,6 @@
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeRouter } from '../hooks/useSafeRouter.js';
 import Colors from '../styles/colors.js';
 import Fonts from '../styles/font.js';
 
@@ -15,17 +14,17 @@ const AddressCard = ({
   onMarkDefault,
   isSelected,
   hideDelete = false,
-  source = 'sidebar', // "cart" | "sidebar"
+  source = 'sidebar', // 'cart' | 'sidebar' | 'minimal'
 }) => {
-  const { safePush } = useSafeRouter();
+  const showOnlyAddress = source === 'cart';
+  const allowActions = source === 'sidebar';
 
   return (
     <Pressable
-      onPress={source === 'cart' ? onSelect : undefined}
+      onPress={onSelect}
       style={[styles.card, isSelected && styles.selectedCard]}
     >
       <View style={styles.contentContainer}>
-        {/* ✅ Address Info */}
         <View style={styles.infoContainer}>
           {item.name && (
             <Text style={styles.nameText} numberOfLines={1}>
@@ -35,7 +34,7 @@ const AddressCard = ({
 
           <View style={styles.addressLines}>
             <Text style={styles.secondaryText}>
-              {[item.address1, item.address2, item.landmark]
+              {[item.addressLine1, item.addressLine2, item.landmark]
                 .filter(Boolean)
                 .join(', ')}
             </Text>
@@ -46,53 +45,45 @@ const AddressCard = ({
           </Text>
         </View>
 
-        {/* ✅ Right Actions */}
         <View style={styles.actionContainer}>
-          {source === 'cart' ? (
+          {showOnlyAddress && (
             <Pressable style={styles.changeAddressBtn} onPress={onSelect}>
               <Text style={styles.changeAddressText}>Change Address</Text>
             </Pressable>
-          ) : (
-            <View style={styles.btnContainer}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems:"flex-end",
-                  width: 70,
-                }}
-              >
+          )}
 
-                {!hideDelete && !item.isDefault && source === 'cart' && (
-                  <Pressable
-                    style={[styles.editButton, styles.deleteButton]}
-                    onPress={() => onDelete(item)}
-                  >
-                    <AntDesign name="delete" size={24} color={Colors.reject} />
-                  </Pressable>
-                )}
-              </View>
+          {allowActions && (
+            <View style={styles.btnContainer}>
+              <View style={styles.editDeleteRow}>
                 <Pressable
                   style={[styles.editButton, styles.primaryButton]}
                   onPress={() => onEdit(item)}
                 >
-                  <Ionicons
-                    name="create-outline"
-                    size={24}
-                    color={Colors.primary}
-                  />
+                  <FontAwesome name="edit" size={24} color={Colors.primary} />
                 </Pressable>
 
-              {!item.isDefault &&
-                source === 'cart'
-                 &&(
-                    <Pressable
-                      onPress={() => onMarkDefault?.(item)}
-                      style={styles.defaultBtn}
-                    >
-                      <Text style={styles.defaultBtnText}>Mark as Default</Text>
-                    </Pressable>
-                  )}
+                {!hideDelete && !item.isDefault && (
+                  <Pressable
+                    style={[styles.editButton, styles.deleteButton]}
+                    onPress={() => onDelete(item)}
+                  >
+                    <MaterialIcons
+                      name="delete-outline"
+                      size={24}
+                      color={Colors.secondary}
+                    />
+                  </Pressable>
+                )}
+              </View>
+
+              {!item.isDefault && (
+                <Pressable
+                  onPress={() => onMarkDefault?.(item.id)}
+                  style={styles.defaultBtn}
+                >
+                  <Text style={styles.defaultBtnText}>Mark as Default</Text>
+                </Pressable>
+              )}
             </View>
           )}
         </View>
@@ -111,6 +102,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     padding: 14,
     position: 'relative',
+    height: 110,
   },
   selectedCard: {
     borderColor: Colors.primary,
@@ -133,6 +125,7 @@ const styles = StyleSheet.create({
   addressLines: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 4,
     marginBottom: 4,
   },
   secondaryText: {
@@ -152,6 +145,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 5,
+  },
+  editDeleteRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 70,
   },
   editButton: {
     flexDirection: 'row',
@@ -174,21 +172,6 @@ const styles = StyleSheet.create({
   defaultBtnText: {
     color: Colors.primary,
     fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
-  },
-  defaultLabel: {
-    position: 'absolute',
-    top: -12,
-    right: 5,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 12,
-    zIndex: 2,
-  },
-  defaultLabelText: {
-    color: Colors.bgClr,
-    fontSize: Fonts.sizes.xs,
     fontWeight: '600',
   },
   changeAddressBtn: {

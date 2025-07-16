@@ -7,6 +7,7 @@ import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
+import textStyles from '../../styles/textStyles';
 
 const PlaceOrder = () => {
   const { safePush } = useSafeRouter(); 
@@ -17,7 +18,7 @@ const PlaceOrder = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title="CheckOut" />
+      <Text style={[textStyles.heading,{textAlign:"center",marginTop:"5%"}]}>CheckOut</Text>
       <View style={innerStyle.container}>
         <View style={innerStyle.topImage}>
           <Design width="100%" height={100} />
