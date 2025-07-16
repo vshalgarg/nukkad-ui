@@ -55,14 +55,7 @@ export default function CategorySlider({ selectedCategoryId }) {
     fetchCategories();
   }, []);
 
-  // useEffect(() => {
-  //   if (categories.length > 0 && selectedCategoryId) {
-  //     const index = categories.findIndex(cat => cat.id === selectedCategoryId);
-  //     if (index >= 0 && flatListRef.current) {
-  //       flatListRef.current.scrollToIndex({ index, animated: true });
-  //     }
-  //   }
-  // }, [categories, selectedCategoryId]);
+  
 
   const handleCategoryPress = category => {
     navigation.navigate('ProductPage', {
@@ -91,7 +84,11 @@ export default function CategorySlider({ selectedCategoryId }) {
             isSelected && styles.selectedText,
           ]}
         >
-          {item.name}
+          {item.name
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')}
         </Text>
       </TouchableOpacity>
     );
@@ -132,8 +129,11 @@ const styles = StyleSheet.create({
   wrapper: {
     flexDirection: 'row',
     marginTop: 20,
+    marginHorizontal: 9,
   },
   category: {
+    borderWidth: 1,
+    borderColor:"transparent",
     marginHorizontal: 0,
     paddingVertical: 10,
     alignItems: 'center',
@@ -153,7 +153,8 @@ const styles = StyleSheet.create({
   image: {
     width: 80,
     height: 60,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
+    borderRadius: 5,
   },
   name: {
     fontWeight: '500',

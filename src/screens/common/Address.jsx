@@ -32,22 +32,22 @@ const Address = () => {
     selectedAddressId,
     setSelectedAddressId,
     deleteAddress,
-    setAddress,
-    markAsDefault,
     syncAddressesFromServer,
   } = useAddress();
 
   const navigation = useNavigation();
   const route = useRoute();
   const fromCart = route.params?.fromCart === 'true';
-  const hideDelete = fromCart;
 
   const handleSelectAddress = async id => {
-    setSelectedAddressId(String(id));
-    await AsyncStorage.setItem('selectedAddressId', String(id));
+    const selectedId = String(id);
+    setSelectedAddressId(selectedId);
+    await AsyncStorage.setItem('selectedAddressId', selectedId);
+
+    if (fromCart) {
+      navigation.goBack();
+    }
   };
-  
-  
 
   const handleAddAddress = () => {
     setMode('add');
@@ -75,11 +75,11 @@ const Address = () => {
 
             deleteAddress(item.id);
 
-            const remainingAddresses = address.filter(a => a.id !== item.id);
-            if (isDeletingDefault && remainingAddresses.length > 0) {
-              const fallback = remainingAddresses[0];
+            const remaining = address.filter(a => a.id !== item.id);
+            if (isDeletingDefault && remaining.length > 0) {
+              const fallback = remaining[0];
               await handleSelectAddress(fallback.id);
-            } else if (remainingAddresses.length === 0) {
+            } else if (remaining.length === 0) {
               setSelectedAddressId(null);
               await AsyncStorage.removeItem('selectedAddressId');
             }
@@ -89,31 +89,41 @@ const Address = () => {
     );
   };
 
+  const handleMarkAsDefault = async item => {
+    try {
+      await markAddressAsDefault(item.id);
+      await syncAddressesFromServer();
+      await handleSelectAddress(item.id);
+    } catch (error) {
+      console.error('Error marking address as default:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
+      let isActive = true;
+
       const load = async () => {
         try {
           await syncAddressesFromServer();
 
-          const selectedAddress = await AsyncStorage.getItem('selectedAddressId');
-          console.log(selectedAddress)
-          if (selectedAddress) {
-            setSelectedAddressId(selectedAddress);
+          const savedId = await AsyncStorage.getItem('selectedAddressId');
+
+          if (savedId) {
+            setSelectedAddressId(savedId);
           } else {
-            const storedList = await AsyncStorage.getItem('address');
-            const parsedList = storedList ? JSON.parse(storedList) : [];
+            const stored = await AsyncStorage.getItem('address');
+            const list = stored ? JSON.parse(stored) : [];
 
-            const defaultAddr = parsedList.find(a => a.isDefault);
-            console.log("defaultAddr",defaultAddr)
-
+            const defaultAddr = list.find(a => a.isDefault);
             if (defaultAddr) {
               setSelectedAddressId(String(defaultAddr.id));
               await AsyncStorage.setItem(
                 'selectedAddressId',
                 String(defaultAddr.id),
               );
-            } else if (parsedList.length > 0) {
-              const first = parsedList[0];
+            } else if (list.length > 0) {
+              const first = list[0];
               setSelectedAddressId(String(first.id));
               await AsyncStorage.setItem('selectedAddressId', String(first.id));
             } else {
@@ -122,7 +132,6 @@ const Address = () => {
             }
           }
 
-          // ✅ Clear fromCart param after initial mount (to hide Change Address later)
           if (route.params?.fromCart) {
             navigation.setParams({ fromCart: undefined });
           }
@@ -131,30 +140,20 @@ const Address = () => {
         }
       };
 
-      load();
-    }, []),
+      if (isActive) {
+        load();
+      }
+
+      return () => {
+        isActive = false;
+      };
+    }, [navigation, route.params]), // <--- ✅ add route.params or force re-run on screen focus
   );
   
-  
 
-  console.log(
-    'Address List (sorted):',
-    [...address].sort((a, b) => b.id - a.id),
-  );
-
-  const handleMarkAsDefault = async item => {
-    try {
-      await markAsDefault(item.id); 
-      await syncAddressesFromServer();
-      await handleSelectAddress(item.id); 
-    } catch (error) {
-      console.error('Error marking address as default:', error);
-    }
-  };
-  
   return (
     <SafeAreaView style={[styles.pageContainer, { flex: 1 }]}>
-      <View style={[styles.pageContainer, { flex: 1 }]}>
+      <View style={{ flex: 1 }}>
         <BackButton title="Delivery Address" />
 
         <FlatList
@@ -163,15 +162,20 @@ const Address = () => {
           renderItem={({ item }) => (
             <AddressCard
               item={item}
-              onEdit={handleEditAddress}
-              onDelete={handleDeleteAddress}
-              onSelect={
-                fromCart ? () => handleSelectAddress(item.id) : undefined
-              }
-              onMarkDefault={() => handleMarkAsDefault(item)}
+              onEdit={() => handleEditAddress(item)}
               isSelected={String(item.id) === String(selectedAddressId)}
-              hideDelete={hideDelete || address.length === 1}
               source={fromCart ? 'cart' : 'sidebar'}
+              {...(fromCart
+                ? {
+                    onSelect: () => handleSelectAddress(item.id),
+                    hideDelete: true,
+                    onDelete: undefined,
+                    onMarkDefault: undefined,
+                  }
+                : {
+                    onDelete: () => handleDeleteAddress(item),
+                    onMarkDefault: () => handleMarkAsDefault(item),
+                  })}
             />
           )}
           contentContainerStyle={{

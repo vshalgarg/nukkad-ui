@@ -27,44 +27,83 @@ import {
   updateOrderNote,
 } from '../../store/storekeeperOrdersSlice';
 import Fonts from '../../styles/font';
+import { dispatchOrder } from '../../services/storekeeper/dispatchOrderService';
+import { useAuth } from '../../contexts/authContext';
+import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
 
-const OrderItem = memo(({ item, price, isEditable, onPriceChange }) => {
-  const itemId = item.id || item.productId;
-  const itemTitle = item.title || item.productName;
-  const itemWeight = item.weight || '0';
+const OrderItem = memo(
+  ({
+    item,
+    price,
+    isEditable,
+    onPriceChange,
+    outOfStock,
+    onToggleOutOfStock,
+  }) => {
+    const itemId = item.itemId || item.productId;
+    const itemTitle = item.itemName || item.productName;
+    const itemWeight = `${item.quantity} ${item.unit}`;
 
-  return (
-    <View style={innerStyle.card}>
-      <Image source={{ uri: item.image }} style={innerStyle.image} />
-      <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={innerStyle.title}>{itemTitle}</Text>
-        <Text style={innerStyle.text}>Weight: {itemWeight}</Text>
+    return (
+      <View style={innerStyle.card}>
+        <Image source={{ uri: item.image }} style={innerStyle.image} />
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={innerStyle.title}>{itemTitle}</Text>
+          <Text style={innerStyle.text}>Weight: {itemWeight}</Text>
+        </View>
+
+        <View>
+          {isEditable && (
+            <View style={innerStyle.toggleWrapper}>
+              <Text style={innerStyle.text}>Out of Stock</Text>
+              <TouchableWithoutFeedback
+                onPress={() => onToggleOutOfStock(itemId)}
+              >
+                <View
+                  style={[
+                    innerStyle.toggle,
+                    outOfStock ? innerStyle.toggleOn : innerStyle.toggleOff,
+                  ]}
+                >
+                  <View
+                    style={[
+                      innerStyle.circle,
+                      outOfStock && { alignSelf: 'flex-end' },
+                    ]}
+                  />
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          )}
+          {isEditable ? (
+            <TextInput
+              placeholder="Set Price"
+              placeholderTextColor={Colors.secondaryText}
+              style={innerStyle.input}
+              keyboardType="numeric"
+              value={price?.toString()}
+              maxLength={4}
+              editable={!outOfStock}
+              onChangeText={value => onPriceChange(itemId, value)}
+            />
+          ) : (
+            <TextInput
+              style={[innerStyle.input, { color: Colors.secondary }]}
+              value={`₹ ${price || '0'}`}
+              editable={false}
+            />
+          )}
+        </View>
       </View>
-
-      {isEditable ? (
-        <TextInput
-          placeholder="Set Price"
-          placeholderTextColor={Colors.secondaryText} 
-          style={innerStyle.input}
-          keyboardType="numeric"
-          value={price?.toString()}
-          maxLength={4}
-          onChangeText={value => onPriceChange(itemId, value)}
-        />
-      ) : (
-        <TextInput
-          style={[innerStyle.input, { color: Colors.secondary }]}
-          value={`₹ ${price || '0'}`}
-          editable={false}
-        />
-      )}
-    </View>
-  );
-});
+    );
+  },
+);
 
 const ShowDetails = () => {
   const [note, setNote] = useState('');
   const [showPopup, setShowPopup] = useState(false);
+
+  const { token } = useAuth();
 
   const route = useRoute();
   const navigation = useNavigation();
@@ -77,11 +116,18 @@ const ShowDetails = () => {
     state.storekeeperOrders.orders.find(order => order.orderId === orderId),
   );
 
-  const isInProgress = order?.status === 'In Progress';
-  const isDispatched = order?.status === 'Dispatched';
-  const isDelivered = order?.status === 'Delivered';
-  const isRejected = order?.status === 'Rejected';
+  const isInProgress = order?.status === 'IN_PROGRESS';
+  const isDispatched = order?.status === 'DISPATCHED';
+  const isDelivered = order?.status === 'DELIVERED';
+  const isRejected = order?.status === 'CANCELLED';
   const isPending = !isDelivered && !isRejected;
+  const [outOfStockMap, setOutOfStockMap] = useState(
+    parsedItems.reduce((acc, item) => {
+      const itemId = item.itemId || item.id || item.productId;
+      acc[itemId] = false;
+      return acc;
+    }, {}),
+  );
 
   const [prices, setPrices] = useState(
     parsedItems.reduce((acc, item) => {
@@ -94,31 +140,57 @@ const ShowDetails = () => {
     }, {}),
   );
 
+  const handleToggleOutOfStock = itemId => {
+    setOutOfStockMap(prev => {
+      const isNowOut = !prev[itemId];
+
+      setPrices(prices => ({
+        ...prices,
+        [itemId]: isNowOut ? '0' : '',
+      }));
+
+      return {
+        ...prev,
+        [itemId]: isNowOut,
+      };
+    });
+  };
+
   const handlePriceChange = (id, value) => {
     const numericValue = value.replace(/[^0-9]/g, '');
     setPrices(prev => ({ ...prev, [id]: numericValue }));
   };
 
-  const handleReject = () => {
-    Alert.alert('Reject Order', 'Are you sure you want to reject order?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reject Order',
-        onPress: () => {
-          if (order) {
-            dispatch(updateOrderStatus({ orderId, newStatus: 'Rejected' }));
-            navigation.navigate('StorekeeperDashboard', { tab: 'Rejected' });
-          } else {
-            Alert.alert('Error', 'Order not found.');
-          }
+  const handleReject = orderId => {
+    Alert.alert(
+      'Reject Order',
+      'Are you sure you want to reject this order?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            const payload = { status: 'CANCELLED' };
+
+            await updateOrderStatusById(orderId, payload, token);
+
+            dispatch(
+              updateOrderStatus({
+                orderId: orderId,
+                newStatus: 'CANCELLED',
+              }),
+            );
+          },
         },
-      },
-    ]);
+      ],
+      { cancelable: true },
+    );
   };
 
-  const handleDispatch = () => {
+  const handleDispatch = async () => {
     const allPricesEntered = parsedItems.every(item => {
-      const itemId = item.id || item.productId;
+      const itemId = item.itemId || item.id || item.productId;
       return prices[itemId] && prices[itemId].trim() !== '';
     });
 
@@ -130,35 +202,49 @@ const ShowDetails = () => {
       return;
     }
 
-    Alert.alert(
-      'Dispatch Order',
-      'Are you sure you want to dispatch this order?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Dispatch',
-          onPress: () => {
-            if (order) {
-              const pricedItems = parsedItems.map(item => {
-                const itemId = item.id || item.productId;
-                return { ...item, price: parseInt(prices[itemId]) || 0 };
-              });
-
-              dispatch(updateOrderPrices({ orderId, items: pricedItems }));
-              dispatch(updateOrderStatus({ orderId, newStatus: 'Dispatched' }));
-              if (note.trim()) {
-                dispatch(updateOrderNote({ orderId, note: note.trim() }));
-              }
-            } else {
+    Alert.alert('Dispatch Order', 'Are you sure you want to dispatch?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Dispatch',
+        onPress: async () => {
+          try {
+            if (!order) {
               Alert.alert('Error', 'Order not found.');
+              return;
             }
-          },
+            const orderItem = parsedItems.map(item => {
+              const itemId = item.itemId || item.id || item.productId;
+              return {
+                itemId,
+                price: parseFloat(prices[itemId]) || 0,
+              };
+            });
+
+            const payload = {
+              orderId,
+              note: note.trim(),
+              orderItem,
+            };
+
+            await dispatchOrder(payload, token);
+
+            // ✅ Update Redux state
+            dispatch(updateOrderPrices({ orderId, items: parsedItems }));
+            dispatch(updateOrderStatus({ orderId, newStatus: 'DISPATCHED' }));
+            if (note.trim()) {
+              dispatch(updateOrderNote({ orderId, note: note.trim() }));
+            }
+
+            Alert.alert('Success', 'Order dispatched successfully!');
+          } catch (err) {
+            Alert.alert('Error', err.message || 'Failed to dispatch order');
+          }
         },
-      ],
-    );
+      },
+    ]);
   };
 
-  const handleDeliver = () => {
+  const handleDeliver = orderId => {
     Alert.alert(
       'Deliver Order',
       'Are you sure you want to deliver this order?',
@@ -166,16 +252,21 @@ const ShowDetails = () => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes, Deliver',
-          onPress: () => {
-            if (order) {
-              dispatch(updateOrderStatus({ orderId, newStatus: 'Delivered' }));
-              navigation.navigate('StorekeeperDashboard', { tab: 'Delivered' });
-            } else {
-              Alert.alert('Error', 'Order not found.');
-            }
+          onPress: async () => {
+            const payload = { status: 'DELIVERED' };
+
+            await updateOrderStatusById(orderId, payload, token);
+
+            dispatch(
+              updateOrderStatus({
+                orderId: orderId,
+                newStatus: 'DELIVERED',
+              }),
+            );
           },
         },
       ],
+      { cancelable: true },
     );
   };
 
@@ -216,7 +307,7 @@ const ShowDetails = () => {
                     </Text>
                     <View style={innerStyle.rowBetween}>
                       <Text style={innerStyle.addressCardDetails}>
-                        {order.mobileNumber}
+                        {order.customerMobileNumber}
                       </Text>
                       {(isPending || isDispatched) && (
                         <Mobile
@@ -235,9 +326,11 @@ const ShowDetails = () => {
               renderItem={({ item }) => (
                 <OrderItem
                   item={item}
-                  price={prices[item.id || item.productId]}
+                  price={prices[item.itemId]}
                   isEditable={!isDelivered && !isDispatched && !isRejected}
                   onPriceChange={handlePriceChange}
+                  outOfStock={outOfStockMap[item.itemId]}
+                  onToggleOutOfStock={handleToggleOutOfStock}
                 />
               )}
               ListFooterComponent={
@@ -280,7 +373,7 @@ const ShowDetails = () => {
                     <CustomButton
                       title="Dispatch Order"
                       onPress={handleDispatch}
-                      style={{fontSize:Fonts.sizes.sm}}
+                      style={{ fontSize: Fonts.sizes.sm }}
                     />
                   </>
                 )}
@@ -355,6 +448,32 @@ const innerStyle = StyleSheet.create({
     marginTop: 5,
     color: Colors.secondary,
   },
+  toggleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 5,
+  },
+  toggle: {
+    width: 45,
+    height: 25,
+    borderRadius: 13,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleOn: {
+    backgroundColor: Colors.reject,
+  },
+  toggleOff: {
+    backgroundColor: Colors.secondaryText,
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.bgClr,
+  },
+
   input: {
     width: 80,
     height: 40,

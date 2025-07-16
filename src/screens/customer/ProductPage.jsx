@@ -23,8 +23,11 @@ import Colors from '../../styles/colors.js';
 import styles from '../../styles/globalStyles.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import Fonts from '../../styles/font.js';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 
 const ProductPage = () => {
+  useBackHandlerControl({ confirmBack: false });
+
   const navigation = useNavigation();
   const route = useRoute();
   const { safePush } = useSafeRouter();
@@ -91,6 +94,7 @@ const ProductPage = () => {
     <View style={[styles.pageContainer, { flex: 1, backgroundColor: 'white' }]}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
+          <UserToolbar hideNotification={true} hideMenu={true} />
           <KeyboardAwareFlatList
             enableOnAndroid
             extraScrollHeight={100}
@@ -100,7 +104,6 @@ const ProductPage = () => {
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={
               <View>
-                <UserToolbar hideNotification={true} hideMenu={true} />
                 <SearchContainer
                   query={searchQuery}
                   onSearchSubmit={newQuery => {

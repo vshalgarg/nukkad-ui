@@ -6,7 +6,13 @@ const CategoryCard = ({ category, onPress }) => {
   return (
     <Pressable style={styles.card} onPress={() => onPress(category)}>
       <Image source={{ uri: category.imageUrl }} style={styles.image} />
-      <Text style={[styles.name,textStyles.caption]}>{category.name}</Text>
+      <Text style={[styles.name, textStyles.caption]}>
+        {category.name
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')}
+      </Text>
     </Pressable>
   );
 };

@@ -16,24 +16,34 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 import SideBar from '../../components/sidebar/SideBar';
-import { updateOrderStatus } from '../../store/storekeeperOrdersSlice';
+import {
+  resetOrdersFromFile,
+  updateOrderStatus,
+} from '../../store/storekeeperOrdersSlice';
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import textStyles from '../../styles/textStyles';
+import { useAuth } from '../../contexts/authContext';
+import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
 
 const StorekeeperDashboard = () => {
   const [formState, setFormState] = useState(0);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [popupOrderId, setPopupOrderId] = useState(null);
+  const { token } = useAuth();
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const route = useRoute();
   const tab = route?.params?.tab;
 
-  const statusMap = ['Pending', 'In Progress', 'Delivered'];
+  const statusMap = ['PENDING', 'IN_PROGRESS', 'DELIVERED'];
   const orders = useSelector(state => state.storekeeperOrders.orders);
+  const handleReset = () => {
+    dispatch(resetOrdersFromFile());
+    updateOrderStatus(null);
+  };
 
   useEffect(() => {
     const tabIndex = statusMap.findIndex(
@@ -43,8 +53,8 @@ const StorekeeperDashboard = () => {
   }, [tab]);
 
   const filteredOrders = orders.filter(order => {
-    if (statusMap[formState] === 'In Progress') {
-      return order.status === 'In Progress' || order.status === 'Dispatched';
+    if (statusMap[formState] === 'IN_PROGRESS') {
+      return order.status === 'IN_PROGRESS' || order.status === 'Dispatched';
     }
     return order.status === statusMap[formState];
   });
@@ -57,19 +67,35 @@ const StorekeeperDashboard = () => {
     }
   };
 
-  const handleDetails = order => {
-    if (order.status === 'Pending') {
-      dispatch(
-        updateOrderStatus({ orderId: order.orderId, newStatus: 'In Progress' }),
+  const handleDetails = async order => {
+    try {
+      if (order.status === 'PENDING') {
+        const payload = { status: 'IN_PROGRESS' };
+
+        await updateOrderStatusById(order.orderId, payload, token);
+
+        dispatch(
+          updateOrderStatus({
+            orderId: order.orderId,
+            newStatus: 'IN_PROGRESS',
+          }),
+        );
+      }
+
+      // ✅ Navigate to ShowDetails screen
+      safePush({
+        pathname: 'ShowDetails',
+        params: {
+          orderId: order.orderId,
+          items: JSON.stringify(order.items),
+        },
+      });
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to update order status. Please try again.',
       );
     }
-    safePush({
-      pathname: 'ShowDetails',
-      params: {
-        orderId: order.orderId,
-        items: JSON.stringify(order.items),
-      },
-    });
   };
 
   const handleReject = orderId => {
@@ -81,8 +107,18 @@ const StorekeeperDashboard = () => {
         {
           text: 'Reject',
           style: 'destructive',
-          onPress: () =>
-            dispatch(updateOrderStatus({ orderId, newStatus: 'Rejected' })),
+          onPress: async () => {
+            const payload = { status: 'CANCELLED' };
+
+            await updateOrderStatusById(orderId, payload, token);
+
+            dispatch(
+              updateOrderStatus({
+                orderId: orderId,
+                newStatus: 'CANCELLED',
+              }),
+            );
+          },
         },
       ],
       { cancelable: true },
@@ -97,8 +133,18 @@ const StorekeeperDashboard = () => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes, Deliver',
-          onPress: () =>
-            dispatch(updateOrderStatus({ orderId, newStatus: 'Delivered' })),
+          onPress: async () => {
+            const payload = { status: 'DELIVERED' };
+
+            await updateOrderStatusById(orderId, payload, token);
+
+            dispatch(
+              updateOrderStatus({
+                orderId: orderId,
+                newStatus: 'DELIVERED',
+              }),
+            );
+          },
         },
       ],
       { cancelable: true },
@@ -111,14 +157,18 @@ const StorekeeperDashboard = () => {
         <TouchableOpacity onPress={() => setIsSideBarOpen(true)}>
           <MaterialIcons name="menu" size={26} color={Colors.secondary} />
         </TouchableOpacity>
-        <Text style={[innerStyle.heading,textStyles.subheading]}>My Orders</Text>
+        <Text style={[innerStyle.heading, textStyles.subheading]}>
+          My Orders
+        </Text>
         <TouchableOpacity
           onPress={() => safePush({ pathname: 'Notification' })}
         >
           <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
         </TouchableOpacity>
       </View>
-
+      {/* <Pressable onPress={handleReset}>
+        <Text>RESET</Text>
+      </Pressable> */}
       <SideBar
         isVisible={isSideBarOpen}
         onClose={() => setIsSideBarOpen(false)}
@@ -175,18 +225,11 @@ const StorekeeperDashboard = () => {
                     {' ' + order.landmark}
                   </Text>
                 </Text>
-                {order.status !== 'Pending' && order.status !== 'Rejected' && (
-                  <Text style={innerStyle.orderDetailsHeading}>
-                    Tracking
-                    <Text style={innerStyle.orderDetails}>
-                      {' #' + order.trackingNumber}
-                    </Text>
-                  </Text>
-                )}
+        
                 <Text style={innerStyle.orderDetailsHeading}>
                   Quantity:
                   <Text style={innerStyle.orderDetails}>
-                    {' ' + order.quantity}
+                    {' ' + order.items.length}
                   </Text>
                 </Text>
                 <Text
@@ -194,11 +237,11 @@ const StorekeeperDashboard = () => {
                     innerStyle.updatedStatus,
                     {
                       color:
-                        order.status === 'Pending'
+                        order.status === 'PENDING'
                           ? 'red'
-                          : order.status === 'In Progress'
+                          : order.status === 'IN_PROGRESS'
                           ? 'orange'
-                          : order.status === 'Delivered'
+                          : order.status === 'DELIVERED'
                           ? 'green'
                           : 'red',
                     },
@@ -218,8 +261,8 @@ const StorekeeperDashboard = () => {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
                 >
                   <Text style={innerStyle.orderDetails}>{order.date}</Text>
-                  {order.status !== 'Delivered' &&
-                    order.status !== 'Rejected' && (
+                  {order.status !== 'DELIVERED' &&
+                    order.status !== 'CANCELLED' && (
                       <Pressable
                         onPress={() =>
                           setPopupOrderId(prev =>
@@ -258,7 +301,11 @@ const StorekeeperDashboard = () => {
                         }}
                       >
                         <Text style={innerStyle.popupText}>Call</Text>
-                        <FontAwesome5 name="phone" size={15} color={Colors.secondary}/>
+                        <FontAwesome5
+                          name="phone"
+                          size={15}
+                          color={Colors.secondary}
+                        />
                       </View>
                     </Pressable>
                     <Pressable
@@ -291,8 +338,8 @@ const StorekeeperDashboard = () => {
                   </View>
                 )}
 
-                {order.status !== 'Delivered' &&
-                  order.status !== 'Rejected' &&
+                {order.status !== 'DELIVERED' &&
+                  order.status !== 'CANCELLED' &&
                   order.status !== 'Dispatched' && (
                     <Pressable
                       style={innerStyle.showDetailsBtn}
@@ -343,7 +390,7 @@ const innerStyle = StyleSheet.create({
     paddingHorizontal: 5,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop:20
+    marginTop: 20,
   },
   statusButton: {
     paddingHorizontal: 20,

@@ -20,7 +20,7 @@ import { useSafeRouter } from '../../hooks/useSafeRouter';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/authContext';
 import { getCartItemsAPI } from '../../services/customer/cartService';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector} from 'react-redux';
 
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
@@ -28,6 +28,7 @@ import Fonts from '../../styles/font';
 import { showToast } from '../../utils/toastUtils';
 import { clearCart, setCartItems } from '../../store/cartSlice';
 import { placeOrder } from '../../services/customer/orderService';
+import { useStore } from '../../contexts/storeContext';
 
 const ShoppingCart = () => {
   const {
@@ -45,14 +46,13 @@ const ShoppingCart = () => {
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(true);
   const [openDropdownId, setOpenDropdownId] = useState(null);
-  // console.log("address",address[0])
-  // console.log(selectedAddressId)
-  // console.log(address?.isDefault)
+  const [orderInProgress, setOrderInProgress] = useState(false);
+  const {storeData} =useStore();
+  const storeKeeperId = storeData?.storekeeperId;
 
   const selectedAddress =
-  address.find(item => item.isDefault) ||
-    address.find(item => item.id === selectedAddressId);
-    // console.log(selectedAddress)
+  address.find(item => item.id === selectedAddressId)||
+  address.find(item => item.isDefault) 
 
   const fetchCartItems = async () => {
     setLoading(true);
@@ -101,55 +101,63 @@ const ShoppingCart = () => {
     navigation.goBack();
   };
 
-  const handleCompleteOrder = async() => {
+  const handleCompleteOrder = async () => {
+    if (orderInProgress) return; // prevent double tap
+    setOrderInProgress(true);
+  
     if (!selectedAddress) {
       showToast('error', 'Add address before checkout');
+      setOrderInProgress(false);
       return;
     }
-
+  
     if (cartItems.length === 0) {
       showToast('error', 'Add items before checkout');
+      setOrderInProgress(false);
       return;
     }
-
+  
     const hasInvalidAmount = cartItems.some(item => {
       const amt = Number(item.product.amount);
       return isNaN(amt) || amt <= 0;
     });
-
+  
     if (hasInvalidAmount) {
       alert('Some items have zero or invalid quantity. Please correct them.');
+      setOrderInProgress(false);
       return;
     }
-
-    const totalValidCount = cartItems.reduce(
-      (sum, item) => sum + (item.quantity || 1),
-      0,
-    );
-
   
     const payload = {
-      status: 'pending',
-      addressId: selectedAddress.id,
-      totalItems: totalValidCount,
-      items: cartItems.map(item => ({
+      deliveryAddressId: selectedAddress?.id,
+      storeKeeperId: storeKeeperId,
+      orderItem: cartItems.map(item => ({
         itemId: item.product.id,
-        selectedUnit: item.product.selectedUnit,
         quantity: Number(item.product.amount),
+        unit: item.product.selectedUnit,
       })),
     };
   
-
     try {
-     const res=await placeOrder(payload,token)
-     console.log('✅ Order Placed:', res);
+      const res = await placeOrder(payload, token);
+      console.log('✅ Order Placed:', res);
+  
+      // ✅ Clear Redux cart
       dispatch(clearCart());
+  
+      // ✅ Clear UI cart state
+      await fetchCartItems(); // makes sure cart is reloaded clean
+  
+      // ✅ Navigate
       safeReplace('PlaceOrder');
     } catch (error) {
-      console.error('Error clearing cart after order:', error);
-      showToast('error', 'Failed to clear cart. Try again.');
+      console.error('❌ Error placing order:', error);
+      showToast('error', error.message || 'Failed to place order');
+    } finally {
+      setOrderInProgress(false);
     }
   };
+  
 
   const handleEditAddress = address => {
     setMode('edit');
@@ -213,13 +221,13 @@ const ShoppingCart = () => {
                 item={selectedAddress}
                 onEdit={handleEditAddress}
                 isSelected={true}
-                source="cart" 
-                onSelect={() =>
-                  safePush({ name: 'Address', params: { fromCart: 'true' } })
-                }
+                source="cart"
+                onSelect={() => safePush('Address', { fromCart: 'true' })}
               />
             ) : (
-              <Pressable onPress={handleAddAddress}>
+              <View style={{justifyContent:"center",alignItems:"center"}}>
+
+              <Pressable onPress={handleAddAddress} >
                 <Ionicons
                   name="add-circle-outline"
                   size={24}
@@ -227,10 +235,11 @@ const ShoppingCart = () => {
                 />
                 <Text style={innerStyle.buttonText}>Add Address</Text>
               </Pressable>
+              </View>
             )}
 
             <Text style={[innerStyle.heading, { marginTop: 20 }]}>
-              Selected Items ({cartItems.length})
+              Selected Items ({totalCount})
             </Text>
           </>
         }

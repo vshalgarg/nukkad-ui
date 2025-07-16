@@ -27,6 +27,7 @@ const UserToolbar = ({
   const navigation = useNavigation();
 
   const { storeData } = useStore();
+  console.log(storeData)
 
   const storeName = storeData?.storeName || 'Select Store';
 
@@ -54,13 +55,18 @@ const UserToolbar = ({
     <>
       <View style={styles.toolbar}>
         <View style={styles.leftSection}>
-          {!hideMenu && (
+          {!hideMenu ? (
             <TouchableOpacity onPress={() => setIsSideBarOpen(true)}>
               <MaterialIcons name="menu" size={24} color={Colors.secondary} />
             </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={()=>navigation.goBack()}>
+              <Entypo name="chevron-left" size={20} color={Colors.secondary} />
+            </TouchableOpacity>
+    
           )}
           <Pressable onPress={handleLocation} style={styles.location}>
-            <Entypo name="shop" size={24} color={Colors.secondary}/>
+            <Entypo name="shop" size={20} color={Colors.secondary} />
             <Text style={styles.storeName}>{storeName}</Text>
           </Pressable>
         </View>
@@ -68,7 +74,11 @@ const UserToolbar = ({
         <View style={styles.rightSection}>
           {!hideCart && (
             <Pressable onPress={moveToCart} style={styles.iconWrapper}>
-              <SimpleLineIcons name="handbag" size={24} color={Colors.secondary} />
+              <SimpleLineIcons
+                name="handbag"
+                size={24}
+                color={Colors.secondary}
+              />
               {totalItems > 0 && (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>
@@ -102,8 +112,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
   },
   leftSection: {
     flexDirection: 'row',
@@ -113,7 +123,8 @@ const styles = StyleSheet.create({
   location: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: 15,
+    justifyContent:"center"
   },
   storeName: {
     fontSize: Fonts.sizes.base,

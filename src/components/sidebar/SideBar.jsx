@@ -28,6 +28,7 @@ import { useStore } from '../../contexts/storeContext.js';
 import Fonts from '../../styles/font.js';
 import Colors from '../../styles/colors.js';
 import { persistor } from '../../store/store.js';
+import { setLoggingOut } from '../../utils/logoutState.js';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -134,16 +135,14 @@ const SideBar = ({ isVisible, onClose }) => {
 
     if (menuName === 'Logout') {
       Alert.alert('Logout', 'Are you sure you want to logout?', [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
             try {
-              await persistor.purge(); // ✅ Clears persisted Redux state cleanly
+              setLoggingOut(true); // ✅ Prevents back confirmation
+              await persistor.purge();
               await AsyncStorage.removeItem('authToken');
               await AsyncStorage.removeItem('userRole');
               dispatch(clearCart());
@@ -152,9 +151,11 @@ const SideBar = ({ isVisible, onClose }) => {
               resetProfile();
               resetAddress();
               resetStore();
-              safeReplace('Home'); // 👈 your CLI entry screen name
+              safeReplace('Home');
             } catch (error) {
               console.error('Logout failed:', error);
+            } finally {
+              setTimeout(() => setLoggingOut(false), 1000); // optional reset
             }
           },
         },
@@ -201,7 +202,7 @@ const SideBar = ({ isVisible, onClose }) => {
             </Text>
           </View>
 
-          <TouchableOpacity onPress={() => safeReplace('ProfileSetting')}>
+          <TouchableOpacity onPress={() => safePush('ProfileSetting')}>
             <Ionicons name="settings-sharp" size={24} color={Colors.secondaryText} />
           </TouchableOpacity>
         </View>

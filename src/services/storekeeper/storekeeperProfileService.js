@@ -3,8 +3,6 @@ import api from '../api';
 export const createStorekeeperProfile = async (profileData, token) => {
   try {
     const formData = new FormData();
-
-    // ✅ 1. Create a file-like object for JSON (with name/type)
     const jsonBlob = {
       name: 'data.json',
       type: 'application/json',

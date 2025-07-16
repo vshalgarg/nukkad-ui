@@ -15,7 +15,6 @@ import Grocery from '../../../assets/images/grocery-logo.svg';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 
-import { useProfile } from '../../contexts/profileContext';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import styles from '../../styles/globalStyles';
 import { showToast } from '../../utils/toastUtils';
@@ -27,10 +26,12 @@ import { sendOtp, verifyOtp } from '../../services/authApi';
 import { useAuth } from '../../contexts/authContext';
 import { setCartUser } from '../../store/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
 const MobileOtpScreen = () => {
+  useBackHandlerControl({ blockBack: true });
   const { safePush } = useSafeRouter();
-  const { updateProfile } = useProfile();
+
   const { login } = useAuth();
   const dispatch = useDispatch();
 
