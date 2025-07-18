@@ -141,7 +141,7 @@ const MobileOtpScreen = () => {
           role,
         });
       } else {
-        safePush('StorekeeperCreateProfile', {
+        safePush('StorekeeperDashboard', {
           toast: JSON.stringify(toastPayload),
         });
       }

@@ -16,7 +16,7 @@ const storekeeperOrdersSlice = createSlice({
       const { orderId, newStatus } = action.payload;
       const order = state.orders.find(order => order.orderId === orderId);
       if (order) {
-        order.status = newStatus;
+        order.orderStatus = newStatus;
       }
     },
     updateOrderPrices: (state, action) => {
@@ -30,10 +30,10 @@ const storekeeperOrdersSlice = createSlice({
       state.orders = [...ordersData];
     },
     updateOrderNote: (state, action) => {
-      const { orderId, note } = action.payload;
+      const { orderId, storeKeeperNote } = action.payload;
       const order = state.orders.find(order => order.orderId === orderId);
       if (order) {
-        order.note = note;
+        order.storeKeeperNote = storeKeeperNote;
       }
     },
   },
@@ -43,6 +43,7 @@ export const {
   updateOrderStatus,
   updateOrderPrices,
   resetOrdersFromFile,
+  setOrders,
   updateOrderNote,
 } = storekeeperOrdersSlice.actions;
 

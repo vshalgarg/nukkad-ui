@@ -2,6 +2,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import React, { useEffect, useState } from 'react';
+import {formatTabLabel} from "../../utils/formatTabLabel "
 import {
   Alert,
   Pressable,
@@ -39,8 +40,15 @@ const StorekeeperDashboard = () => {
   const route = useRoute();
   const tab = route?.params?.tab;
 
-  const statusMap = ['PENDING', 'IN_PROGRESS', 'DELIVERED'];
+  // Grouping multiple statuses per tab
+const statusTabs = [
+  { label: 'PENDING', statuses: ['PENDING'] },
+  { label: 'IN_PROGRESS', statuses: ['IN_PROGRESS', 'DISPATCH'] },
+  { label: 'DELIVERED', statuses: ['DELIVERED'] },
+];
+
   const orders = useSelector(state => state.storekeeperOrders.orders);
+  console.log(orders)
   
    useEffect(() => {
     // Load orders from backend API when component mounts or token changes
@@ -58,18 +66,17 @@ const StorekeeperDashboard = () => {
   }, [dispatch, token]);
 
   useEffect(() => {
-    const tabIndex = statusMap.findIndex(
-      status => status.toLowerCase() === tab?.toLowerCase(),
-    );
-    if (tabIndex !== -1) setFormState(tabIndex);
-  }, [tab]);
+  const tabIndex = statusTabs.findIndex(
+    t => t.label.toLowerCase() === tab?.toLowerCase()
+  );
+  if (tabIndex !== -1) setFormState(tabIndex);
+}, [tab]);
 
-  const filteredOrders = orders.filter(order => {
-    if (statusMap[formState] === 'IN_PROGRESS') {
-      return order.status === 'IN_PROGRESS' || order.status === 'Dispatched';
-    }
-    return order.status === statusMap[formState];
-  });
+
+  const filteredOrders = orders.filter(order =>
+  statusTabs[formState].statuses.includes(order.orderStatus)
+);
+
 
   const safePush = routeObj => {
     try {
@@ -81,11 +88,10 @@ const StorekeeperDashboard = () => {
 
   const handleDetails = async order => {
     try {
-      if (order.status === 'PENDING') {
-        const payload = { status: 'IN_PROGRESS' };
-
+      if (order.orderStatus === 'PENDING') {
+        const payload = { orderStatus: 'IN_PROGRESS' };
+        console.log(payload.orderStatus)
         await updateOrderStatusById(order.orderId, payload, token);
-
         dispatch(
           updateOrderStatus({
             orderId: order.orderId,
@@ -100,6 +106,7 @@ const StorekeeperDashboard = () => {
         params: {
           orderId: order.orderId,
           items: JSON.stringify(order.items),
+          fromTab: statusTabs[formState].label,
         },
       });
     } catch (error) {
@@ -120,7 +127,7 @@ const StorekeeperDashboard = () => {
           text: 'Reject',
           style: 'destructive',
           onPress: async () => {
-            const payload = { status: 'CANCELLED' };
+            const payload = { orderStatus: 'CANCELLED' };
 
             await updateOrderStatusById(orderId, payload, token);
 
@@ -147,7 +154,7 @@ const StorekeeperDashboard = () => {
         {
           text: 'Yes, Deliver',
           onPress: async () => {
-            const payload = { status: 'DELIVERED' };
+            const payload = { orderStatus: 'DELIVERED' };
 
             await updateOrderStatusById(orderId, payload, token);
 
@@ -187,27 +194,28 @@ const StorekeeperDashboard = () => {
         onClose={() => setIsSideBarOpen(false)}
       />
 
-      <View style={innerStyle.status}>
-        {statusMap.map((status, index) => (
-          <Pressable
-            key={index}
-            style={[
-              innerStyle.statusButton,
-              formState === index && { backgroundColor: Colors.secondaryText },
-            ]}
-            onPress={() => setFormState(index)}
-          >
-            <Text style={formState === index && { color: Colors.bgClr }}>
-              {status}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <View style={innerStyle.orderStatus}>
+  {statusTabs.map((tabItem, index) => (
+    <Pressable
+      key={index}
+      style={[
+        innerStyle.statusButton,
+        formState === index && { backgroundColor: Colors.secondaryText },
+      ]}
+      onPress={() => setFormState(index)}
+    >
+      <Text style={formState === index && { color: Colors.bgClr }}>
+        {formatTabLabel(tabItem.label)}
+      </Text>
+    </Pressable>
+  ))}
+</View>
+
 
       {filteredOrders.length === 0 ? (
         <View style={innerStyle.emptyStateContainer}>
           <Text style={innerStyle.emptyStateText}>
-            No {statusMap[formState]} orders found.
+            No {formatTabLabel(statusTabs[formState].label)} orders found.
           </Text>
         </View>
       ) : (
@@ -250,17 +258,17 @@ const StorekeeperDashboard = () => {
                     innerStyle.updatedStatus,
                     {
                       color:
-                        order.status === 'PENDING'
+                        order.orderStatus === 'PENDING'
                           ? 'red'
-                          : order.status === 'IN_PROGRESS'
+                          : order.orderStatus === 'IN_PROGRESS'
                           ? 'orange'
-                          : order.status === 'DELIVERED'
+                          : order.orderStatus === 'DELIVERED'
                           ? 'green'
                           : 'red',
                     },
                   ]}
                 >
-                  {order.status.toUpperCase()}
+                  {order.orderStatus.toUpperCase()}
                 </Text>
               </View>
 
@@ -274,8 +282,8 @@ const StorekeeperDashboard = () => {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
                 >
                   <Text style={innerStyle.orderDetails}>{order.date}</Text>
-                  {order.status !== 'DELIVERED' &&
-                    order.status !== 'CANCELLED' && (
+                  {order.orderStatus !== 'DELIVERED' &&
+                    order.orderStatus !== 'CANCELLED' && (
                       <Pressable
                         onPress={() =>
                           setPopupOrderId(prev =>
@@ -351,9 +359,9 @@ const StorekeeperDashboard = () => {
                   </View>
                 )}
 
-                {order.status !== 'DELIVERED' &&
-                  order.status !== 'CANCELLED' &&
-                  order.status !== 'Dispatched' && (
+                {order.orderStatus !== 'DELIVERED' &&
+                  order.orderStatus !== 'CANCELLED' &&
+                  order.orderStatus !== 'DISPATCH' && (
                     <Pressable
                       style={innerStyle.showDetailsBtn}
                       onPress={() => handleReject(order.orderId)}
@@ -364,7 +372,7 @@ const StorekeeperDashboard = () => {
                     </Pressable>
                   )}
 
-                {order.status === 'Dispatched' && (
+                {order.orderStatus === 'DISPATCH' && (
                   <Pressable
                     style={[
                       innerStyle.showDetailsBtn,
@@ -399,7 +407,7 @@ const innerStyle = StyleSheet.create({
     fontSize: Fonts.sizes.lg,
     fontWeight: '700',
   },
-  status: {
+  orderStatus: {
     paddingHorizontal: 5,
     flexDirection: 'row',
     justifyContent: 'space-around',
