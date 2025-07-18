@@ -29,6 +29,7 @@ import Fonts from '../../styles/font.js';
 import Colors from '../../styles/colors.js';
 import { persistor } from '../../store/store.js';
 import { setLoggingOut } from '../../utils/logoutState.js';
+import { useAuth } from '../../contexts/authContext.js';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -36,7 +37,9 @@ const SideBar = ({ isVisible, onClose }) => {
   const { safePush, safeReplace } = useSafeRouter();
   const slideAnimation = useRef(new Animated.Value(-screenWidth)).current;
   const { profile } = useProfile();
-  const role = profile?.role;
+  const { role } = useAuth();
+  console.log(role);
+  const userRole = role;
   const imageUri = profile?.image;
   const name = `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();
   const email = profile?.email ?? '';
@@ -62,11 +65,10 @@ const SideBar = ({ isVisible, onClose }) => {
       console.warn('Failed to open URL:', url, error);
     }
   };
-  
 
   const baseMenuItems = [
     { name: 'My Stores', icon: 'storefront' },
-    ...(role !== 'storekeeper'
+    ...(userRole !== 'STOREKEEPER'
       ? [
           { name: 'Add Store', icon: 'add-circle-sharp' },
           { name: 'Addresses', icon: 'location-sharp' },
@@ -79,22 +81,26 @@ const SideBar = ({ isVisible, onClose }) => {
     { name: 'Help and Support', icon: 'help-circle' },
     { name: 'Privacy Policy', icon: 'shield-half' },
     { name: 'Terms & Conditions', icon: 'document' },
-    ...(role !== 'storekeeper' ? [{ name: 'Rate Store', icon: 'star' }] : []),
+    ...(userRole !== 'STOREKEEPER'
+      ? [{ name: 'Rate Store', icon: 'star' }]
+      : []),
     { name: 'Logout', icon: 'log-out' },
   ];
 
   const roleBasedItem =
-    role === 'customer'
+    userRole === 'CUSTOMER'
       ? { name: 'My Orders', icon: 'bag-add' }
       : { name: 'Order History', icon: 'time' };
   const storekeeperExtraItems =
-    role === 'storekeeper' ? [{ name: 'Payment Options', icon: 'card' }] : [];
+    userRole === 'STOREKEEPER'
+      ? [{ name: 'Payment Options', icon: 'card' }]
+      : [];
 
   const menuItems = [roleBasedItem, ...storekeeperExtraItems, ...baseMenuItems];
 
-  const getRouteForMenuItem = (menuName, role) => {
+  const getRouteForMenuItem = (menuName, userRole) => {
     const routes = {
-      ...(role !== 'storekeeper' && {
+      ...(userRole !== 'STOREKEEPER' && {
         'Add Store': 'AddStore',
         Addresses: 'Address',
       }),
@@ -107,7 +113,7 @@ const SideBar = ({ isVisible, onClose }) => {
     };
 
     if (menuName === 'My Stores') {
-      return role === 'storekeeper' ? 'StoreDetail' : 'MyStores';
+      return userRole === 'STOREKEEPER' ? 'StoreDetail' : 'MyStores';
     }
     if (menuName === 'My Orders' || menuName === 'Order History') {
       return 'Orders';
@@ -122,11 +128,9 @@ const SideBar = ({ isVisible, onClose }) => {
     'Terms & Conditions': 'https://policies.google.com/terms',
     'Refer to Store': 'https://www.google.com/',
   };
-  
 
   const handleOptionClick = async menuName => {
     onClose();
-
 
     if (externalLinks[menuName]) {
       await openLink(externalLinks[menuName]);
@@ -163,7 +167,7 @@ const SideBar = ({ isVisible, onClose }) => {
       return;
     }
 
-    const routeName = getRouteForMenuItem(menuName, role);
+    const routeName = getRouteForMenuItem(menuName, userRole);
     if (routeName) {
       safePush(routeName);
     } else {
@@ -198,12 +202,16 @@ const SideBar = ({ isVisible, onClose }) => {
           <View style={styles.profileTextContainer}>
             <Text style={styles.profileName}>{name}</Text>
             <Text style={styles.profileEmail}>
-              {role === 'storekeeper' ? profile?.storeName : email}
+              {userRole === 'storekeeper' ? profile?.storeName : email}
             </Text>
           </View>
 
           <TouchableOpacity onPress={() => safePush('ProfileSetting')}>
-            <Ionicons name="settings-sharp" size={24} color={Colors.secondaryText} />
+            <Ionicons
+              name="settings-sharp"
+              size={24}
+              color={Colors.secondaryText}
+            />
           </TouchableOpacity>
         </View>
 
@@ -246,7 +254,7 @@ const styles = StyleSheet.create({
     left: 0,
     height: '100%',
     width: Dimensions.get('window').width * 0.8,
-    backgroundColor:Colors.bgClr,
+    backgroundColor: Colors.bgClr,
     paddingTop: 60,
     paddingHorizontal: 20,
     zIndex: 1000,

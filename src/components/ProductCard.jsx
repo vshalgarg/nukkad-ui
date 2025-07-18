@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  Keyboard,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -58,6 +59,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
     cartItem.product.amount?.toString() === amount;
 
   const handleAddToCart = async () => {
+    Keyboard.dismiss();
     const cartQuantity = parseFloat(amount);
     const validAmount = cartQuantity.toString();
 

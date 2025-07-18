@@ -28,9 +28,11 @@ const BackButton = ({
   return (
     <View style={[innerStyle.container]}>
       {/* Back arrow with 5% left margin */}
-      <Pressable onPress={handlePress} style={innerStyle.backIconWrapper}>
-        <Entypo name="chevron-left" size={24} color={Colors.secondary} />
-      </Pressable>
+      <View style={innerStyle.backIconWrapper}>
+        <Pressable onPress={handlePress} style={innerStyle.backIconWrapper}>
+          <Entypo name="chevron-left" size={25} color={Colors.secondary} />
+        </Pressable>
+      </View>
 
       {/* Title centered absolutely */}
       <Text style={[innerStyle.title, textStyles.subheading]}>{title}</Text>
@@ -49,14 +51,17 @@ const innerStyle = StyleSheet.create({
     zIndex: 100,
   },
   backIconWrapper: {
-    marginLeft: '5%',
+    marginLeft: '1%',
     zIndex: 10,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    // backgroundColor:"red"
   },
   title: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
+    flex: 1,
     textAlign: 'center',
+    // backgroundColor:"red",
+    marginLeft:-25,
     zIndex: 1,
   },
 });

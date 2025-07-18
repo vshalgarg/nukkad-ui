@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {  useRoute } from '@react-navigation/native';
 
 import AllProduct from '../../components/AllProduct.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
@@ -27,7 +27,6 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 const ProductPage = () => {
   useBackHandlerControl({ confirmBack: false });
 
-  const navigation = useNavigation();
   const route = useRoute();
   const { safePush } = useSafeRouter();
 
@@ -107,7 +106,7 @@ const ProductPage = () => {
 
   return (
     <View style={[styles.pageContainer, { flex: 1, backgroundColor: 'white' }]}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback >
         <View style={{ flex: 1 }}>
           <UserToolbar hideNotification={true} hideMenu={true} />
           <FlatList

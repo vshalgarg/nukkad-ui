@@ -41,7 +41,6 @@ const Orders = () => {
   const isCustomer = role === 'CUSTOMER';
   const isStorekeeper = role === 'STOREKEEPER';
 
-
   useEffect(() => {
     if (authLoading || !token || (!isCustomer && !isStorekeeper)) return;
 
@@ -58,16 +57,14 @@ const Orders = () => {
 
     fetchOrders();
   }, [authLoading, token, role]);
-
+  console.log('orders', orders);
 
   const toggleExpand = id => {
     setExpandedOrderId(prev => (prev === id ? null : id));
   };
 
   console.log(orders);
-  const totalAmount = orders.items?.reduce((sum, item) => {
-    return sum + (item.price || 0) * (Number(item.quantity) || 0);
-  }, 0);
+
   const applyFilteredOrders = async () => {
     try {
       const params = {
@@ -77,7 +74,7 @@ const Orders = () => {
           : null,
         endDate: dateTo ? new Date(dateTo).toISOString().split('T')[0] : null,
         minPrice: minPrice || 0,
-        maxPrice: maxPrice || 100000, 
+        maxPrice: maxPrice || 100000,
       };
 
       const filtered = await getFilteredOrderHistory(token, params);
@@ -87,8 +84,6 @@ const Orders = () => {
       Alert.alert('Failed to apply filters');
     }
   };
-
-
 
   if (authLoading || loading) {
     return (
@@ -150,6 +145,12 @@ const Orders = () => {
         }
         renderItem={({ item }) => {
           const isExpanded = expandedOrderId === item.orderId;
+          const totalPrice =
+            item.items?.reduce((sum, itm) => {
+              return (
+                sum + (Number(itm.price) || 0) * (Number(itm.quantity) || 0)
+              );
+            }, 0) || 0;
           const commonProps = {
             order: item,
             isExpanded,
@@ -157,15 +158,18 @@ const Orders = () => {
             expandedView: (
               <View style={localStyles.expandedView}>
                 <Text style={localStyles.itemsTitle}>Items:</Text>
-                {item.items.map((item, idx) => (
+                {item.items.map((itm, idx) => (
                   <View key={idx} style={localStyles.itemRow}>
                     <View style={localStyles.rowAlign}>
                       <Text style={localStyles.itemName}>
-                        {item.itemName} (<Text>{item.quantity}</Text>
-                        <Text> {item.unit}</Text>)
+                        {itm.itemName} (<Text>{itm.quantity}</Text>
+                        <Text> {itm.unit}</Text>)
                       </Text>
                     </View>
-                    {item.price > 0 && <Text> &#8377;{item.price}</Text>}
+                    {(item.status === 'DELIVERED' ||
+                      item.status === 'DISPATCHED') && (
+                      <Text> &#8377;{itm.price}</Text>
+                    )}
                   </View>
                 ))}
               </View>
@@ -173,7 +177,7 @@ const Orders = () => {
           };
 
           return isCustomer ? (
-            <CustomerOrderCard {...commonProps} totalAmount={totalAmount} />
+            <CustomerOrderCard {...commonProps} totalPrice={totalPrice} />
           ) : (
             <StorekeeperOrderCard {...commonProps} />
           );

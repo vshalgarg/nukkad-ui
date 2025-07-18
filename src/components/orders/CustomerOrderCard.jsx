@@ -7,8 +7,13 @@ import Colors from '../../styles/colors';
 import { addToCartAPI } from '../../services/customer/cartService';
 import { useAuth } from '../../contexts/authContext';
 
-
-const CustomerOrderCard = ({ order, onPress, isExpanded, expandedView,totalAmount }) => {
+const CustomerOrderCard = ({
+  order,
+  onPress,
+  isExpanded,
+  expandedView,
+  totalPrice,
+}) => {
   const { safePush } = useSafeRouter();
   const dispatch = useDispatch();
   const shopName = order.storeName || 'Unknown Store';
@@ -69,7 +74,6 @@ const CustomerOrderCard = ({ order, onPress, isExpanded, expandedView,totalAmoun
       : sum + 1;
   }, 0);
 
-  
   const statusColor =
     order.status === 'DELIVERED'
       ? '#4CAF50'
@@ -88,9 +92,11 @@ const CustomerOrderCard = ({ order, onPress, isExpanded, expandedView,totalAmoun
           <Text style={styles.name}>
             Total Items: <Text style={styles.values}>{totalQuantity}</Text>
           </Text>
-          <Text style={styles.name}>
-            Total Price: <Text style={styles.values}>{totalAmount}</Text>
-          </Text>
+          {(order.status === 'DELIVERED' || order.status === 'DISPATCHED') && (
+            <Text style={styles.name}>
+              Total Price: <Text style={styles.values}>{totalPrice}</Text>
+            </Text>
+          )}
         </View>
         <View style={styles.columnBetween}>
           <Text style={styles.date}>{formattedDate}</Text>
