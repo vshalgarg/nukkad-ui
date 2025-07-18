@@ -2,41 +2,41 @@
 import api from '../api';
 
 // ✅ Get Customer Profile
-// export const getCustomerProfile = async (token) => {
-//   try {
-//     const response = await api.get('/nukkad/api/customer/v1/get/profile', {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
+export const getCustomerProfile = async (token) => {
+  try {
+    const response = await api.get('/nukkad/api/customer/v1/get/profile', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-//     console.log('✅ Get Profile API Success:', {
-//       status: response.status,
-//       data: response.data,
-//     });
+    console.log('✅ Get Profile API Success:', {
+      status: response.status,
+      data: response.data,
+    });
 
-//     const user = response.data?.data || {};
+    const user = response.data || {};
 
-//     // Parse name -> firstName, lastName
-//     const [firstName = '', ...rest] = user.name?.split(' ') || [];
-//     const lastName = rest.join(' ');
+    // Parse name -> firstName, lastName
+    const [firstName = '', ...rest] = user.name?.split(' ') || [];
+    const lastName = rest.join(' ');
 
-//     return {
-//       ...user,
-//       firstName,
-//       lastName,
-//       DOB: user.dob,
-//     };
-//   } catch (error) {
-//     console.error('❌ Get Profile API Error:', {
-//       message: error.message,
-//       status: error.response?.status,
-//       data: error.response?.data,
-//     });
+    return {
+      ...user,
+      firstName,
+      lastName,
+      DOB: user.dob,
+    };
+  } catch (error) {
+    console.error('❌ Get Profile API Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
 
-//     throw new Error(error.response?.data?.message || 'Failed to fetch profile');
-//   }
-// };
+    throw new Error(error.response?.data?.message || 'Failed to fetch profile');
+  }
+};
 
 // ✅ Update Customer Profile
 export const updateCustomerProfile = async (payload, token) => {

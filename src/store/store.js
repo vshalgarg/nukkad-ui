@@ -5,7 +5,7 @@ import { combineReducers } from '@reduxjs/toolkit';
 
 import userReducer from './userSlice';
 import cartReducer from './cartSlice';
-import orderReducer from './orderSlice'; // ✅ Import
+import orderReducer from './orderSlice';
 import storekeeperOrdersReducer from './storekeeperOrdersSlice';
 
 const persistConfig = {
@@ -17,7 +17,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   user: userReducer,
   cart: cartReducer,
-  order: orderReducer, // ✅ Add here
+  order: orderReducer, 
   storekeeperOrders: storekeeperOrdersReducer,
 });
 

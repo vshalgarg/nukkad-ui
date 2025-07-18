@@ -37,6 +37,7 @@ const MobileOtpScreen = () => {
 
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
+  const [otpEnabled, setOtpEnabled] = useState(false);
   const [sendOtpClicked, setSendOtpClicked] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [timer, setTimer] = useState(0);
@@ -76,6 +77,7 @@ const MobileOtpScreen = () => {
       );
       setSendOtpClicked(true);
       setTimer(30);
+      setOtpEnabled(true);
       setCanResend(false);
     } catch (error) {
       console.error(`${isResend ? 'Resend' : 'Send'} OTP Error:`, error);
@@ -120,6 +122,10 @@ const MobileOtpScreen = () => {
       const role = res?.roles?.[0];
       const userId = res?.userId;
 
+      console.log(res.firstTimeLogin);
+      const returningUser = res.firstTimeLogin === 1502;
+
+      console.log(returningUser);
       console.log(role, token);
 
       if (!token) throw new Error('No token received');
@@ -130,20 +136,31 @@ const MobileOtpScreen = () => {
       const toastPayload = {
         type: 'success',
         title: 'OTP Verified',
-        message: 'Update your profile to complete login.',
+        message: 'Registered Successfully',
       };
-      console.log(mobile);
 
       if (role === 'CUSTOMER') {
-        safePush('CustomerCreateProfile', {
-          toast: JSON.stringify(toastPayload),
-          mobile,
-          role,
-        });
+        if (returningUser) {
+          safePush('CustomerDashboard', {
+            toast: JSON.stringify(toastPayload),
+          });
+        } else {
+          safePush('CustomerCreateProfile', {
+            toast: JSON.stringify(toastPayload),
+            mobile,
+            role,
+          });
+        }
       } else {
-        safePush('StorekeeperCreateProfile', {
-          toast: JSON.stringify(toastPayload),
-        });
+        if (returningUser) {
+          safePush('StorekeeperDashboard', {
+            toast: JSON.stringify(toastPayload),
+          });
+        } else {
+          safePush('StorekeeperCreateProfile', {
+            toast: JSON.stringify(toastPayload),
+          });
+        }
       }
     } catch (error) {
       console.error('OTP Verify Error:', error);
@@ -206,6 +223,7 @@ const MobileOtpScreen = () => {
             keyboardType="numeric"
             maxLength={4}
             value={otp}
+            editable={otpEnabled}
             onTextChange={text => setOtp(text.replace(/[^0-9]/g, ''))}
           />
 
@@ -248,7 +266,11 @@ const MobileOtpScreen = () => {
           </View>
         </View>
         <View style={localStyles.loginBtn}>
-          <CustomButton onPress={handleLogin} title="Login" />
+          <CustomButton
+            onPress={handleLogin}
+            title="Login"
+            disabled={!otpEnabled}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

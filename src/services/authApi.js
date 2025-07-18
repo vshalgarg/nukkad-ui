@@ -7,7 +7,7 @@ export const sendOtp = async (mobileNumber, role = null) => {
   console.log('📤 Sending OTP request with payload:', payload);
 
   try {
-    const response = await api.post('/nukkad/api/otp/v1/send', payload);
+    const response = await api.post('/nukkad/api/otp/v1/otp/send/login', payload);
 
     console.log('✅ Send OTP API Success:', {
       status: response.status,
@@ -34,7 +34,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
   console.log('📤 Verifying OTP with payload:', payload);
 
   try {
-    const response = await api.post('/nukkad/api/otp/v1/verify', payload);
+    const response = await api.post('/nukkad/api/otp/v1/otp/verify/login', payload);
 
     console.log('✅ Verify OTP API Success:', {
       status: response.status,

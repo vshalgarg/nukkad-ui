@@ -8,7 +8,6 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -38,15 +37,22 @@ export default function MyStores() {
       setStores(response);
 
       if (response.length === 1) {
-        // ✅ Automatically set the only store as default
+        // Auto-select if only one store exists
         saveStore(response[0]);
-      } else if (
-        storeData &&
-        !response.some(store => store.storekeeperId === storeData.storekeeperId)
-      ) {
-        // ✅ If current default store no longer exists, clear context
-        saveStore(null);
+      } else {
+        // If current default store is deleted or not set
+        const storeExists =
+          storeData &&
+          response.some(
+            store => store.storekeeperId === storeData.storekeeperId,
+          );
+
+        if (!storeExists) {
+          // Auto-set the first store as default
+          saveStore(response[0]);
+        }
       }
+      
 
       if (response.length > 0) setSelectedStoreIndex(0);
     } catch (err) {
@@ -103,16 +109,6 @@ export default function MyStores() {
     );
   };
   
-
-  const handleSubmit = () => {
-    if (selectedStoreIndex !== null) {
-      const selected = stores[selectedStoreIndex];
-      saveStore(selected);
-      safePush('CustomerDashboard');
-    } else {
-      console.log('⚠️ No store selected');
-    }
-  };
 
   const renderItem = ({ item }) => {
     const isSelected = storeData?.id === item.id;

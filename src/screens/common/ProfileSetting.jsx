@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Animated,
   StyleSheet,
   Text,
@@ -9,6 +8,8 @@ import {
   View,
   Platform,
   Pressable,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Toast from 'react-native-toast-message';
@@ -25,6 +26,8 @@ import styles from '../../styles/globalStyles';
 import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
+import { getCustomerProfile } from '../../services/customer/profileService';
+import { useAuth } from '../../contexts/authContext';
 
 const formatDate = date => {
   if (!date) return '';
@@ -35,15 +38,22 @@ const formatDate = date => {
 };
 
 const ProfileSetting = () => {
+  const scrollRef = useRef();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const firstNameRef = useRef(null);
+
+
   const { safePush } = useSafeRouter();
-  const { profile: profileData, updateProfile } = useProfile();
+  const { token, role } = useAuth();
+  const { profile: profileData, updateProfile, createProfile } = useProfile();
 
   const [profile, setProfile] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    image: null,
-    role: '',
+    image: '',
+    role: role || '',
+    dob: '',
   });
 
   const [DOB, setDOB] = useState('');
@@ -51,34 +61,57 @@ const ProfileSetting = () => {
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (profileData) {
-      setProfile({
-        firstName: profileData.firstName || '',
-        lastName: profileData.lastName || '',
-        email: profileData.email || '',
-        image: profileData.image || null,
-        role: profileData.role || '',
-      });
-      if (profileData.dob) {
-        setDOB(formatDate(profileData.dob));
-        setDobDate(new Date(profileData.dob));
-      }
-      setLoading(false);
-    }
-  }, [profileData]);
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const userProfile = await getCustomerProfile(token);
 
-  const pickImage = () => {
-    const options = { mediaType: 'photo', quality: 1 };
-    launchImageLibrary(options, response => {
-      if (response.didCancel || response.errorCode) return;
-      if (response.assets && response.assets[0]?.uri) {
-        setProfile(prev => ({ ...prev, image: response.assets[0].uri }));
-        fadeAnim.setValue(0);
+        const formattedProfile = {
+          firstName: userProfile.firstName || '',
+          lastName: userProfile.lastName || '',
+          email: userProfile.email || '',
+          image: userProfile.image || null,
+          role: role || '',
+          dob: userProfile.dob || '',
+        };
+
+        setProfile(formattedProfile);
+        await createProfile(formattedProfile); // Sync with context and AsyncStorage
+
+        if (userProfile.dob) {
+          setDOB(formatDate(userProfile.dob));
+          setDobDate(new Date(userProfile.dob));
+        }
+      } catch (err) {
+        showToast('error', err.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
       }
-    });
+    };
+
+    fetchProfile();
+  }, []);
+
+  const pickImage = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        includeBase64: false,
+      });
+
+      const asset = result.assets?.[0];
+      if (asset?.uri) {
+        setProfile(prev => ({
+          ...prev,
+          image: asset.uri,
+        }));
+      }
+    } catch (error) {
+      console.log('Image Picker Error:', error);
+    }
   };
 
   const handleImageLoad = () => {
@@ -101,61 +134,78 @@ const ProfileSetting = () => {
     }
   };
 
-  const validateProfile = () => {
-    if (!profile.firstName.trim())
-      return showToast('error', 'Enter Valid First Name') || false;
-    if (!profile.lastName.trim())
-      return showToast('error', 'Enter Valid Last Name') || false;
-    if (!profile.email.trim() || !/\S+@\S+\.\S+/.test(profile.email))
-      return showToast('error', 'Enter Valid Email') || false;
-    if (!DOB)
-      return showToast('error', 'Please select your Date of Birth') || false;
-    return true;
-  };
-
-  const saveProfile = () => {
-    if (!validateProfile()) return;
+  const saveProfile = async () => {
+    if (!profile) return;
+    setIsSaving(true);
 
     const formattedDOB = dobDate.toISOString().split('T')[0];
-
     const updatedProfile = {
-      ...profileData,
       ...profile,
       dob: formattedDOB,
+      firstName: profile.firstName || profileData?.firstName || '',
+      lastName: profile.lastName || profileData?.lastName || '',
+      email: profile.email || profileData?.email || '',
     };
 
-    updateProfile(updatedProfile);
-    setIsEditing(false);
-    showToast('success', 'Profile updated successfully');
-    safePush('CustomerDashboard');
-  };
+    try {
+      await updateProfile(updatedProfile, token);
+      setIsEditing(false);
+      showToast('success', 'Profile updated successfully');
+      handlePress()
+    } catch (err) {
+      showToast('error', err.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };  
 
   const handlePress = () => {
-    if (profileData?.role === 'storekeeper') safePush('StorekeeperDashboard');
+    if (profile.role === 'storekeeper') safePush('StorekeeperDashboard');
     else safePush('CustomerDashboard');
   };
 
   const handleDeleteAccount = () => safePush('DeleteAccount');
 
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setProfile({
+      firstName: profileData?.firstName || '',
+      lastName: profileData?.lastName || '',
+      email: profileData?.email || '',
+      image: profileData?.image || '',
+      role: profileData?.role || role || '',
+      dob: profileData?.dob || '',
+    });
+
+    if (profileData?.dob) {
+      setDOB(formatDate(profileData.dob));
+      setDobDate(new Date(profileData.dob));
+    }
+  };
+
   return (
-    <View style={styles.pageContainer}>
+    <ScrollView style={styles.pageContainer} ref={scrollRef}>
       <BackButton title="Profile Setting" onPress={handlePress} />
 
       <View style={innerStyle.container}>
         <View style={innerStyle.profileImageSection}>
-          <TouchableOpacity onPress={isEditing ? pickImage : null}>
-            {!loading && profile.image ? (
-              <Animated.Image
-                source={{ uri: profile.image }}
-                style={[innerStyle.image]}
-                onLoad={handleImageLoad}
-              />
-            ) : (
-              <View style={[innerStyle.image]}>
-                <ProfileImage height={130} width={130} />
-              </View>
-            )}
-          </TouchableOpacity>
+          {loading ? (
+            <ActivityIndicator size="large" color={Colors.primary} />
+          ) : (
+            <TouchableOpacity onPress={isEditing ? pickImage : null}>
+              {profile.image ? (
+                <Animated.Image
+                  source={{ uri: profile.image }}
+                  style={[innerStyle.image, { opacity: fadeAnim }]}
+                  onLoad={handleImageLoad}
+                />
+              ) : (
+                <View style={[innerStyle.image]}>
+                  <ProfileImage height={150} width={150} />
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
 
           {isEditing && (
             <TouchableOpacity
@@ -169,24 +219,19 @@ const ProfileSetting = () => {
 
         <View style={innerStyle.editButtonWrapper}>
           {!isEditing ? (
-            <Pressable onPress={() => setIsEditing(true)}>
+            <Pressable
+              onPress={() => {
+                setIsEditing(true);
+                scrollRef.current?.scrollTo({ y: 0, animated: true });
+                setTimeout(() => {
+                  firstNameRef.current?.focus();
+                }, 100);
+              }}
+            >
               <FontAwesome name="edit" size={28} color="black" />
             </Pressable>
           ) : (
-            <Pressable
-              onPress={() => {
-                setIsEditing(false);
-                setProfile({
-                  firstName: profileData.firstName || '',
-                  lastName: profileData.lastName || '',
-                  email: profileData.email || '',
-                  image: profileData.image || null,
-                  role: profileData.role || '',
-                });
-                setDOB(formatDate(profileData.dob));
-                setDobDate(new Date(profileData.dob));
-              }}
-            >
+            <Pressable onPress={cancelEdit}>
               <Text style={innerStyle.cancelText}>Cancel</Text>
             </Pressable>
           )}
@@ -202,6 +247,7 @@ const ProfileSetting = () => {
           {isEditing ? (
             <>
               <TextInput
+                ref={firstNameRef}
                 style={innerStyle.halfInput}
                 value={profile.firstName}
                 onChangeText={val => handleChange('firstName', val)}
@@ -226,6 +272,8 @@ const ProfileSetting = () => {
             <TextInput
               style={innerStyle.fullInput}
               value={profile.email}
+              keyboardType="email-address"
+              autoCapitalize="none"
               onChangeText={val => handleChange('email', val)}
             />
           ) : (
@@ -262,7 +310,11 @@ const ProfileSetting = () => {
 
       {isEditing && (
         <View style={innerStyle.buttonContainer}>
-          <CustomButton title="Save Changes" onPress={saveProfile} />
+          <CustomButton
+            title="Save Changes"
+            onPress={saveProfile}
+            loading={isSaving}
+          />
           {profile.role === 'customer' && (
             <CustomButton
               title="Delete Account"
@@ -277,7 +329,7 @@ const ProfileSetting = () => {
       )}
 
       <Toast />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -290,13 +342,19 @@ const innerStyle = StyleSheet.create({
     marginTop: 30,
     marginBottom: 40,
   },
-  profileImageSection: { position: 'relative', alignItems: 'center' },
+  profileImageSection: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   image: {
     width: 130,
     height: 130,
     borderRadius: 75,
-    resizeMode: 'cover',
+    resizeMode: 'contain',
     overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cameraIconContainer: { position: 'absolute', bottom: 0, right: 0 },
   cameraIcon: { height: 42, width: 42 },

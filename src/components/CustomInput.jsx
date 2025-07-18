@@ -15,6 +15,7 @@ export default function CustomInput({
   autoCorrect,
   placeholder,
   isError = false,
+  editable=true,
   ...props
 }) {
   // Get text part after prefix (only for display)
@@ -59,6 +60,7 @@ export default function CustomInput({
           style={styles.input}
           autoFocus={props.autoFocus || false}
           underlineColorAndroid="transparent"
+          editable={editable}
         />
       </View>
     </View>

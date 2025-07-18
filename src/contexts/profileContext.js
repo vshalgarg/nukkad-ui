@@ -33,7 +33,7 @@ export const ProfileProvider = ({ children }) => {
     await AsyncStorage.removeItem('userProfile');
   };
 
-  const createProfile = async (fields) => {
+  const createProfile = async fields => {
     try {
       const newProfile = {
         ...fields,
@@ -48,7 +48,6 @@ export const ProfileProvider = ({ children }) => {
 
   const updateProfile = async (fields, token) => {
     if (!profile) throw new Error('Profile does not exist yet.');
-
     const payload = {
       ...fields,
       name: `${fields.firstName || profile.firstName} ${
@@ -58,7 +57,7 @@ export const ProfileProvider = ({ children }) => {
 
     try {
       await updateCustomerProfile(payload, token);
-      const updated = { ...profile, ...fields };
+      const updated = { ...profile, ...fields, name: payload.name };
       setProfile(updated);
       await AsyncStorage.setItem('userProfile', JSON.stringify(updated));
     } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
@@ -10,6 +10,8 @@ import {
 import FruitBasket from '../../assets/images/fruit-basket.svg';
 import Fonts from '../styles/font';
 import Colors from '../styles/colors';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const { width: screenWidth } = Dimensions.get('window');
 const peekPercent = 0.05;
@@ -18,7 +20,7 @@ const itemWidth = screenWidth * 0.85;
 const sidePeek = screenWidth * peekPercent;
 const sideGap = screenWidth * gapPercent;
 const fullItemSpace = itemWidth + sideGap * 2;
-
+const MemoFruitBasket = React.memo(FruitBasket);
 const originalSlides = [
   {
     id: '1',
@@ -74,11 +76,14 @@ const AutoSlider = () => {
     }
   };
 
-  useEffect(() => {
-    scrollToIndex(indexRef.current, false);
-    startAutoScroll();
-    return stopAutoScroll;
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      scrollToIndex(indexRef.current, false);
+      startAutoScroll();
+      return stopAutoScroll;
+    }, []),
+  );
+
 
   const handleScrollEnd = e => {
     const offsetX = e.nativeEvent.contentOffset.x;
@@ -133,7 +138,7 @@ const AutoSlider = () => {
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
-            <FruitBasket width={160} height={160} />
+            {/* <MemoFruitBasket width={160} height={160} /> */}
           </View>
         ))}
       </Animated.ScrollView>

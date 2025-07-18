@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import Fonts from '../../styles/font';
 import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
+import { useRef } from 'react';
 
 const AddressForm = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -43,7 +44,7 @@ const AddressForm = () => {
     setAddressData,
     setMode,
   } = useAddress();
-
+console.log("addressData",addressData)
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [address1, setAddress1] = useState('');
@@ -53,10 +54,17 @@ const AddressForm = () => {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [errors, setErrors] = useState({});
+  const nameRef = useRef(null);
+  const mobileRef = useRef(null);
+  const address1Ref = useRef(null);
+  const landmarkRef = useRef(null);
+  const cityRef = useRef(null);
+  const stateRef = useRef(null);
+  const pincodeRef = useRef(null);
 
   useEffect(() => {
     if (mode === 'edit' && addressData) {
-      console.log("addressData",addressData)
+      console.log('addressData', addressData);
       setName(addressData.name || '');
       setAddress1(addressData.addressLine1 || '');
       setMobile(addressData.mobileNumber || '');
@@ -85,95 +93,113 @@ const AddressForm = () => {
     const trimmedCity = city.trim();
     const trimmedState = state.trim();
     const trimmedPincode = pincode.trim();
+    const trimmedMobile = mobile.trim();
 
     const newErrors = {};
     let firstErrorMessage = '';
+    let firstInvalidRef = null;
 
     if (!trimmedName) {
       newErrors.name = true;
-      if (!firstErrorMessage) firstErrorMessage = 'Please enter your name.';
+      firstErrorMessage = 'Please enter your name.';
+      firstInvalidRef = nameRef;
     } else if (!/^[a-zA-Z\s]+$/.test(trimmedName)) {
       newErrors.name = true;
-      if (!firstErrorMessage)
-        firstErrorMessage = 'Name can only contain letters and spaces.';
+      firstErrorMessage = 'Name can only contain letters and spaces.';
+      firstInvalidRef = nameRef;
     }
 
-    const trimmedMobile = mobile.trim();
     if (!trimmedMobile || !/^[0-9]\d{9}$/.test(trimmedMobile)) {
       newErrors.mobile = true;
-      if (!firstErrorMessage)
+      if (!firstErrorMessage) {
         firstErrorMessage = 'Please enter valid 10-digit mobile number.';
+        firstInvalidRef = mobileRef;
+      }
     }
 
     if (!trimmedAddress1) {
       newErrors.address1 = true;
-      if (!firstErrorMessage)
+      if (!firstErrorMessage) {
         firstErrorMessage = 'Please enter Address Line 1.';
+        firstInvalidRef = address1Ref;
+      }
     }
 
     if (!trimmedLandmark || trimmedLandmark.length < 2) {
       newErrors.landmark = true;
-      if (!firstErrorMessage)
+      if (!firstErrorMessage) {
         firstErrorMessage = 'Please enter a valid landmark.';
+        firstInvalidRef = landmarkRef;
+      }
     }
 
     if (!trimmedCity) {
       newErrors.city = true;
-      if (!firstErrorMessage) firstErrorMessage = 'Please enter city.';
+      if (!firstErrorMessage) {
+        firstErrorMessage = 'Please enter city.';
+        firstInvalidRef = cityRef;
+      }
     } else if (!/^[a-zA-Z\s]+$/.test(trimmedCity)) {
       newErrors.city = true;
-      if (!firstErrorMessage)
+      if (!firstErrorMessage) {
         firstErrorMessage = 'City can only contain letters and spaces.';
+        firstInvalidRef = cityRef;
+      }
     }
 
     if (!trimmedState) {
       newErrors.state = true;
-      if (!firstErrorMessage) firstErrorMessage = 'Please enter state.';
+      if (!firstErrorMessage) {
+        firstErrorMessage = 'Please enter state.';
+        firstInvalidRef = stateRef;
+      }
     } else if (!/^[a-zA-Z\s]+$/.test(trimmedState)) {
       newErrors.state = true;
-      if (!firstErrorMessage)
+      if (!firstErrorMessage) {
         firstErrorMessage = 'State can only contain letters and spaces.';
+        firstInvalidRef = stateRef;
+      }
     }
 
     if (!trimmedPincode || !/^\d{6}$/.test(trimmedPincode)) {
       newErrors.pincode = true;
-      if (!firstErrorMessage) firstErrorMessage = 'Pincode must be 6 digits.';
+      if (!firstErrorMessage) {
+        firstErrorMessage = 'Pincode must be 6 digits.';
+        firstInvalidRef = pincodeRef;
+      }
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      if (firstErrorMessage) {
-        showToast('error', firstErrorMessage);
-      }
+      if (firstErrorMessage) showToast('error', firstErrorMessage);
+      if (firstInvalidRef?.current) firstInvalidRef.current.focus();
       return;
     }
 
-    // Clear errors
-    setErrors({});
+    // Submit logic below...
+        const addressObject = {
+          name: trimmedName,
+          mobileNumber: mobile,
+          addressLine1: trimmedAddress1,
+          addressLine2: address2.trim(),
+          landmark: trimmedLandmark,
+          city: trimmedCity,
+          state: trimmedState,
+          pincode: trimmedPincode,
+        };
 
-    const addressObject = {
-      name: trimmedName,
-      mobile: mobile,
-      addressLine1: trimmedAddress1,
-      addressLine2: address2.trim(),
-      landmark: trimmedLandmark,
-      city: trimmedCity,
-      state: trimmedState,
-      pincode: trimmedPincode,
-    };
+        if (mode === 'edit' && addressData?.id) {
+          updateAddress({ ...addressObject, id: addressData.id });
+        } else {
+          const newId = Date.now().toString();
+          addAddress({ ...addressObject, id: newId });
+        }
 
-    if (mode === 'edit' && addressData?.id) {
-      updateAddress({ ...addressObject, id: addressData.id });
-    } else {
-      const newId = Date.now().toString();
-      addAddress({ ...addressObject, id: newId });
-    }
+        setMode('add');
+        setAddressData(null);
 
-    setMode('add');
-    setAddressData(null);
-
-    navigation.goBack();
+        navigation.goBack();
   };
 
   return (
@@ -205,6 +231,7 @@ const AddressForm = () => {
                   Name <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
                   maxLength={25}
@@ -218,6 +245,7 @@ const AddressForm = () => {
                   Contact Number <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={mobileRef}
                   placeholder="Enter Your Contact Number"
                   value={mobile}
                   maxLength={10}
@@ -234,6 +262,7 @@ const AddressForm = () => {
                 </Text>
                 <CustomInput
                   placeholder="Enter Your Address Line 1"
+                  ref={address1Ref}
                   value={address1}
                   maxLength={50}
                   autoCapitalize="sentences"
@@ -260,6 +289,7 @@ const AddressForm = () => {
                   Landmark <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={landmarkRef}
                   placeholder="Enter Your Landmark"
                   value={landmark}
                   maxLength={25}
@@ -275,6 +305,7 @@ const AddressForm = () => {
                   City <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={cityRef}
                   placeholder="Enter Your City"
                   value={city}
                   maxLength={25}
@@ -290,6 +321,7 @@ const AddressForm = () => {
                   State <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={stateRef}
                   placeholder="Enter Your State"
                   value={state}
                   maxLength={25}
@@ -305,6 +337,7 @@ const AddressForm = () => {
                   Pincode <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={pincodeRef}
                   placeholder="Enter Your Pincode"
                   value={pincode}
                   maxLength={6}

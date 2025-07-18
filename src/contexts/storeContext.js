@@ -24,13 +24,20 @@ export const StoreProvider = ({ children }) => {
 
   const saveStore = async store => {
     try {
-      setStoreData(store);
-      await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
-      console.log('✅ Store saved to AsyncStorage');
+      if (store) {
+        await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
+        setStoreData(store);
+        console.log('✅ Store saved to AsyncStorage');
+      } else {
+        await AsyncStorage.removeItem(STORE_KEY);
+        setStoreData(null);
+        console.log('🗑️ Store removed from AsyncStorage');
+      }
     } catch (err) {
       console.error('❌ Failed to save selected store:', err.message);
     }
   };
+  
 
   const resetStore = async () => {
     try {

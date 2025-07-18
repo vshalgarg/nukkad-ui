@@ -39,7 +39,6 @@ export default function AddStore() {
 
   const navigation = useNavigation();
   const route = useRoute();
-  const hideBack = route.params?.hideBackButton;
 
   const { saveStore } = useStore();
   const { safePush } = useSafeRouter();
@@ -90,46 +89,21 @@ export default function AddStore() {
     });
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      setShowScanner(true);
-
-      const handleBack = () => {
-        stopCameraAndNavigate(() => {
-          if (navigation.canGoBack()) navigation.goBack();
-          else safePush('CustomerDashboard');
-        });
-        return true;
-      };
-
-      const unsubNav = navigation.addListener('beforeRemove', e => {
-        e.preventDefault();
-        stopCameraAndNavigate(() => {
-          navigation.dispatch(e.data.action);
-        });
-      });
-
-      const backHandler = BackHandler.addEventListener(
-        'hardwareBackPress',
-        handleBack,
-      );
-
-      return () => {
-        backHandler.remove();
-        unsubNav();
-      };
-    }, [navigation]),
-  );
-
-  const handleBarcodeScanned = async e => {
+  const handleQrCodeScanner = async e => {
     if (isScanningRef.current) return;
     isScanningRef.current = true;
 
     try {
-      const parsedData = JSON.parse(e.data);
-      const storeQrId = parsedData?.storeQrId;
+      let storeQrId;
 
-      if (!storeQrId || !/^STR\d+$/.test(storeQrId)) {
+      try {
+        const parsedData = JSON.parse(e.data);
+        storeQrId = parsedData?.storeQrId;
+      } catch (err) {
+        storeQrId = e.data;
+      }
+
+      if (!storeQrId) {
         showToast('error', 'Invalid QR Code', 'Missing or invalid storeQrId');
         return;
       }
@@ -142,10 +116,20 @@ export default function AddStore() {
       }
 
       await persistStoreIfNew(store);
-      saveStore(store); // ✅ Sets as default
+      
+      const toastPayload = {
+        type: 'success',
+        title: 'OTP Verified',
+        message: 'Update your profile to complete login.',
+      };
 
+      saveStore(store);
+      showToast('success', store.message);
       stopCameraAndNavigate(() =>
-        safePush('CustomerDashboard', { scannedData: store }),
+        safePush('CustomerDashboard', {
+          scannedData: store,
+          toastMessage: store.message, 
+        }),
       );
     } catch (err) {
       console.error('❌ QR Scan Error:', err);
@@ -185,14 +169,6 @@ export default function AddStore() {
     });
   };
 
-  const handleBackPress = () => {
-    const canGoBack = navigation.canGoBack?.();
-    stopCameraAndNavigate(() => {
-      if (canGoBack) navigation.goBack();
-      else safePush('CustomerDashboard');
-    });
-  };
-
   return (
     <View style={globalStyles.pageContainer}>
       <View style={{ height: 80 }}>
@@ -220,7 +196,7 @@ export default function AddStore() {
 
             {showScanner && (
               <View style={innerStyle.cameraBox}>
-                <QRScannerBox ref={scannerRef} onScan={handleBarcodeScanned} />
+                <QRScannerBox ref={scannerRef} onScan={handleQrCodeScanner} />
               </View>
             )}
 
@@ -230,6 +206,7 @@ export default function AddStore() {
               <View style={innerStyle.StoreIdContainer}>
                 <Text style={innerStyle.label}>Add Store Manually By Id</Text>
                 <CustomInput
+                  style={innerStyle.inputArea}
                   placeholder="Add Store Id"
                   value={storeId}
                   onTextChange={setStoreID}
@@ -286,12 +263,16 @@ const innerStyle = StyleSheet.create({
     marginTop: '5%',
   },
   StoreIdContainer: {
-    justifyContent: 'flex-start',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   label: {
+    textAlign: 'center',
     fontSize: Fonts.sizes.base,
     marginBottom: 15,
   },
+
   btnContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',

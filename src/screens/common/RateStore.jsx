@@ -9,6 +9,7 @@ import {
   Modal,
   Keyboard,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -79,58 +80,64 @@ const RateStore = () => {
   };
 
   return (
-    <View style={styles.pageContainer}>
-      <BackButton title="Rate Store" backgroundColor={Colors.backbuttonColor} />
-      <View style={styles.container}>
-
-        <View style={styles.starsContainer}>
-          {[1, 2, 3, 4, 5].map(value => (
-            <TouchableOpacity
-              key={value}
-              style={styles.starButton}
-              onPress={() => handleStarPress(value)}
-            >
-              <Ionicons
-                name="star"
-                size={40}
-                color={value <= rating ? Colors.primary : Colors.diabledText}
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TextInput
-          ref={feedbackRef}
-          style={styles.textArea}
-          placeholder="Write your feedback here..."
-          multiline
-          value={feedback}
-          onChangeText={setFeedback}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.pageContainer}>
+        <BackButton
+          title="Rate Store"
+          backgroundColor={Colors.backbuttonColor}
         />
+        <View style={styles.container}>
+          <View style={styles.starsContainer}>
+            {[1, 2, 3, 4, 5].map(value => (
+              <TouchableOpacity
+                key={value}
+                style={styles.starButton}
+                onPress={() => handleStarPress(value)}
+              >
+                <Ionicons
+                  name="star"
+                  size={40}
+                  color={value <= rating ? Colors.primary : Colors.diabledText}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        <Text style={styles.wordCount}>{feedback.length} characters</Text>
+          <TextInput
+            ref={feedbackRef}
+            style={styles.textArea}
+            placeholder="Write your feedback here..."
+            multiline
+            value={feedback}
+            onChangeText={setFeedback}
+          />
 
-        <View style={styles.btnContainer}>
-          <CustomButton title="Submit Review" onPress={handleSubmitReview} />
-        </View>
-      </View>
+          <Text style={styles.wordCount}>{feedback.length} characters</Text>
 
-      <Modal transparent visible={showThankYou} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <TickIcon width={80} height={80} />
-            <Text style={styles.modalTitle}>Thank you!</Text>
-            <Text style={styles.modalMessage}>
-              We appreciate your feedback. It helps us improve your experience.
-            </Text>
-            <CustomButton title="Done" onPress={handleDone} />
+          <View style={styles.btnContainer}>
+            <CustomButton title="Submit Review" onPress={handleSubmitReview} />
           </View>
         </View>
-      </Modal>
 
-      <Toast />
-    </View>
+        <Modal transparent visible={showThankYou} animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <TickIcon width={80} height={80} />
+              <Text style={styles.modalTitle}>Thank you!</Text>
+              <Text style={styles.modalMessage}>
+                We appreciate your feedback. It helps us improve your
+                experience.
+              </Text>
+              <CustomButton title="Done" onPress={handleDone} />
+            </View>
+          </View>
+        </Modal>
+
+        <Toast />
+      </View>
+    </TouchableWithoutFeedback>
   );
+  
 };
 
 export default RateStore;

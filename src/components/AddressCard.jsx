@@ -15,8 +15,8 @@ const AddressCard = ({
   isSelected,
   hideDelete = false,
   source = 'sidebar', // 'cart' | 'sidebar' | 'minimal'
+  showChangeAddress = false,
 }) => {
-  const showOnlyAddress = source === 'cart';
   const allowActions = source === 'sidebar';
 
   return (
@@ -46,7 +46,7 @@ const AddressCard = ({
         </View>
 
         <View style={styles.actionContainer}>
-          {showOnlyAddress && (
+          {showChangeAddress && (
             <Pressable style={styles.changeAddressBtn} onPress={onSelect}>
               <Text style={styles.changeAddressText}>Change Address</Text>
             </Pressable>
@@ -64,7 +64,7 @@ const AddressCard = ({
 
                 {!hideDelete && !item.isDefault && (
                   <Pressable
-                    style={[styles.editButton, styles.deleteButton]}
+                    style={styles.deleteButton}
                     onPress={() => onDelete(item)}
                   >
                     <MaterialIcons
@@ -142,18 +142,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   btnContainer: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 5,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
   },
   editDeleteRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: 70,
+    justifyContent: 'flex-end',
+    width: 100,
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 15,
   },
   primaryButton: {
     paddingVertical: 4,

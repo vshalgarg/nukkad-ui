@@ -37,7 +37,7 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
 
   useEffect(() => {
     if (scanned) {
-      const timer = setTimeout(() => setScanned(false), 3000);
+      const timer = setTimeout(() => setScanned(false), 1000);
       return () => clearTimeout(timer);
     }
   }, [scanned]);

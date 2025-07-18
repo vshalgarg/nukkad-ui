@@ -28,7 +28,6 @@ const UserToolbar = ({
   const navigation = useNavigation();
 
   const { storeData } = useStore();
-  console.log(storeData)
 
   const storeName = storeData?.storeName || 'Select Store';
 
@@ -62,7 +61,7 @@ const UserToolbar = ({
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Entypo name="chevron-left" size={20} color={Colors.secondary} />
+              <Entypo name="chevron-left" size={24} color={Colors.secondary} />
             </TouchableOpacity>
           )}
           <Pressable onPress={handleLocation} style={styles.location}>

@@ -26,19 +26,20 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   const cartItem = cartItems.find(item => item.product.id === product.id);
   const { token } = useAuth();
 
-  const [selectedUnit, setSelectedUnit] = useState(null);
-  const [amount, setAmount] = useState('');
+  const initialUnit = (product.unit || product.quantity || [])[0] || null;
+  const [selectedUnit, setSelectedUnit] = useState(initialUnit);
 
+  const [amount, setAmount] = useState('');
+  const [imageError, setImageError] = useState(false);
+  const placeholderImageUrl =require("../../assets/images/itemNotFound.jpg")
   const units = product.quantity || product.unit || [];
   const unitOptions = units.map(q => ({ label: q, value: q }));
 
   useEffect(() => {
-    if (!selectedUnit && units.length > 0) {
-      setSelectedUnit(units[0]);
-    }
-  }, [units]);
-
-
+    const defaultUnit = (product.unit || product.quantity || [])[0] || null;
+    setSelectedUnit(defaultUnit);
+  }, [product]);
+  
 
   const isValidAmount =
     amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0;
@@ -56,65 +57,72 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
     cartItem.selectedUnit === selectedUnit &&
     cartItem.product.amount?.toString() === amount;
 
-    const handleAddToCart = async () => {
-      const cartQuantity = parseFloat(amount);
-      const validAmount = cartQuantity.toString();
+  const handleAddToCart = async () => {
+    const cartQuantity = parseFloat(amount);
+    const validAmount = cartQuantity.toString();
 
-      if (isNaN(cartQuantity) || cartQuantity <= 0) return;
+    if (isNaN(cartQuantity) || cartQuantity <= 0) return;
 
-      let response = null;
+    let response = null;
 
-      try {
-        const itemId = product.id;
-        const isPkt = selectedUnit?.toLowerCase() === 'pkt';
-        const itemCount = isPkt ? Math.round(cartQuantity) : 1;
+    try {
+      const itemId = product.id;
+      const isPkt = selectedUnit?.toLowerCase() === 'pkt';
+      const itemCount = isPkt ? Math.round(cartQuantity) : 1;
 
-        if (cartItem && cartItem.itemId) {
-          await updateCartAPI(itemId, cartQuantity, selectedUnit, token);
+      if (cartItem && cartItem.itemId) {
+        await updateCartAPI(itemId, cartQuantity, selectedUnit, token);
 
-          dispatch(
-            updateCartItemQuantity({
-              itemId,
-              amount: validAmount,
-              selectedUnit,
-              itemCount,
-            }),
-          );
-        } else {
-          // ➕ Add new item
-          response = await addToCartAPI(
+        dispatch(
+          updateCartItemQuantity({
             itemId,
-            cartQuantity,
+            amount: validAmount,
             selectedUnit,
-            token,
-          );
+            itemCount,
+          }),
+        );
+      } else {
+        // ➕ Add new item
+        response = await addToCartAPI(
+          itemId,
+          cartQuantity,
+          selectedUnit,
+          token,
+        );
 
-          const newItemId = response?.itemIds?.[0] || response?.id || itemId; // fallback
+        const newItemId = response?.itemIds?.[0] || response?.id || itemId; // fallback
 
-          const newItem = {
-            itemId: newItemId,
-            product: { ...product, selectedUnit, amount: validAmount },
-            selectedUnit,
-            quantity: itemCount,
-          };
+        const newItem = {
+          itemId: newItemId,
+          product: { ...product, selectedUnit, amount: validAmount },
+          selectedUnit,
+          quantity: itemCount,
+        };
 
-          dispatch(addToCart(newItem));
-        }
-
-        showToast('success', 'Added to cart');
-      } catch (err) {
-        console.error('Add to cart failed:', err.message || err);
-        showToast('error', 'Failed to add item to cart');
+        dispatch(addToCart(newItem));
       }
-    };
-    
+
+      showToast('success', 'Added to cart');
+    } catch (err) {
+      console.error('Add to cart failed:', err.message || err);
+      showToast('error', 'Failed to add item to cart');
+    }
+  };
+  useEffect(() => {
+    setImageError(false);
+  }, [product.image]);
 
   return (
     <View style={[styles.card, isDropdownOpen && { zIndex: 2000 }]}>
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}
-          source={{ uri: product.image || product.imageUrls?.[0] }}
+          source={
+            imageError || !product.imageUrls?.[0]
+              ?  placeholderImageUrl 
+              : { uri: product.image || product.imageUrls?.[0] }
+          }
+          onError={() => setImageError(true)}
         />
       </View>
       <Text style={styles.title} numberOfLines={1}>
@@ -139,7 +147,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
           ArrowDownIconComponent={() => null}
           setValue={setSelectedUnit}
           style={styles.dropdown}
-          placeholder={null}
+          placeholder={selectedUnit}
           containerStyle={styles.dropdownContainer}
           dropDownContainerStyle={styles.dropdownBox}
           textStyle={styles.text}

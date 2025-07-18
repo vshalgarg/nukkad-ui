@@ -1,12 +1,14 @@
-// screens/customer/CustomerDashboard.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
   View,
-  InteractionManager,
+  FlatList,
+  Text,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 import CategoryGridLayout from '../../components/category/CategoriesGridLayout.jsx';
 import ProductSlider from '../../components/ProductSlider.jsx';
@@ -21,6 +23,8 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
+  const route = useRoute();
+  const { toastMessage } = route.params || {};
 
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
@@ -28,25 +32,30 @@ const CustomerDashboard = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async (force = false) => {
     try {
-      const cached = await AsyncStorage.getItem('categories');
-      if (cached) {
-        setCategories(JSON.parse(cached));
-        setLoading(false);
-        return; 
+      if (!force) {
+        const cached = await AsyncStorage.getItem('categories');
+        if (cached) {
+          setCategories(JSON.parse(cached));
+          setLoading(false);
+          return;
+        }
       }
 
       const response = await getAllCategories();
-      setCategories(response);
-      await AsyncStorage.setItem('categories', JSON.stringify(response));
+      if (Array.isArray(response)) {
+        setCategories(response);
+        await AsyncStorage.setItem('categories', JSON.stringify(response));
+      } else {
+        setCategories([]);
+      }
     } catch (error) {
       console.error('❌ Failed to load categories:', error.message);
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, []);
 
   const syncAddressAndSetDefault = async () => {
     try {
@@ -63,15 +72,13 @@ const CustomerDashboard = () => {
       }
 
       const parsedList = storedList ? JSON.parse(storedList) : [];
-
       const defaultAddr = parsedList.find(a => a.isDefault);
-      if (defaultAddr) {
-        setSelectedAddressId(String(defaultAddr.id));
-        await AsyncStorage.setItem('selectedAddressId', String(defaultAddr.id));
-      } else if (parsedList.length > 0) {
-        const fallback = parsedList[0];
-        setSelectedAddressId(String(fallback.id));
-        await AsyncStorage.setItem('selectedAddressId', String(fallback.id));
+      const fallbackAddr = defaultAddr || parsedList[0];
+
+      if (fallbackAddr) {
+        const addrId = String(fallbackAddr.id);
+        setSelectedAddressId(addrId);
+        await AsyncStorage.setItem('selectedAddressId', addrId);
       } else {
         setSelectedAddressId(null);
         await AsyncStorage.removeItem('selectedAddressId');
@@ -82,19 +89,25 @@ const CustomerDashboard = () => {
   };
 
   useEffect(() => {
-    // ✅ Fetch categories immediately
-    fetchCategories();
+    if (toastMessage) {
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: toastMessage,
+        position: 'bottom',
+        visibilityTime: 3000,
+      });
+    }
+  }, [toastMessage]);
+  useEffect(() => {
+    fetchCategories(); // Load cache first
+    syncAddressAndSetDefault();
+  }, [fetchCategories]);
 
-    // ✅ Defer heavy logic until after first render frame
-    const task = InteractionManager.runAfterInteractions(() => {
-      syncAddressAndSetDefault();
-    });
 
-    return () => task.cancel();
-  }, []);
+
 
   const handleCategoryPress = category => {
-    console.log('Clicked:', category.name);
     safePush('ProductPage', {
       categoryId: category.id,
       categoryName: category.name,
@@ -107,24 +120,63 @@ const CustomerDashboard = () => {
     }
   };
 
-  return (
-    <View style={[styles.pageContainer]}>
-      <UserToolbar />
-      <SearchContainer onSearchSubmit={handleSearchSubmit} />
-      <ProductSlider />
+  // 👇 FlatList Data Items
+  const data = [
+    { type: 'search' },
+    { type: 'slider' },
+    ...(categories.length > 0
+      ? [{ type: 'categories', data: categories }]
+      : []),
+  ];
 
-      <SafeAreaView>
-        {loading ? (
-          <ActivityIndicator size="large" color="#000" />
-        ) : (
-          <CategoryGridLayout
-            categories={categories}
-            onPressCategory={handleCategoryPress}
+  const renderItem = ({ item }) => {
+    if (item.type === 'search') {
+      return <SearchContainer onSearchSubmit={handleSearchSubmit} />;
+    }
+    if (item.type === 'slider') {
+      return <ProductSlider />;
+    }
+    if (item.type === 'categories') {
+      return (
+        <CategoryGridLayout
+          categories={item.data}
+          onPressCategory={handleCategoryPress}
+        />
+      );
+    }
+    return null;
+  };
+
+  return (
+    <SafeAreaView style={styles.pageContainer}>
+      <UserToolbar />
+      {loading ? (
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <ActivityIndicator
+            size="large"
+            color="#000"
+            style={{ marginTop: 20 }}
           />
-        )}
-      </SafeAreaView>
-    </View>
+        </View>
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item, index) => item.type + index}
+          renderItem={renderItem}
+         
+          ListEmptyComponent={
+            <View style={{ alignItems: 'center', marginTop: 20 }}>
+              <Text>No categories found</Text>
+            </View>
+          }
+          contentContainerStyle={{ paddingBottom: 40 }}
+        />
+      )}
+      <Toast />
+    </SafeAreaView>
   );
 };
 
-export default CustomerDashboard;
+export default React.memo(CustomerDashboard);

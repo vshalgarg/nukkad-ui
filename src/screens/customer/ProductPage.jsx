@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
+  FlatList,
   Keyboard,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 import AllProduct from '../../components/AllProduct.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
@@ -39,6 +38,22 @@ const ProductPage = () => {
   const [searchQuery, setSearchQuery] = useState(search);
   const [groupedResults, setGroupedResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
 
   const cartItems = useSelector(state => state.cart.items);
   const totalItems = cartItems.reduce((total, item) => {
@@ -95,12 +110,9 @@ const ProductPage = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
           <UserToolbar hideNotification={true} hideMenu={true} />
-          <KeyboardAwareFlatList
-            enableOnAndroid
-            extraScrollHeight={100}
-            keyboardShouldPersistTaps="handled"
+          <FlatList
             showsVerticalScrollIndicator={false}
-            data={[]} // just for structure
+            data={[]} // Dummy data
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={
               <View>
@@ -118,7 +130,7 @@ const ProductPage = () => {
                     key={category.id}
                     style={{ marginVertical: 10, paddingHorizontal: 10 }}
                   >
-                    <AllProduct products={category.items} loading={searching} />
+                    <AllProduct products={category.items}  />
                   </View>
                 ))}
 
@@ -135,13 +147,12 @@ const ProductPage = () => {
                 )}
               </View>
             }
-            ListFooterComponent={<View style={{ height: 140 }} />}
-            contentContainerStyle={{ paddingBottom: 160 }}
+            ListFooterComponent={<View style={{ height: 50 }} />}
           />
         </View>
       </TouchableWithoutFeedback>
 
-      {totalItems > 0 && (
+      {totalItems > 0 && !keyboardVisible && (
         <View style={innerStyle.fixedBottomBanner}>
           <Text style={innerStyle.popupText}>
             {totalItems} item{totalItems > 1 ? 's' : ''} in cart

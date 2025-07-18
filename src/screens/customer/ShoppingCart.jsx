@@ -20,7 +20,7 @@ import { useSafeRouter } from '../../hooks/useSafeRouter';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../contexts/authContext';
 import { getCartItemsAPI } from '../../services/customer/cartService';
-import { useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
@@ -31,37 +31,29 @@ import { placeOrder } from '../../services/customer/orderService';
 import { useStore } from '../../contexts/storeContext';
 
 const ShoppingCart = () => {
-  const {
-    address,
-    selectedAddressId,
-    setMode,
-    setAddressData,
-  } = useAddress();
+  const { address, selectedAddressId, setMode, setAddressData } = useAddress();
   const { safeReplace, safePush } = useSafeRouter();
   const { token } = useAuth();
   const navigation = useNavigation();
-  const route= useRoute()
+  const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
 
   const dispatch = useDispatch();
-  console.log("selectedAddressId",selectedAddressId)
+  console.log('selectedAddressId', selectedAddressId);
 
   const cartItems = useSelector(state => state.cart.items);
-  const [loading, setLoading] = useState(true);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
-  const {storeData} =useStore();
-  console.log("storeData",storeData)
-  const storeKeeperId = storeData?.storekeeperId||storeData?.id;
+  const { storeData } = useStore();
+  console.log('storeData', storeData);
+  const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
   const selectedAddress =
-  address.find(item => item.id.toString() === selectedAddressId)||
-  address.find(item => item.isDefault);
+    address.find(item => item.id.toString() === selectedAddressId) ||
+    address.find(item => item.isDefault);
   console.log(selectedAddress);
 
-
   const fetchCartItems = async () => {
-    setLoading(true);
     try {
       const res = await getCartItemsAPI(token);
       console.log('res+data', res);
@@ -83,8 +75,6 @@ const ShoppingCart = () => {
       dispatch(setCartItems(formattedItems));
     } catch (err) {
       showToast('error', 'Failed to load cart items');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -114,30 +104,30 @@ const ShoppingCart = () => {
   const handleCompleteOrder = async () => {
     if (orderInProgress) return; // prevent double tap
     setOrderInProgress(true);
-  
+
     if (!selectedAddress) {
       showToast('error', 'Add address before checkout');
       setOrderInProgress(false);
       return;
     }
-  
+
     if (cartItems.length === 0) {
       showToast('error', 'Add items before checkout');
       setOrderInProgress(false);
       return;
     }
-  
+
     const hasInvalidAmount = cartItems.some(item => {
       const amt = Number(item.product.amount);
       return isNaN(amt) || amt <= 0;
     });
-  
+
     if (hasInvalidAmount) {
       alert('Some items have zero or invalid quantity. Please correct them.');
       setOrderInProgress(false);
       return;
     }
-  
+
     const payload = {
       deliveryAddressId: selectedAddress?.id,
       storeKeeperId: storeKeeperId,
@@ -147,43 +137,29 @@ const ShoppingCart = () => {
         unit: item.product.selectedUnit,
       })),
     };
-    console.log("payload",payload );
-  
+    console.log('payload', payload);
+
     try {
       const res = await placeOrder(payload, token);
       console.log('✅ Order Placed:', res);
-  
-      // ✅ Clear Redux cart
-      dispatch(clearCart());
-  
-      // ✅ Clear UI cart state
-      await fetchCartItems(); // makes sure cart is reloaded clean
-  
+
+
       // ✅ Navigate
-      safeReplace('PlaceOrder');
+      safePush('PlaceOrder');
     } catch (error) {
       console.error('❌ Error placing order:', error);
       showToast('error', error.message || 'Failed to place order');
     } finally {
       setOrderInProgress(false);
+      dispatch(clearCart());
     }
   };
-  
 
   const handleEditAddress = address => {
     setMode('edit');
     setAddressData(address);
     safePush('AddressForm');
   };
-
-  if (loading) {
-    return (
-      <View style={styles.pageContainer}>
-        <BackButton title="Shopping Cart" />
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   if (cartItems.length === 0) {
     return (
@@ -232,10 +208,11 @@ const ShoppingCart = () => {
                 item={selectedAddress}
                 onEdit={handleEditAddress}
                 isSelected={true}
-                source="cart" 
+                source="cart"
                 onSelect={() =>
                   safePush({ name: 'Address', params: { fromCart: 'true' } })
                 }
+                showChangeAddress={true}
               />
             ) : (
               <Pressable onPress={handleAddAddress}>

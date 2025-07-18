@@ -22,7 +22,7 @@ export default function CategorySlider({ selectedCategoryId }) {
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
     try {
@@ -46,9 +46,7 @@ export default function CategorySlider({ selectedCategoryId }) {
       setCategories(reordered);
     } catch (error) {
       console.error('❌ Failed to load categories:', error.message);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   useEffect(() => {
@@ -94,15 +92,15 @@ export default function CategorySlider({ selectedCategoryId }) {
     );
   };
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        size="small"
-        color={Colors.secondary}
-        style={{ marginTop: 20 }}
-      />
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <ActivityIndicator
+  //       size="small"
+  //       color={Colors.secondary}
+  //       style={{ marginTop: 20 }}
+  //     />
+  //   );
+  // }
 
   return (
     <View style={styles.wrapper}>

@@ -3,10 +3,10 @@ import globalStyles from '../styles/globalStyles';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 
-export default function Button({ title, onPress, style, textStyle }) {
+export default function Button({ title, onPress, style, textStyle,disabled=false }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={!disabled ? onPress : null}
       style={[globalStyles.allBtn, styles.button, style]}
     >
       <Text
