@@ -4,9 +4,10 @@ const Colors = {
   secondaryText: '#888',
   reject: '#FF0000',
   borderColor: '#ddd',
-  bgClr:"#fff",
-  backbuttonColor:"#eee",
-  diabledText:"#A0A0A0"
+  bgClr: '#fff',
+  backbuttonColor: '#eee',
+  diabledText: '#A0A0A0',
+  white:"#fff",
 };
 
 

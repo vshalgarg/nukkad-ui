@@ -44,7 +44,7 @@ const AddressForm = () => {
     setAddressData,
     setMode,
   } = useAddress();
-console.log("addressData",addressData)
+console.log("addressData",addressData);
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [address1, setAddress1] = useState('');

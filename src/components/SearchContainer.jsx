@@ -41,9 +41,10 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
           }}
           returnKeyType="search"
         />
+        {input&&
         <TouchableOpacity onPress={handleClear}>
           <Entypo name="cross" size={20} color={Colors.secondaryText} />
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </View>
     </View>
   );

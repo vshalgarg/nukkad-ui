@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
@@ -17,7 +18,6 @@ import { removeFromCart, updateCartItemQuantity } from '../store/cartSlice';
 import { updateCartAPI } from '../services/customer/cartService';
 import { useAuth } from '../contexts/authContext';
 import { deleteCartItemAPI } from '../services/customer/cartService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 const CartItem = ({
   item,
   openDropdownId,
@@ -26,6 +26,8 @@ const CartItem = ({
 }) => {
   const dispatch = useDispatch();
   const { token } = useAuth();
+  const [imageError, setImageError] = useState(false);
+  const placeholderImageUrl = require('../../assets/images/itemNotFound.jpg');
   const { product, selectedUnit } = item;
   const originalAmount = useRef(product.amount?.toString() || '');
   const [amountInput, setAmountInput] = useState(
@@ -66,7 +68,7 @@ const CartItem = ({
         numericValue >= 0 &&
         amountInput !== originalAmount.current
       ) {
-        updateCartAPI(product.id, numericValue, selectedUnit,token)
+        updateCartAPI(product.id, numericValue, selectedUnit, token)
           .then(() => {
             originalAmount.current = amountInput; // ✅ Update the ref
             dispatch(
@@ -84,12 +86,20 @@ const CartItem = ({
 
     return () => clearTimeout(timeout);
   }, [amountInput]);
+    useEffect(() => {
+      setImageError(false);
+    }, [product.image]);
 
   return (
     <View style={styles.cartItem}>
       <Image
-        source={{ uri: product.image || product.imageUrls?.[0] }}
         style={styles.image}
+        source={
+          imageError 
+            ? placeholderImageUrl
+            : { uri: product.image || product.imageUrls?.[0] }
+        }
+        onError={() => setImageError(true)}
       />
 
       <View style={styles.itemInfoContainer}>
@@ -132,7 +142,11 @@ const CartItem = ({
       </View>
 
       <TouchableOpacity onPress={handleDelete}>
-        <AntDesign name="delete" size={24} color={Colors.secondary} />
+        <MaterialIcons
+          name="delete-outline"
+          size={25}
+          color={Colors.secondary}
+        />
       </TouchableOpacity>
     </View>
   );

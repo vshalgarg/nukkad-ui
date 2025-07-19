@@ -18,51 +18,51 @@ import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
-import { getMyStores, deleteStore} from "../../services/customer/getAllStoreService";
-import { useAuth } from '../../contexts/authContext'; 
+import {
+  getMyStores,
+  deleteStore,
+} from '../../services/customer/getAllStoreService';
+import { useAuth } from '../../contexts/authContext';
+import { useNavigation } from '@react-navigation/native';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
   const { token } = useAuth();
+  const { saveStore, storeData } = useStore();
+  const navigation = useNavigation();
+
   const [stores, setStores] = useState([]);
+  const [selectedStoreTemp, setSelectedStoreTemp] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedStoreIndex, setSelectedStoreIndex] = useState(null);
-  const { saveStore ,storeData} = useStore();
 
-  const fetchStores = async () => {
-    try {
-      setLoading(true);
-      const response = await getMyStores(token);
-      console.log('📦 Stores fetched in component:', response);
-      setStores(response);
+const fetchStores = async () => {
+  try {
+    setLoading(true);
+    const response = await getMyStores(token);
+    setStores(response);
 
-      if (response.length === 1) {
-        // Auto-select if only one store exists
-        saveStore(response[0]);
+    if (response.length === 1) {
+      saveStore(response[0]);
+      setSelectedStoreTemp(response[0]);
+    } else {
+      const exists =
+        storeData &&
+        response.some(s => s.storekeeperId === storeData.storekeeperId);
+
+      if (exists) {
+        setSelectedStoreTemp(storeData); // ✅ set selected store
       } else {
-        // If current default store is deleted or not set
-        const storeExists =
-          storeData &&
-          response.some(
-            store => store.storekeeperId === storeData.storekeeperId,
-          );
-
-        if (!storeExists) {
-          // Auto-set the first store as default
-          saveStore(response[0]);
-        }
+        saveStore(response[0]);
+        setSelectedStoreTemp(response[0]); // ✅ fallback selection
       }
-      
-
-      if (response.length > 0) setSelectedStoreIndex(0);
-    } catch (err) {
-      console.error('❌ Failed to fetch stores in component:', err);
-    } finally {
-      setLoading(false);
     }
-  };
-  
-  
+  } catch (err) {
+    console.error('❌ Failed to fetch stores:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchStores();
@@ -72,10 +72,7 @@ export default function MyStores() {
     safePush('AddStore');
   };
 
-
   const handleDelete = store => {
-    console.log('🗑️ Delete pressed for:', store);
-
     Alert.alert(
       'Delete Store',
       `Are you sure you want to delete "${store.storeName}"?`,
@@ -86,17 +83,12 @@ export default function MyStores() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const idToDelete = store.id || store.storekeeperId;
-              console.log('✅ Confirmed delete of:', idToDelete);
-
-              // ✅ Clear from context BEFORE delete
               if (storeData?.storekeeperId === store.storekeeperId) {
-                console.log('🧹 Removing deleted store from context...');
-                saveStore(null); // This clears the store from global context
+                saveStore(null);
               }
-
+              const idToDelete = store.id || store.storekeeperId;
               await deleteStore(idToDelete, token);
-              await fetchStores(); // Re-fetch updated store list
+              await fetchStores();
             } catch (err) {
               console.error(
                 '❌ Delete failed:',
@@ -108,52 +100,49 @@ export default function MyStores() {
       ],
     );
   };
-  
 
-  const renderItem = ({ item }) => {
-    const isSelected = storeData?.id === item.id;
-
-    const handleSetDefault = () => {
-      saveStore(item);
-    };
-
-    return (
-      <Pressable
-        style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
-      >
-        <View style={innerStyle.radioContainer}>
-          <View style={innerStyle.dataColumn}>
-            <Text style={innerStyle.shopName}>{item.storeName}</Text>
-            <Text
-              style={innerStyle.address}
-            >{`${item.addressLine1}, ${item.city}`}</Text>
-          </View>
-
-          <View style={innerStyle.iconColumn}>
-            <Pressable onPress={() => handleDelete(item)}>
-              <MaterialIcons
-                name="delete-outline"
-                size={24}
-                color={Colors.secondary}
-              />
-            </Pressable>
-            {!isSelected && (
-              <Pressable
-                style={innerStyle.setDefaultBtn}
-                onPress={handleSetDefault}
-              >
-                <Text style={innerStyle.setDefaultText}>Set as Default</Text>
-              </Pressable>
-            )}
-            {isSelected && (
-              <Text style={innerStyle.defaultBadge}>Default Store</Text>
-            )}
-          </View>
-        </View>
-      </Pressable>
-    );
+  const handleChangeStore = () => {
+    if (selectedStoreTemp) {
+      saveStore(selectedStoreTemp);
+    }
+    navigation.goBack();
   };
-  
+
+ const handleSelectStoreTemp = store => {
+   setSelectedStoreTemp(store);
+ };
+
+ const renderItem = ({ item }) => {
+   const isSelected = selectedStoreTemp?.id === item.id;
+
+   return (
+     <Pressable
+       style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
+       onPress={() => handleSelectStoreTemp(item)}
+     >
+       <View style={innerStyle.radioContainer}>
+         <View style={innerStyle.dataColumn}>
+           <Text style={innerStyle.shopName}>{item.storeName}</Text>
+           <Text style={innerStyle.address}>
+             {`${item.addressLine1}, ${item.city}`}
+           </Text>
+         </View>
+         {!isSelected && (
+           <View style={innerStyle.iconColumn}>
+             <Pressable onPress={() => handleDelete(item)}>
+               <MaterialIcons
+                 name="delete-outline"
+                 size={24}
+                 color={Colors.secondary}
+               />
+             </Pressable>
+           </View>
+         )}
+       </View>
+     </Pressable>
+   );
+ };
+
 
   return (
     <View style={styles.pageContainer}>
@@ -181,7 +170,7 @@ export default function MyStores() {
           <>
             <FlatList
               data={stores}
-              keyExtractor={(item, index) => item.id.toString()}
+              keyExtractor={item => item.id.toString()}
               renderItem={renderItem}
               contentContainerStyle={{ paddingBottom: 20 }}
             />
@@ -189,6 +178,12 @@ export default function MyStores() {
               <CustomButton
                 onPress={handleAddStore}
                 title="Add Store"
+                className="bg-white"
+                textClassName="text-black"
+              />
+              <CustomButton
+                onPress={handleChangeStore}
+                title="Change Store"
                 className="bg-white"
                 textClassName="text-black"
               />
@@ -212,25 +207,6 @@ const innerStyle = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
   },
-  setDefaultBtn: {
-    marginTop: 8,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  setDefaultText: {
-    color: Colors.bgClr,
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-  },
-  defaultBadge: {
-    marginTop: 8,
-    color: Colors.primary,
-    fontSize: Fonts.sizes.sm,
-    fontWeight: 'bold',
-  },
-
   addStoreContainer: {
     alignItems: 'center',
     padding: 5,
@@ -247,6 +223,7 @@ const innerStyle = StyleSheet.create({
   buttonText: {
     fontSize: Fonts.sizes.base,
     marginLeft: 5,
+    color: 'white',
   },
   card: {
     marginTop: 16,

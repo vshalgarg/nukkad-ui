@@ -212,7 +212,7 @@ const FilterModal = ({
                 <MultiSlider
                   values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
                   min={0}
-                  max={Number(maxPrice) || 5000}
+                  max={ 5000}
                   sliderLength={screenWidth - 50}
                   customMarker={e => (
                     <CustomMarker currentValue={e.currentValue} />

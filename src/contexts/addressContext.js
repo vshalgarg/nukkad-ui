@@ -47,19 +47,24 @@ export const AddressProvider = ({ children }) => {
   }, [selectedAddressId]);
 
   // 🔥 ADD NEW ADDRESS
-  const addAddress = async (data) => {
+  const addAddress = async data => {
     await addNewAddress(data); // ✅ Save to backend
     await syncAddressesFromServer(); // ✅ Re-sync all addresses
+    setSelectedAddressId(data.id);
+    await AsyncStorage.setItem('selectedAddressId', String(data.id));
   };
 
   // 🔥 UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {
+    console.log("updated data",updated)
     await updateExistingAddress(updated.id, updated); // ✅ Update backend
     await syncAddressesFromServer(); // ✅ Re-fetch list
+    setSelectedAddressId(data.id);
+    await AsyncStorage.setItem('selectedAddressId', String(data.id));
   };
 
   // 🔥 DELETE ADDRESS
-  const deleteAddress = async (id) => {
+  const deleteAddress = async id => {
     await deleteAddressFromServer(id);
     const filtered = address.filter(a => a.id !== id);
     setAddress(filtered);
@@ -81,19 +86,6 @@ export const AddressProvider = ({ children }) => {
     const fresh = await getAllAddresses(); // ✅ fetch from server
     setAddress(fresh);
     await AsyncStorage.setItem('address', JSON.stringify(fresh));
-
-    const def = fresh.find(a => a.default);
-    if (def) {
-      setDefaultAddress(def);
-      setSelectedAddressId(String(def.id));
-      await AsyncStorage.setItem('selectedAddressId', String(def.id));
-    } else if (fresh.length > 0) {
-      setSelectedAddressId(String(fresh[0].id));
-      await AsyncStorage.setItem('selectedAddressId', String(fresh[0].id));
-    } else {
-      setSelectedAddressId(null);
-      await AsyncStorage.removeItem('selectedAddressId');
-    }
   };
 
   // CLEAR EVERYTHING

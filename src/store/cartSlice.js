@@ -23,10 +23,12 @@ const cartSlice = createSlice({
     clearCart: state => {
       state.items = [];
       state.userId = null;
+
     },
 
     setCartItems: (state, action) => {
-      state.items = action.payload;
+      const items = action.payload;
+      state.items = Array.isArray(items) ? items : Object.values(items);
     },
 
     addToCart: (state, action) => {

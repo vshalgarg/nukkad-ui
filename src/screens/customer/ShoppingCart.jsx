@@ -42,6 +42,8 @@ const ShoppingCart = () => {
   console.log('selectedAddressId', selectedAddressId);
 
   const cartItems = useSelector(state => state.cart.items);
+  const [loading, setLoading] = useState(true);
+
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
   const { storeData } = useStore();
@@ -54,6 +56,7 @@ const ShoppingCart = () => {
   console.log(selectedAddress);
 
   const fetchCartItems = async () => {
+     setLoading(true);
     try {
       const res = await getCartItemsAPI(token);
       console.log('res+data', res);
@@ -75,6 +78,8 @@ const ShoppingCart = () => {
       dispatch(setCartItems(formattedItems));
     } catch (err) {
       showToast('error', 'Failed to load cart items');
+    } finally {
+      setLoading(false); // Stop loader
     }
   };
 
@@ -143,15 +148,16 @@ const ShoppingCart = () => {
       const res = await placeOrder(payload, token);
       console.log('✅ Order Placed:', res);
 
-
       // ✅ Navigate
       safePush('PlaceOrder');
+      setTimeout(() => {
+        dispatch(clearCart());
+      }, 500);
     } catch (error) {
       console.error('❌ Error placing order:', error);
       showToast('error', error.message || 'Failed to place order');
     } finally {
       setOrderInProgress(false);
-      dispatch(clearCart());
     }
   };
 
@@ -161,6 +167,13 @@ const ShoppingCart = () => {
     safePush('AddressForm');
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.pageContainer, {justifyContent:"center",alignItems:"center"}]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
   if (cartItems.length === 0) {
     return (
       <View style={styles.pageContainer}>

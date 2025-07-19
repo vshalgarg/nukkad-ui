@@ -20,17 +20,25 @@ import { getAllCategories } from '../../services/customer/categoriesService.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import { useAddress } from '../../contexts/addressContext.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
+import { useStore } from '../../contexts/storeContext.js';
+import { getMyStores } from '../../services/customer/getAllStoreService.js';
+import { useAuth } from '../../contexts/authContext.js';
+import { getCustomerProfile } from '../../services/customer/profileService.js';
+import { useProfile } from '../../contexts/profileContext.js';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
   const route = useRoute();
   const { toastMessage } = route.params || {};
+  const { createProfile } = useProfile();
 
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { token, role } = useAuth();
+  const { saveStore, storeData } = useStore();
 
   const fetchCategories = useCallback(async (force = false) => {
     try {
@@ -57,6 +65,38 @@ const CustomerDashboard = () => {
     }
   }, []);
 
+  const fetchStoreAndProfile = async () => {
+    try {
+      // ✅ Fetch profile
+      const userProfile = await getCustomerProfile(token);
+      const formattedProfile = {
+        firstName: userProfile.firstName || '',
+        lastName: userProfile.lastName || '',
+        email: userProfile.email || '',
+        image: userProfile.image || null,
+        dob: userProfile.dob || '',
+      };
+
+      await createProfile(formattedProfile);
+
+      const stores = await getMyStores(token);
+
+      if (stores.length === 1) {
+        saveStore(stores[0]);
+      } else {
+        const exists =
+          storeData &&
+          stores.some(s => s.storekeeperId === storeData.storekeeperId);
+        if (exists) {
+          saveStore(storeData);
+        } else {
+          saveStore(stores[0]);
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to fetch store/profile:', err.message);
+    }
+  };
   const syncAddressAndSetDefault = async () => {
     try {
       await syncAddressesFromServer();
@@ -100,12 +140,10 @@ const CustomerDashboard = () => {
     }
   }, [toastMessage]);
   useEffect(() => {
-    fetchCategories(); // Load cache first
+    fetchCategories();
     syncAddressAndSetDefault();
+    fetchStoreAndProfile();
   }, [fetchCategories]);
-
-
-
 
   const handleCategoryPress = category => {
     safePush('ProductPage', {
@@ -165,7 +203,6 @@ const CustomerDashboard = () => {
           data={data}
           keyExtractor={(item, index) => item.type + index}
           renderItem={renderItem}
-         
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 20 }}>
               <Text>No categories found</Text>

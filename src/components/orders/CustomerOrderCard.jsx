@@ -94,7 +94,7 @@ const CustomerOrderCard = ({
           </Text>
           {(order.status === 'DELIVERED' || order.status === 'DISPATCHED') && (
             <Text style={styles.name}>
-              Total Price: <Text style={styles.values}>{totalPrice}</Text>
+              Total Price: <Text style={styles.values}>₹{totalPrice}</Text>
             </Text>
           )}
         </View>

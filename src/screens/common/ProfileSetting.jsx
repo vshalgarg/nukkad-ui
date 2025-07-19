@@ -79,7 +79,7 @@ const ProfileSetting = () => {
         };
 
         setProfile(formattedProfile);
-        await createProfile(formattedProfile); // Sync with context and AsyncStorage
+        await createProfile(formattedProfile); 
 
         if (userProfile.dob) {
           setDOB(formatDate(userProfile.dob));
@@ -160,7 +160,7 @@ const ProfileSetting = () => {
   };  
 
   const handlePress = () => {
-    if (profile.role === 'storekeeper') safePush('StorekeeperDashboard');
+    if (profile.role === 'STOREKEEPER') safePush('StorekeeperDashboard');
     else safePush('CustomerDashboard');
   };
 

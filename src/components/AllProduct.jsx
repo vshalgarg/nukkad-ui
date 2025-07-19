@@ -21,7 +21,6 @@ const AllProduct = ({ products = [], loading = false }) => {
     : products;
 
 
-  // Pair products into subarrays of [left, right]
   const pairedList = useMemo(() => {
     const result = [];
     for (let i = 0; i < sortedList.length; i += 2) {
@@ -84,6 +83,7 @@ const AllProduct = ({ products = [], loading = false }) => {
       ) : (
         <FlatList
           data={pairedList}
+          keyboardShouldPersistTaps="handled"
           keyExtractor={(_, index) => index.toString()}
           renderItem={({ item: pair }) => (
             <View

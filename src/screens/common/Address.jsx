@@ -22,7 +22,6 @@ import { useAddress } from '../../contexts/addressContext';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
-import { markAddressAsDefault } from '../../services/customer/addressService';
 
 const Address = () => {
   const {
@@ -32,9 +31,7 @@ const Address = () => {
     selectedAddressId,
     setSelectedAddressId,
     deleteAddress,
-    setAddress,
     markAsDefault,
-    syncAddressesFromServer,
   } = useAddress();
 
   const navigation = useNavigation();
@@ -47,7 +44,7 @@ const Address = () => {
     console.log('🛒 Address card pressed!');
     setSelectedAddressId(String(id));
     await AsyncStorage.setItem('selectedAddressId', String(id));
-    if(fromCart){
+    if (fromCart) {
       navigation.goBack();
     }
   };
@@ -132,24 +129,20 @@ const Address = () => {
       syncSelectedAddress();
     }, [address]),
   );
-  
-  
 
   const handleMarkAsDefault = async item => {
     try {
-      await markAddressAsDefault(item.id);
-      await syncAddressesFromServer();
       await handleSelectAddress(item.id);
+      await markAsDefault(item.id);
     } catch (error) {
       console.error('Error marking address as default:', error);
     }
   };
 
   return (
-    <SafeAreaView style={[styles.pageContainer, { flex: 1 }]}>
-      <View style={[styles.pageContainer, { flex: 1 }]}>
-        <BackButton title="Delivery Address" />
-
+    <View style={[styles.pageContainer]}>
+      <BackButton title="Delivery Address" />
+      <View style={innerStyle.container}>
         <FlatList
           data={[...address]}
           keyExtractor={item => item.id.toString()}
@@ -158,7 +151,7 @@ const Address = () => {
               item={item}
               onEdit={handleEditAddress}
               onDelete={handleDeleteAddress}
-              onSelect={() => handleSelectAddress(item.id)} 
+              onSelect={() => handleSelectAddress(item.id)}
               onMarkDefault={() => handleMarkAsDefault(item)}
               isSelected={String(item.id) === String(selectedAddressId)}
               hideDelete={hideDelete || address.length === 1}
@@ -167,7 +160,7 @@ const Address = () => {
           )}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingBottom: 20,
+            paddingBottom: 100, // ← was 20, increase this!
             flexGrow: 1,
             justifyContent: address.length === 0 ? 'center' : 'flex-start',
           }}
@@ -191,7 +184,7 @@ const Address = () => {
         />
 
         {address.length > 0 && (
-          <View style={innerStyle.container}>
+          <View style={innerStyle.btnContainer}>
             <Pressable style={innerStyle.addButton} onPress={handleAddAddress}>
               <Ionicons
                 name="add-circle-outline"
@@ -203,20 +196,29 @@ const Address = () => {
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const innerStyle = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    position:"relative"
+  },
+  btnContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
     alignItems: 'center',
-    marginVertical: 20,
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 30,
+    marginTop: 10,
     paddingHorizontal: 20,
   },
   emptyText: {

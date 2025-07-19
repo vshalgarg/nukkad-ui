@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import {  useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import AllProduct from '../../components/AllProduct.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
@@ -27,6 +27,7 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 const ProductPage = () => {
   useBackHandlerControl({ confirmBack: false });
 
+  const navigation = useNavigation();
   const route = useRoute();
   const { safePush } = useSafeRouter();
 
@@ -106,12 +107,12 @@ const ProductPage = () => {
 
   return (
     <View style={[styles.pageContainer, { flex: 1, backgroundColor: 'white' }]}>
-      <TouchableWithoutFeedback >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
           <UserToolbar hideNotification={true} hideMenu={true} />
           <FlatList
             showsVerticalScrollIndicator={false}
-            data={[]} // Dummy data
+            keyboardShouldPersistTaps="handled"
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={
               <View>
@@ -129,7 +130,7 @@ const ProductPage = () => {
                     key={category.id}
                     style={{ marginVertical: 10, paddingHorizontal: 10 }}
                   >
-                    <AllProduct products={category.items}  />
+                    <AllProduct products={category.items} />
                   </View>
                 ))}
 

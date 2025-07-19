@@ -38,7 +38,6 @@ const SideBar = ({ isVisible, onClose }) => {
   const slideAnimation = useRef(new Animated.Value(-screenWidth)).current;
   const { profile } = useProfile();
   const { role } = useAuth();
-  console.log(role);
   const userRole = role;
   const imageUri = profile?.image;
   const name = `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();

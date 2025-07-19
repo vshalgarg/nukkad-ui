@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
+  Keyboard,
   Platform,
   StyleSheet,
   Text,
   TextInput,
-  Keyboard,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -27,14 +27,14 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   const cartItem = cartItems.find(item => item.product.id === product.id);
   const { token } = useAuth();
 
-  const initialUnit = (product.unit || product.quantity || [])[0] || null;
+  const initialUnit = (product.unit|| [])[0] || null;
   const [selectedUnit, setSelectedUnit] = useState(initialUnit);
 
   const [amount, setAmount] = useState('');
   const [imageError, setImageError] = useState(false);
   const placeholderImageUrl =require("../../assets/images/itemNotFound.jpg")
-  const units = product.quantity || product.unit || [];
-  const unitOptions = units.map(q => ({ label: q, value: q }));
+  const units =  product.unit || [];
+  const unitOptions = units.map(q => ({ label: q.trim(), value: q }));
 
   useEffect(() => {
     const defaultUnit = (product.unit || product.quantity || [])[0] || null;
@@ -59,7 +59,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
     cartItem.product.amount?.toString() === amount;
 
   const handleAddToCart = async () => {
-    Keyboard.dismiss();
+    Keyboard.dismiss()
     const cartQuantity = parseFloat(amount);
     const validAmount = cartQuantity.toString();
 
@@ -230,6 +230,8 @@ const styles = StyleSheet.create({
   },
   dropdownBox: {
     borderColor: Colors.borderColor,
+    justifyContent:"center",
+    
   },
   text: {
     fontSize: Fonts.sizes.sm,

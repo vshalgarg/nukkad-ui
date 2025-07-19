@@ -38,40 +38,51 @@ const RateStore = () => {
   const { token } = useAuth();
   const{storeData}=useStore();
 
-  const handleSubmitReview = async () => {
-    if (rating === 0 || feedback.trim() === '') {
-      Toast.show({
-        type: 'error',
-        text1: 'Please provide both rating and feedback.',
-      });
-      return;
-    }
+ const handleSubmitReview = async () => {
+   if (rating === 0 || feedback.trim() === '') {
+     Toast.show({
+       type: 'error',
+       text1: 'Please provide both rating and feedback.',
+     });
+     return;
+   }
 
-    try {
-      const storeKeeperId = storeData?.storekeeperId ||storeData.id;
-      console.log(storeKeeperId)
+   // ❗️Check if store info is available
+   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
+   if (!storeKeeperId) {
+     Toast.show({
+       type: 'error',
+       text1: 'No store found.',
+       text2: 'Please add or select a store first.',
+     });
+     return;
+   }
 
-      await rateStore(
-        {
-          storeKeeperId,
-          review: feedback,
-          rating,
-        },
-        token,
-      );
+   try {
+     console.log(storeKeeperId);
 
-      console.log(feedback);
-      Keyboard.dismiss();
-      feedbackRef.current?.blur();
-      setShowThankYou(true);
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to submit rating.',
-        text2: error.message,
-      });
-    }
-  };
+     await rateStore(
+       {
+         storeKeeperId,
+         review: feedback,
+         rating,
+       },
+       token,
+     );
+
+     console.log(feedback);
+     Keyboard.dismiss();
+     feedbackRef.current?.blur();
+     setShowThankYou(true);
+   } catch (error) {
+     Toast.show({
+       type: 'error',
+       text1: 'Failed to submit rating.',
+       text2: error.message,
+     });
+   }
+ };
+
 
   const handleDone = () => {
     setShowThankYou(false);
