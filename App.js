@@ -1,16 +1,8 @@
 import React, { useEffect } from 'react';
-import { Alert, Platform, SafeAreaView } from 'react-native';
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  onNotificationOpenedApp,
-  getInitialNotification,
-  requestPermission,
-} from '@react-native-firebase/messaging';
-import { getApp } from '@react-native-firebase/app';
+import { SafeAreaView } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { Provider } from 'react-redux';
@@ -50,6 +42,15 @@ export default function App() {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('FCM Message Data:', remoteMessage.data);
       // Show a local notification, update UI, etc.
+      await notifee.displayNotification({
+        title: remoteMessage.notification?.title || 'Notification',
+        body: remoteMessage.notification?.body || 'You have a new message',
+        android: {
+          channelId: 'default',
+          importance: AndroidImportance.HIGH,
+          smallIcon: 'ic_notification', // Ensure you have this icon in your project
+        },
+      });
     });
 
     messaging().setBackgroundMessageHandler(async remoteMessage => {
