@@ -14,8 +14,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../components/orders/FilterModal';
 
 import BackButton from '../../components/BackButton';
-import CustomerOrderCard from '../../components/orders/CustomerOrderCard';
-import StorekeeperOrderCard from '../../components/orders/StorekeeperOrderCard';
+import OrderHistory from '../../components/orders/OrderHistory';
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 
@@ -38,11 +37,8 @@ const Orders = () => {
   const [activePicker, setActivePicker] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const isCustomer = role === 'CUSTOMER';
-  const isStorekeeper = role === 'STOREKEEPER';
-
   useEffect(() => {
-    if (authLoading || !token || (!isCustomer && !isStorekeeper)) return;
+    if (authLoading || !token) return;
 
     const fetchOrders = async () => {
       try {
@@ -175,11 +171,12 @@ const Orders = () => {
               </View>
             ),
           };
-
-          return isCustomer ? (
-            <CustomerOrderCard {...commonProps} totalPrice={totalPrice} />
-          ) : (
-            <StorekeeperOrderCard {...commonProps} />
+          return (
+            <OrderHistory
+              {...commonProps}
+              totalPrice={totalPrice}
+              role={role}
+            />
           );
         }}
       />
@@ -198,7 +195,6 @@ const localStyles = StyleSheet.create({
   },
 
   expandedView: {
-    marginTop: 12,
     borderTopWidth: 1,
     borderTopColor: Colors.borderColor,
     paddingTop: 10,

@@ -29,7 +29,7 @@ const StorekeeperCreateProfile = () => {
 
   const [name, setName] = useState('');
   const [storeName, setStoreName] = useState('');
-  const [mobile, setMobile] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [gstIn, setGstIn] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -77,8 +77,8 @@ const StorekeeperCreateProfile = () => {
       firstErrorMessage ||= 'Enter store name.';
     }
 
-    if (!mobile.trim()) {
-      newErrors.mobile = true;
+    if (!contactNumber.trim()) {
+      newErrors.contactNumber = true;
       firstErrorMessage ||= 'Enter contact number.';
     }
 
@@ -127,17 +127,18 @@ const StorekeeperCreateProfile = () => {
       ...profile,
       firstName: nameParts[0],
       lastName: nameParts.slice(1).join(' '),
-      mobile,
+      contactNumber,
       storeName,
       role: 'storekeeper',
     };
 
     const newAddress = {
       storeName,
+      contactNumber,
       addressLine1,
       addressLine2,
       landmark,
-      mobile,
+      contactNumber,
       city,
       state,
       pincode,
@@ -147,6 +148,7 @@ const StorekeeperCreateProfile = () => {
       name,
       storeName,
       gstIn,
+      contactNumber,
       addressLine1,
       addressLine2,
       landmark,
@@ -184,7 +186,7 @@ const StorekeeperCreateProfile = () => {
     pincode,
     profile,
     saveStorekeeperAddress,
-    mobile,
+    contactNumber,
     safePush,
     token,
   ]);
@@ -235,12 +237,12 @@ const StorekeeperCreateProfile = () => {
               />
               <LabelledInput
                 label="Contact Number"
-                value={mobile}
+                value={contactNumber}
                 placeholder="Enter Contact Number"
-                onChange={setMobile}
+                onChange={setContactNumber}
                 keyboardType="phone-pad"
                 maxLength={10}
-                isError={errors.mobile}
+                isError={errors.contactNumber}
                 required
               />
               <LabelledInput

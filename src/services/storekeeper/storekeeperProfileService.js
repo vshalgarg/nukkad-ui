@@ -10,6 +10,7 @@ export const createStorekeeperProfile = async (profileData, token) => {
         name: profileData.name,
         storeName: profileData.storeName,
         gstNum: profileData.gstIn,
+        contactNumber: profileData.contactNumber,
         addressLine1: profileData.addressLine1,
         addressLine2: profileData.addressLine2,
         landmark: profileData.landmark,
@@ -19,9 +20,8 @@ export const createStorekeeperProfile = async (profileData, token) => {
       }),
     };
 
-    formData.append('data', jsonBlob); // ✅ send as file, not string
+    formData.append('data', jsonBlob);
 
-    // ✅ 2. Append image files
     profileData.images?.forEach((img, index) => {
       if (img?.uri) {
         formData.append('images', {
