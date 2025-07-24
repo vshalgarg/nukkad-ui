@@ -1,4 +1,4 @@
-import { isRejected } from "@reduxjs/toolkit";
+import { isRejected } from '@reduxjs/toolkit';
 
 const Colors = {
   primary: '#58BF68',
@@ -12,12 +12,13 @@ const Colors = {
   white: '#fff',
   pending: '#fce7c9ff',
   pendingText: '#F39C12',
-  inProgress: '	#D6EAF8',
+  inProgress: '#D6EAF8',
   inProgressText: '#3498DB',
-  rejected: '	#FADBD8',
+  dispatch: '#defeecff',
+  rejected: '#FADBD8',
   rejectedText: '#E74C3C',
-  delivered: '#D5F5E3',
+  delivered:'#D1F7D6',
+  deliveredText: '#198754',
 };
-
 
 export default Colors;

@@ -153,7 +153,7 @@ const PaymentOptions = () => {
                 style={innerStyle.uploadBtn}
                 onPress={() => handlePickImage(qr)}
               >
-                <Feather name="upload" size={16} color={Colors.bgClr} />
+                <Feather name="upload" size={16} color={Colors.white} />
                 <Text style={innerStyle.uploadBtnText}>
                   {qr?.qrImageUrl ? 'Change QR Code' : 'Upload QR Code'}
                 </Text>
@@ -187,7 +187,7 @@ const PaymentOptions = () => {
                       setAlertVisible(true);
                     }}
                   >
-                    <Feather name="trash-2" size={14} color={Colors.bgClr} />
+                    <Feather name="trash-2" size={14} color={Colors.white} />
                     <Text style={innerStyle.secondaryBtnText}>Delete</Text>
                   </TouchableOpacity>
                 </View>
@@ -221,7 +221,7 @@ const innerStyle = StyleSheet.create({
     paddingBottom: 40,
   },
   qrCard: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 18,
     padding: 16,
     marginBottom: 24,
@@ -252,7 +252,7 @@ const innerStyle = StyleSheet.create({
     borderWidth: 1,
     alignSelf: 'center',
     borderColor: Colors.borderColor,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     marginBottom: 14,
     objectFit: 'cover',
   },
@@ -282,7 +282,7 @@ const innerStyle = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadBtnText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
   },
@@ -302,7 +302,7 @@ const innerStyle = StyleSheet.create({
     borderRadius: 8,
   },
   secondaryBtnText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
   },

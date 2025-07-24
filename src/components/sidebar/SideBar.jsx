@@ -150,7 +150,6 @@ const SideBar = ({ isVisible, onClose }) => {
               await AsyncStorage.removeItem('userRole');
               dispatch(clearCart());
               dispatch(resetUser());
-              dispatch(resetOrdersFromFile());
               resetProfile();
               resetAddress();
               resetStore();
@@ -253,7 +252,7 @@ const styles = StyleSheet.create({
     left: 0,
     height: '100%',
     width: Dimensions.get('window').width * 0.8,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     paddingTop: 60,
     paddingHorizontal: 20,
     zIndex: 1000,

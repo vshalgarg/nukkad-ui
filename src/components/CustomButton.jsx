@@ -7,7 +7,12 @@ export default function Button({ title, onPress, style, textStyle,disabled=false
   return (
     <Pressable
       onPress={!disabled ? onPress : null}
-      style={[globalStyles.allBtn, styles.button, style]}
+      style={[
+        globalStyles.allBtn,
+        styles.button,
+        style,
+        disabled ? styles.disabledButton : null,
+      ]}
     >
       <Text
         style={[styles.buttonText, textStyle]}
@@ -26,17 +31,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 9999,
     borderWidth: 1,
-    borderColor:Colors.primary,
+    borderColor: Colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
-    justifyContent:'center'
+    justifyContent: 'center',
   },
   buttonText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontWeight: '600',
-    fontSize:Fonts.sizes.base,
+    fontSize: Fonts.sizes.base,
     textAlign: 'center',
-    textAlignVertical:"center"
+    textAlignVertical: 'center',
+  },
+  disabledButton: {
+    backgroundColor: Colors.diabledText,
+    borderColor:Colors.diabledText
   },
 });

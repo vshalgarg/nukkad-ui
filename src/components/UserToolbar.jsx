@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   cartBadgeText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.xs,
     fontWeight: 'bold',
   },

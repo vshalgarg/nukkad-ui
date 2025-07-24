@@ -70,7 +70,7 @@ const Orders = () => {
           : null,
         endDate: dateTo ? new Date(dateTo).toISOString().split('T')[0] : null,
         minPrice: minPrice || 0,
-        maxPrice: maxPrice || 100000,
+        maxPrice: maxPrice || 5000,
       };
 
       const filtered = await getFilteredOrderHistory(token, params);
@@ -143,9 +143,7 @@ const Orders = () => {
           const isExpanded = expandedOrderId === item.orderId;
           const totalPrice =
             item.items?.reduce((sum, itm) => {
-              return (
-                sum + (Number(itm.price) || 0) * (Number(itm.quantity) || 0)
-              );
+              return sum + (Number(itm.price) || 0);
             }, 0) || 0;
           const commonProps = {
             order: item,
@@ -162,12 +160,26 @@ const Orders = () => {
                         <Text> {itm.unit}</Text>)
                       </Text>
                     </View>
-                    {(item.status === 'DELIVERED' ||
-                      item.status === 'DISPATCHED') && (
+                    {(item.orderStatus === 'DELIVERED' ||
+                      item.orderStatus === 'DISPATCH') && (
                       <Text> &#8377;{itm.price}</Text>
                     )}
                   </View>
                 ))}
+                {item.storeKeeperNote && (
+                  <View style={localStyles.noteColumn}>
+                    <Text style={localStyles.noteTitle}>Note : </Text>
+                    <Text
+                      style={{
+                        fontStyle: 'italic',
+                        marginTop: 3,
+                        fontWeight: '500',
+                      }}
+                    >
+                      {item.storeKeeperNote}
+                    </Text>
+                  </View>
+                )}
               </View>
             ),
           };
@@ -199,6 +211,13 @@ const localStyles = StyleSheet.create({
     borderTopColor: Colors.borderColor,
     paddingTop: 10,
   },
+  noteColumn: {
+    marginTop: 5,
+  },
+  noteTitle: {
+    fontWeight: 'bold',
+  },
+
   itemsTitle: {
     fontWeight: 'bold',
     marginBottom: 8,
@@ -209,6 +228,7 @@ const localStyles = StyleSheet.create({
   },
   rowAlign: {
     flexDirection: 'row',
+    marginBottom:2,
     width: '50%',
     justifyContent: 'flex-start',
     // backgroundColor:"red"
@@ -216,6 +236,7 @@ const localStyles = StyleSheet.create({
   itemName: {
     flex: 1,
     fontWeight: '500',
+    textDecorationLine:"underline",
   },
   itemText: {
     color: Colors.secondary,

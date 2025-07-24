@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   card: {
     marginTop: 16,
     borderRadius: 12,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderColor: Colors.borderColor,
     borderWidth: 1,
     elevation: 2,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   changeAddressText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontWeight: '600',
     fontSize: Fonts.sizes.sm,
   },

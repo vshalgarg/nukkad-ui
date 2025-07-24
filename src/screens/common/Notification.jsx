@@ -57,14 +57,14 @@ export default Notification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   listWrapper: {
     marginTop: 20,
     paddingHorizontal: 20,
   },
   card: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     padding: 18,
     borderRadius: 12,
     marginBottom: 16,

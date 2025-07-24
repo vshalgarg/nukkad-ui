@@ -199,7 +199,7 @@ const innerStyle = StyleSheet.create({
   container: {
     flex: 1,
     padding: 15,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   noStores: {
     fontSize: Fonts.sizes.lg,
@@ -229,7 +229,7 @@ const innerStyle = StyleSheet.create({
     marginTop: 16,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.borderColor,
     shadowColor: Colors.secondary,

@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '80%',
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 20,
     elevation: 5,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   confirmText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: 14,
     fontWeight: '600',
   },

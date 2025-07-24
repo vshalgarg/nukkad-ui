@@ -24,30 +24,34 @@ export default function CategorySlider({ selectedCategoryId }) {
   const [categories, setCategories] = useState([]);
   // const [loading, setLoading] = useState(true);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await getAllCategories();
-      console.log('✅ Slider Categories:', response);
+const fetchCategories = async () => {
+  try {
+    const response = await getAllCategories();
+    console.log('✅ Raw Slider Categories Response:', response);
 
-      // Reorder: Move selected category to first
-      let reordered = [...response];
+    if (!Array.isArray(response)) {
+      console.error('❌ Expected array but got:', typeof response, response);
+      return;
+    }
 
-      if (selectedCategoryId) {
-        const selectedIndex = response.findIndex(
-          cat => cat.id === selectedCategoryId,
-        );
+    let reordered = [...response];
 
-        if (selectedIndex !== -1) {
-          const [selected] = reordered.splice(selectedIndex, 1);
-          reordered.unshift(selected); // Move to first
-        }
+    if (selectedCategoryId) {
+      const selectedIndex = response.findIndex(
+        cat => cat.id === selectedCategoryId,
+      );
+      if (selectedIndex !== -1) {
+        const [selected] = reordered.splice(selectedIndex, 1);
+        reordered.unshift(selected);
       }
+    }
 
-      setCategories(reordered);
-    } catch (error) {
-      console.error('❌ Failed to load categories:', error.message);
-    } 
-  };
+    setCategories(reordered);
+  } catch (error) {
+    console.error('❌ Failed to load categories:', error.message);
+  }
+};
+
 
   useEffect(() => {
     fetchCategories();

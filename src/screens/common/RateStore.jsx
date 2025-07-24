@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../utils/toastUtils';
 
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
@@ -36,53 +36,48 @@ const RateStore = () => {
   const handleStarPress = value => setRating(value);
 
   const { token } = useAuth();
-  const{storeData}=useStore();
+  const { storeData } = useStore();
 
- const handleSubmitReview = async () => {
-   if (rating === 0 || feedback.trim() === '') {
-     Toast.show({
-       type: 'error',
-       text1: 'Please provide both rating and feedback.',
-     });
-     return;
-   }
+  const handleSubmitReview = async () => {
+    if (rating === 0 || feedback.trim() === '') {
+      showToast('error', 'Please provide both rating and feedback.');
 
-   // ❗️Check if store info is available
-   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
-   if (!storeKeeperId) {
-     Toast.show({
-       type: 'error',
-       text1: 'No store found.',
-       text2: 'Please add or select a store first.',
-     });
-     return;
-   }
+      return;
+    }
 
-   try {
-     console.log(storeKeeperId);
+    // ❗️Check if store info is available
+    const storeKeeperId = storeData?.storekeeperId || storeData?.id;
+    if (!storeKeeperId) {
+      showToast(
+        'error',
+        'No store found.',
+        'Please add or select a store first.',
+      );
 
-     await rateStore(
-       {
-         storeKeeperId,
-         review: feedback,
-         rating,
-       },
-       token,
-     );
+      return;
+    }
 
-     console.log(feedback);
-     Keyboard.dismiss();
-     feedbackRef.current?.blur();
-     setShowThankYou(true);
-   } catch (error) {
-     Toast.show({
-       type: 'error',
-       text1: 'Failed to submit rating.',
-       text2: error.message,
-     });
-   }
- };
+    try {
+      console.log(storeKeeperId);
 
+      await rateStore(
+        {
+          storeKeeperId,
+          review: feedback,
+          rating,
+        },
+        token,
+      );
+
+      console.log(feedback);
+      Keyboard.dismiss();
+      feedbackRef.current?.blur();
+      setShowThankYou(true);
+    } catch (error) {
+     showToast('error', 'Failed to submit rating.', error.message);
+
+    }
+  };
 
   const handleDone = () => {
     setShowThankYou(false);
@@ -143,12 +138,9 @@ const RateStore = () => {
             </View>
           </View>
         </Modal>
-
-        <Toast />
       </View>
     </TouchableWithoutFeedback>
   );
-  
 };
 
 export default RateStore;
@@ -156,12 +148,12 @@ export default RateStore;
 const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   container: {
     flex: 1,
     padding: 24,
-    marginTop:'5%'
+    marginTop: '5%',
   },
   heading: {
     fontSize: Fonts.sizes.lg + 2,
@@ -207,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBox: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     padding: 30,
     borderRadius: 16,
     width: '85%',

@@ -67,7 +67,6 @@ const CustomerDashboard = () => {
 
   const fetchStoreAndProfile = async () => {
     try {
-      // ✅ Fetch profile
       const userProfile = await getCustomerProfile(token);
       const formattedProfile = {
         firstName: userProfile.firstName || '',

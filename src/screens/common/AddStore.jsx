@@ -116,19 +116,18 @@ export default function AddStore() {
       }
 
       await persistStoreIfNew(store);
-      
+
       const toastPayload = {
         type: 'success',
         title: 'OTP Verified',
-        message: 'Update your profile to complete login.',
+        message: store.message,
       };
 
       saveStore(store);
-      showToast('success', store.message);
+      // showToast('success', store.message);
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', {
-          scannedData: store,
-          toastMessage: store.message, 
+          toast: JSON.stringify(toastPayload),
         }),
       );
     } catch (err) {
@@ -154,8 +153,16 @@ export default function AddStore() {
         return;
       }
 
+      const toastPayload = {
+        type: 'success',
+        title: 'OTP Verified',
+        message: store.message,
+      };
+
       stopCameraAndNavigate(() =>
-        safePush('CustomerDashboard', { scannedData: store }),
+        safePush('CustomerDashboard', {
+          toast: JSON.stringify(toastPayload),
+        }),
       );
     } catch (err) {
       const message =
@@ -232,7 +239,7 @@ const boxHeight = height / 3;
 const innerStyle = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,

@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   permissionText: {
     textAlign: 'center',

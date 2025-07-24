@@ -158,7 +158,7 @@ const innerStyle = StyleSheet.create({
     color: Colors.primary,
   },
   sortTextActive: {
-    color: Colors.bgClr,
+    color: Colors.white,
   },
   container: {
     paddingBottom: 80,

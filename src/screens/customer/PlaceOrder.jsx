@@ -84,7 +84,7 @@ const innerStyle = StyleSheet.create({
     marginTop: 30,
   },
   btnText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     textAlign: 'center',
     fontWeight: '600',
     fontSize: Fonts.sizes.lg,

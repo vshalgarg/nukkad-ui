@@ -4,7 +4,10 @@ import { addToCart, clearCart } from '../../store/cartSlice';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
-import { addToCartAPI } from '../../services/customer/cartService';
+import {
+  addToCartAPI,
+  clearCartAPI,
+} from '../../services/customer/cartService';
 import { useAuth } from '../../contexts/authContext';
 
 const OrderHistory = ({
@@ -31,6 +34,7 @@ const OrderHistory = ({
       Alert.alert('No items to reorder');
       return;
     }
+    await clearCartAPI(token);
 
     dispatch(clearCart());
 
@@ -79,9 +83,11 @@ const OrderHistory = ({
         return Colors.pending;
       case 'IN_PROGRESS':
         return Colors.inProgress;
+      case 'DISPATCH':
+        return Colors.dispatch;
       case 'DELIVERED':
         return Colors.delivered;
-      case 'REJECTED':
+      case 'CANCELLED':
         return Colors.rejected;
       default:
         return '#eee';
@@ -94,9 +100,11 @@ const OrderHistory = ({
         return Colors.pendingText;
       case 'IN_PROGRESS':
         return Colors.inProgressText;
-      case 'DELIVERED':
+      case 'DISPATCH':
         return Colors.primary;
-      case 'REJECTED':
+      case 'DELIVERED':
+        return Colors.deliveredText;
+      case 'CANCELLED':
         return Colors.rejectedText;
       default:
         return '#000';
@@ -106,7 +114,7 @@ const OrderHistory = ({
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
       <View style={styles.rowBetween}>
-        <View style={styles.columnBetween}>
+        <View style={styles.columnBetweenDetail}>
           <Text style={styles.name}>Order ID: {order.orderId}</Text>
           {role === 'CUSTOMER' ? (
             <Text style={styles.name}>
@@ -125,7 +133,7 @@ const OrderHistory = ({
             Total Items: <Text style={styles.values}>{totalQuantity}</Text>
           </Text>
         </View>
-        <View style={styles.columnBetween}>
+        <View style={styles.columnBetweenStatus}>
           <Text style={styles.date}>{formattedDate}</Text>
           <View style={styles.columnBetween}>
             <View
@@ -138,10 +146,11 @@ const OrderHistory = ({
                 style={{
                   color: getStatusTextColor(order.orderStatus),
                   fontWeight: '600',
-                  fontSize: 13,
+                  fontSize: Fonts.sizes.sm,
+                  textAlign: 'center',
                 }}
               >
-                {order.orderStatus.replace(/_/g, ' ')}
+                {order.orderStatus}
               </Text>
             </View>
           </View>
@@ -163,7 +172,7 @@ export default OrderHistory;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -180,9 +189,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  columnBetween: {
+  columnBetweenDetail: {
     flexDirection: 'column',
     justifyContent: 'space-around',
+  },
+  columnBetweenStatus: {
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems:"flex-end"
   },
   orderId: {
     fontWeight: 'bold',
