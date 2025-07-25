@@ -30,6 +30,7 @@ import Colors from '../../styles/colors.js';
 import { persistor } from '../../store/store.js';
 import { setLoggingOut } from '../../utils/logoutState.js';
 import { useAuth } from '../../contexts/authContext.js';
+import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext.js';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -37,6 +38,7 @@ const SideBar = ({ isVisible, onClose }) => {
   const { safePush, safeReplace } = useSafeRouter();
   const slideAnimation = useRef(new Animated.Value(-screenWidth)).current;
   const { profile } = useProfile();
+  const { storekeeperProfile } = useStorekeeperProfile()
   const { role } = useAuth();
   const userRole = role;
   const imageUri = profile?.image;
@@ -69,9 +71,9 @@ const SideBar = ({ isVisible, onClose }) => {
     { name: 'My Stores', icon: 'storefront' },
     ...(userRole !== 'STOREKEEPER'
       ? [
-          { name: 'Add Store', icon: 'add-circle-sharp' },
-          { name: 'Addresses', icon: 'location-sharp' },
-        ]
+        { name: 'Add Store', icon: 'add-circle-sharp' },
+        { name: 'Addresses', icon: 'location-sharp' },
+      ]
       : []),
     { name: 'Notifications', icon: 'notifications' },
     { name: 'Settings', icon: 'settings-sharp' },
@@ -148,9 +150,9 @@ const SideBar = ({ isVisible, onClose }) => {
               await persistor.purge();
               await AsyncStorage.removeItem('authToken');
               await AsyncStorage.removeItem('userRole');
+              await AsyncStorage.removeItem('storekeeperProfile');
               dispatch(clearCart());
               dispatch(resetUser());
-              dispatch(resetOrdersFromFile());
               resetProfile();
               resetAddress();
               resetStore();
@@ -199,13 +201,19 @@ const SideBar = ({ isVisible, onClose }) => {
           )}
 
           <View style={styles.profileTextContainer}>
-            <Text style={styles.profileName}>{name}</Text>
+            <Text style={styles.profileName}>{userRole === 'STOREKEEPER' ? storekeeperProfile?.name : name}</Text>
             <Text style={styles.profileEmail}>
-              {userRole === 'storekeeper' ? profile?.storeName : email}
+              {userRole === 'STOREKEEPER' ? storekeeperProfile?.storeName : email}
             </Text>
           </View>
 
-          <TouchableOpacity onPress={() => safePush('ProfileSetting')}>
+          <TouchableOpacity onPress={() => {
+            if (role === "CUSTOMER") {
+              safePush('ProfileSetting')
+            } else {
+              safePush('StorekeeperProfileSetting')
+            }
+          }}>
             <Ionicons
               name="settings-sharp"
               size={24}

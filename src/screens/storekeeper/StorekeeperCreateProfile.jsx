@@ -11,15 +11,13 @@ import {
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import StoreImageUploader from '../../components/StoreImageUploader';
-import { useStorekeeperAddress } from '../../contexts/storekeeperAddressContext';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-import { useProfile } from '../../contexts/profileContext';
+import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
 import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
 import Fonts from '../../styles/font';
 import { useAuth } from '../../contexts/authContext';
-import { createStorekeeperProfile } from '../../services/storekeeper/storekeeperProfileService';
 
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
@@ -29,8 +27,8 @@ const StorekeeperCreateProfile = () => {
 
   const [name, setName] = useState('');
   const [storeName, setStoreName] = useState('');
-  const [mobile, setMobile] = useState('');
-  const [gstIn, setGstIn] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [gstNum, setGstNum] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [landmark, setLandmark] = useState('');
@@ -42,8 +40,7 @@ const StorekeeperCreateProfile = () => {
 
   const { token } = useAuth();
  
-  const { profile, createProfile } = useProfile();
-  const { saveStorekeeperAddress } = useStorekeeperAddress();
+  const {  createStorekeeperProfile } = useStorekeeperProfile();
   const { safePush } = useSafeRouter();
 
   const sanitizeText = (text, regex, setter) => {
@@ -77,13 +74,13 @@ const StorekeeperCreateProfile = () => {
       firstErrorMessage ||= 'Enter store name.';
     }
 
-    if (!mobile.trim()) {
-      newErrors.mobile = true;
+    if (!contactNumber.trim()) {
+      newErrors.contactNumber = true;
       firstErrorMessage ||= 'Enter contact number.';
     }
 
-    if (!gstIn.trim()) {
-      newErrors.gstIn = true;
+    if (!gstNum.trim()) {
+      newErrors.gstNum = true;
       firstErrorMessage ||= 'Enter valid GSTIN number.';
     }
 
@@ -122,31 +119,12 @@ const StorekeeperCreateProfile = () => {
       return;
     }
 
-    const nameParts = name.trim().split(' ');
-    const updatedProfile = {
-      ...profile,
-      firstName: nameParts[0],
-      lastName: nameParts.slice(1).join(' '),
-      mobile,
-      storeName,
-      role: 'storekeeper',
-    };
-
-    const newAddress = {
-      storeName,
-      addressLine1,
-      addressLine2,
-      landmark,
-      mobile,
-      city,
-      state,
-      pincode,
-    };
 
     const payload = {
       name,
       storeName,
-      gstIn,
+      contactNumber,
+      gstNum,
       addressLine1,
       addressLine2,
       landmark,
@@ -159,8 +137,6 @@ const StorekeeperCreateProfile = () => {
     try {
       
       await createStorekeeperProfile(payload, token);
-      await createProfile(updatedProfile);
-      await saveStorekeeperAddress(newAddress);
       showToast('success', 'Registered Successfully');
       setTimeout(() => (pressLock = false), 1500); 
       safePush('StorekeeperDashboard');
@@ -175,16 +151,14 @@ const StorekeeperCreateProfile = () => {
   }, [
     name,
     storeName,
-    gstIn,
+    contactNumber,
+    gstNum,
     addressLine1,
     addressLine2,
     landmark,
     city,
     state,
     pincode,
-    profile,
-    saveStorekeeperAddress,
-    mobile,
     safePush,
     token,
   ]);
@@ -235,9 +209,9 @@ const StorekeeperCreateProfile = () => {
               />
               <LabelledInput
                 label="Contact Number"
-                value={mobile}
+                value={contactNumber}
                 placeholder="Enter Contact Number"
-                onChange={setMobile}
+                onChange={setContactNumber}
                 keyboardType="phone-pad"
                 maxLength={10}
                 isError={errors.mobile}
@@ -245,11 +219,11 @@ const StorekeeperCreateProfile = () => {
               />
               <LabelledInput
                 label="GSTIN"
-                value={gstIn}
+                value={gstNum}
                 required
                 placeholder="Enter GSTIN Number"
                 autoCapitalize="characters"
-                onChange={text => setGstIn(text.toUpperCase())}
+                onChange={text => setGstNum(text.toUpperCase())}
                 maxLength={15}
                 isError={errors.gstIn}
               />

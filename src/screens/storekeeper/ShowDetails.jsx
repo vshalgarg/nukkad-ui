@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import {
   Alert,
   FlatList,
@@ -46,7 +46,7 @@ const OrderItem = memo(
 
     return (
       <View style={innerStyle.card}>
-        <Image source={{ uri: item.image }} style={innerStyle.image} />
+        <Image source={{ uri: item.imageUrls[0] }} style={innerStyle.image} />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={innerStyle.title}>{itemTitle}</Text>
           <Text style={innerStyle.text}>Weight: {itemWeight}</Text>
@@ -100,7 +100,8 @@ const OrderItem = memo(
 );
 
 const ShowDetails = () => {
-  const [note, setNote] = useState('');
+ const [storeKeeperNote, setStoreKeeperNote] = useState();
+
   const [showPopup, setShowPopup] = useState(false);
 
   const { token } = useAuth();
@@ -109,17 +110,23 @@ const ShowDetails = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const { orderId, items } = route.params;
+  const { orderId, items, fromTab = 'PENDING' } = route.params;
   const parsedItems = JSON.parse(items);
 
   const order = useSelector(state =>
     state.storekeeperOrders.orders.find(order => order.orderId === orderId),
   );
 
-  const isInProgress = order?.status === 'IN_PROGRESS';
-  const isDispatched = order?.status === 'DISPATCHED';
-  const isDelivered = order?.status === 'DELIVERED';
-  const isRejected = order?.status === 'CANCELLED';
+
+  useEffect(() => {
+  if (order?.storeKeeperNote) {
+    setStoreKeeperNote(order.storeKeeperNote);
+  }
+}, [order?.storeKeeperNote]);
+  const isInProgress = order?.orderStatus === 'IN_PROGRESS';
+  const isDispatched = order?.orderStatus === 'DISPATCH';
+  const isDelivered = order?.orderStatus === 'DELIVERED';
+  const isRejected = order?.orderStatus === 'CANCELLED';
   const isPending = !isDelivered && !isRejected;
   const [outOfStockMap, setOutOfStockMap] = useState(
     parsedItems.reduce((acc, item) => {
@@ -131,14 +138,15 @@ const ShowDetails = () => {
 
   const [prices, setPrices] = useState(
     parsedItems.reduce((acc, item) => {
-      const itemId = item.id || item.productId;
+      const itemId = item.itemId || item.id || item.productId;
       const matchedItem = order?.items.find(
-        ordItem => (ordItem.id || ordItem.productId) === itemId,
+        ordItem => ordItem.itemId === itemId || ordItem.id === itemId || ordItem.productId === itemId,
       );
-      acc[itemId] = matchedItem?.price || '';
+      acc[itemId] = matchedItem?.price !== undefined ? matchedItem.price : '';
       return acc;
     }, {}),
   );
+
 
   const handleToggleOutOfStock = itemId => {
     setOutOfStockMap(prev => {
@@ -171,7 +179,7 @@ const ShowDetails = () => {
           text: 'Reject',
           style: 'destructive',
           onPress: async () => {
-            const payload = { status: 'CANCELLED' };
+            const payload = { orderStatus: 'CANCELLED' };
 
             await updateOrderStatusById(orderId, payload, token);
 
@@ -222,20 +230,37 @@ const ShowDetails = () => {
 
             const payload = {
               orderId,
-              note: note.trim(),
+              storeKeeperNote: storeKeeperNote.trim(),
               orderItem,
             };
 
             await dispatchOrder(payload, token);
 
             // ✅ Update Redux state
-            dispatch(updateOrderPrices({ orderId, items: parsedItems }));
+            const updatedItemsWithPrices = parsedItems.map(item => {
+              const itemId = item.itemId || item.id || item.productId;
+              return {
+                ...item,
+                price: parseFloat(prices[itemId]) || 0,
+              };
+            });
+
+            dispatch(updateOrderPrices({ orderId, items: updatedItemsWithPrices }));
+
             dispatch(updateOrderStatus({ orderId, newStatus: 'DISPATCHED' }));
-            if (note.trim()) {
-              dispatch(updateOrderNote({ orderId, note: note.trim() }));
+            if (storeKeeperNote.trim()) {
+              dispatch(updateOrderNote({ orderId, storeKeeperNote: storeKeeperNote.trim() }));
             }
 
-            Alert.alert('Success', 'Order dispatched successfully!');
+            Alert.alert('Success', 'Order dispatched successfully!', [
+              {
+                text: 'OK',
+                onPress: () => {
+                  navigation.navigate('StorekeeperDashboard', { tab: fromTab });
+                },
+              },
+            ]);
+
           } catch (err) {
             Alert.alert('Error', err.message || 'Failed to dispatch order');
           }
@@ -253,7 +278,7 @@ const ShowDetails = () => {
         {
           text: 'Yes, Deliver',
           onPress: async () => {
-            const payload = { status: 'DELIVERED' };
+            const payload = { orderStatus: 'DELIVERED' };
 
             await updateOrderStatusById(orderId, payload, token);
 
@@ -263,6 +288,15 @@ const ShowDetails = () => {
                 newStatus: 'DELIVERED',
               }),
             );
+            Alert.alert('Success', 'Order delivered successfully!', [
+              {
+                text: 'OK',
+                onPress: () => {
+                  navigation.navigate('StorekeeperDashboard', { tab: fromTab });
+                },
+              },
+            ]);
+
           },
         },
       ],
@@ -323,16 +357,20 @@ const ShowDetails = () => {
                   <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
                 </View>
               }
-              renderItem={({ item }) => (
-                <OrderItem
-                  item={item}
-                  price={prices[item.itemId]}
-                  isEditable={!isDelivered && !isDispatched && !isRejected}
-                  onPriceChange={handlePriceChange}
-                  outOfStock={outOfStockMap[item.itemId]}
-                  onToggleOutOfStock={handleToggleOutOfStock}
-                />
-              )}
+              renderItem={({ item }) => {
+                const itemId = item.itemId || item.id || item.productId;
+                return (
+                  <OrderItem
+                    item={item}
+                    price={prices[itemId]} // ✅ Correct key
+                    isEditable={!isDelivered && !isDispatched && !isRejected}
+                    onPriceChange={handlePriceChange}
+                    outOfStock={outOfStockMap[itemId]}
+                    onToggleOutOfStock={handleToggleOutOfStock}
+                  />
+                );
+              }}
+
               ListFooterComponent={
                 isPending ? (
                   <View style={{ marginTop: 10, marginHorizontal: 5 }}>
@@ -350,9 +388,10 @@ const ShowDetails = () => {
                         backgroundColor: Colors.bgClr,
                       }}
                       multiline
-                      placeholder="Write a note to the customer about this order"
-                      value={note}
-                      onChangeText={setNote}
+                      placeholder="Write a note to the customer about this order" 
+                      value={storeKeeperNote}
+                      editable={!isDispatched} 
+                      onChangeText={setStoreKeeperNote}
                     />
                   </View>
                 ) : null
@@ -367,7 +406,7 @@ const ShowDetails = () => {
                   <>
                     <CustomButton
                       title="Reject Order"
-                      onPress={handleReject}
+                      onPress={() => handleReject(orderId)}
                       style={{ backgroundColor: Colors.reject, borderWidth: 0 }}
                     />
                     <CustomButton
@@ -380,7 +419,7 @@ const ShowDetails = () => {
                 {isDispatched && (
                   <CustomButton
                     title="Deliver Order"
-                    onPress={handleDeliver}
+                    onPress={() => handleDeliver(orderId)}
                     style={{ backgroundColor: Colors.primary, borderWidth: 0 }}
                   />
                 )}
