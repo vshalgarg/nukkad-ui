@@ -60,7 +60,6 @@ export const updateCartAPI = async (itemId, quantity, unit, token) => {
   }
 };
 
-
 /**
  * Delete item from cart using itemId
  */
@@ -90,12 +89,12 @@ export const deleteCartItemAPI = async (itemId, token) => {
 /**
  * Fetch all items from the cart
  */
-export const getCartItemsAPI = async (token) => {
+export const getCartItemsAPI = async token => {
   if (!token) {
     console.log('❌ No token provided');
     throw new Error('Authentication token missing');
   }
-  
+
   try {
     console.log('📥 [getCartItemsAPI] Fetching cart items...');
 
@@ -114,3 +113,41 @@ export const getCartItemsAPI = async (token) => {
     throw new Error(errorMessage);
   }
 };
+
+export const clearCartAPI = async token => {
+  if (!token) throw new Error('Authentication token missing');
+
+  try {
+    console.log('🧹 [clearCartAPI] Clearing cart...');
+
+    const response = await api.delete('/nukkad/api/cartItem/v1/clear/cart', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log('✅ [clearCartAPI] Response:', response.data);
+    return response.data;
+  } catch (error) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || 'Unknown error';
+
+    // 🔇 Suppress "No item found in cart" as a valid case
+    if (errorMessage.includes('No item found in cart')) {
+      console.warn('🧺 Cart already empty. Proceeding without error.');
+      return { message: 'Cart already empty' };
+    }
+
+    // Handle known backend bugs
+    if (
+      errorMessage.includes('No EntityManager') ||
+      errorMessage.includes('cannot reliably process')
+    ) {
+      console.warn('⚠️ Backend clearCartAPI bug — continuing anyway');
+      return { message: 'Cart may already be empty or server issue' };
+    }
+
+    console.error('❌ [clearCartAPI] Error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+

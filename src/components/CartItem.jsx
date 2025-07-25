@@ -15,9 +15,12 @@ import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import { useDispatch } from 'react-redux';
 import { removeFromCart, updateCartItemQuantity } from '../store/cartSlice';
-import { updateCartAPI } from '../services/customer/cartService';
+import {
+  updateCartAPI,
+  deleteCartItemAPI,
+} from '../services/customer/cartService';
 import { useAuth } from '../contexts/authContext';
-import { deleteCartItemAPI } from '../services/customer/cartService';
+
 const CartItem = ({
   item,
   openDropdownId,
@@ -26,43 +29,49 @@ const CartItem = ({
 }) => {
   const dispatch = useDispatch();
   const { token } = useAuth();
+   if (!item || !item.product) {
+     console.warn('⛔️ CartItem received undefined item or product', item);
+     return null;
+   }
   const [imageError, setImageError] = useState(false);
   const placeholderImageUrl = require('../../assets/images/itemNotFound.jpg');
-  const { product, selectedUnit } = item;
+  const { product } = item;
   const originalAmount = useRef(product.amount?.toString() || '');
   const [amountInput, setAmountInput] = useState(
     product.amount?.toString() || '',
   );
-
   const isDropdownOpen = openDropdownId === product.id;
+  const [selectedUnit, setSelectedUnit] = useState(product.selectedUnit);
+
   const handleDelete = async () => {
     try {
-      await deleteCartItemAPI(item?.product.id, token);
-      dispatch(removeFromCart({ itemId: item?.product.id }));
-
-      if (onItemRemoved) {
-        onItemRemoved();
-      }
+      await deleteCartItemAPI(product.id, token);
+      dispatch(removeFromCart({ itemId: product.id }));
+      if (onItemRemoved) onItemRemoved();
     } catch (err) {
       console.error('❌ Failed to delete item from cart', err);
     }
   };
 
-  const handleUnitSelect = unit => {
-    dispatch(
-      updateCartItemQuantity({
-        cartItemId: item.cartItemId,
-        selectedUnit: unit,
-      }),
-    );
-    setOpenDropdownId(null);
+  const handleUnitSelect = async unit => {
+    try {
+      await updateCartAPI(product.id, Number(amountInput), unit, token);
+      setSelectedUnit(unit); // update local state
+      dispatch(
+        updateCartItemQuantity({
+          itemId: item.itemId,
+          selectedUnit: unit,
+        }),
+      );
+      setOpenDropdownId(null);
+    } catch (err) {
+      console.error('❌ Failed to update unit', err);
+    }
   };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       const numericValue = parseFloat(amountInput);
-
-      // ✅ Only run API if value changed from original
       if (
         !isNaN(numericValue) &&
         numericValue >= 0 &&
@@ -70,32 +79,30 @@ const CartItem = ({
       ) {
         updateCartAPI(product.id, numericValue, selectedUnit, token)
           .then(() => {
-            originalAmount.current = amountInput; // ✅ Update the ref
+            originalAmount.current = amountInput;
             dispatch(
               updateCartItemQuantity({
-                cartItemId: item.cartItemId,
+                itemId: item.itemId,
                 amount: numericValue,
               }),
             );
           })
-          .catch(() => {
-            console.log('❌ Failed to update quantity');
-          });
+          .catch(() => console.log('❌ Failed to update quantity'));
       }
     }, 500);
-
     return () => clearTimeout(timeout);
-  }, [amountInput]);
-    useEffect(() => {
-      setImageError(false);
-    }, [product.image]);
+  }, [amountInput, selectedUnit]); // now watching selectedUnit too
+
+  useEffect(() => {
+    setImageError(false);
+  }, [product.image]);
 
   return (
     <View style={styles.cartItem}>
       <Image
         style={styles.image}
         source={
-          imageError 
+          imageError
             ? placeholderImageUrl
             : { uri: product.image || product.imageUrls?.[0] }
         }
@@ -121,14 +128,15 @@ const CartItem = ({
               style={styles.unitSelector}
             >
               <Text style={styles.unitText}>{selectedUnit || 'Unit'}</Text>
+
               <AntDesign name={isDropdownOpen ? 'up' : 'down'} size={14} />
             </Pressable>
 
             {isDropdownOpen && (
               <View style={styles.dropdown}>
-                {product.quantity?.map(unit => (
+                {product.quantity?.map((unit, index) => (
                   <Pressable
-                    key={unit}
+                    key={`${product.id}-${unit}-${index}`}
                     onPress={() => handleUnitSelect(unit)}
                     style={styles.dropdownItem}
                   >
@@ -217,7 +225,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 44,
     width: 80,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: 8,

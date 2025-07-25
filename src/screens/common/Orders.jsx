@@ -14,8 +14,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../components/orders/FilterModal';
 
 import BackButton from '../../components/BackButton';
-import CustomerOrderCard from '../../components/orders/CustomerOrderCard';
-import StorekeeperOrderCard from '../../components/orders/StorekeeperOrderCard';
+import OrderHistory from '../../components/orders/OrderHistory';
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 
@@ -38,11 +37,8 @@ const Orders = () => {
   const [activePicker, setActivePicker] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const isCustomer = role === 'CUSTOMER';
-  const isStorekeeper = role === 'STOREKEEPER';
-
   useEffect(() => {
-    if (authLoading || !token || (!isCustomer && !isStorekeeper)) return;
+    if (authLoading || !token) return;
 
     const fetchOrders = async () => {
       try {
@@ -74,7 +70,7 @@ const Orders = () => {
           : null,
         endDate: dateTo ? new Date(dateTo).toISOString().split('T')[0] : null,
         minPrice: minPrice || 0,
-        maxPrice: maxPrice || 100000,
+        maxPrice: maxPrice || 5000,
       };
 
       const filtered = await getFilteredOrderHistory(token, params);
@@ -147,9 +143,7 @@ const Orders = () => {
           const isExpanded = expandedOrderId === item.orderId;
           const totalPrice =
             item.items?.reduce((sum, itm) => {
-              return (
-                sum + (Number(itm.price) || 0) * (Number(itm.quantity) || 0)
-              );
+              return sum + (Number(itm.price) || 0);
             }, 0) || 0;
           const commonProps = {
             order: item,
@@ -159,27 +153,48 @@ const Orders = () => {
               <View style={localStyles.expandedView}>
                 <Text style={localStyles.itemsTitle}>Items:</Text>
                 {item.items.map((itm, idx) => (
-                  <View key={idx} style={localStyles.itemRow}>
+                  <View key={idx}>
                     <View style={localStyles.rowAlign}>
                       <Text style={localStyles.itemName}>
-                        {itm.itemName} (<Text>{itm.quantity}</Text>
-                        <Text> {itm.unit}</Text>)
+                        {`${itm.itemName} (${itm.quantity} ${itm.unit})`}
                       </Text>
+                      {(item.orderStatus === 'DELIVERED' ||
+                        item.orderStatus === 'DISPATCH') && (
+                        <Text> &#8377;{itm.price}</Text>
+                      )}
                     </View>
-                    {(item.status === 'DELIVERED' ||
-                      item.status === 'DISPATCHED') && (
-                      <Text> &#8377;{itm.price}</Text>
-                    )}
+                    <View
+                      style={{
+                        height: 0.3,
+                        width: '100%',
+                        backgroundColor: Colors.grayLine,
+                      }}
+                    ></View>
                   </View>
                 ))}
+                {item.storeKeeperNote && (
+                  <View style={localStyles.noteColumn}>
+                    <Text style={localStyles.noteTitle}>Note : </Text>
+                    <Text
+                      style={{
+                        fontStyle: 'italic',
+                        marginTop: 3,
+                        fontWeight: '500',
+                      }}
+                    >
+                      {`"${item.storeKeeperNote.trim()}"`}
+                    </Text>
+                  </View>
+                )}
               </View>
             ),
           };
-
-          return isCustomer ? (
-            <CustomerOrderCard {...commonProps} totalPrice={totalPrice} />
-          ) : (
-            <StorekeeperOrderCard {...commonProps} />
+          return (
+            <OrderHistory
+              {...commonProps}
+              totalPrice={totalPrice}
+              role={role}
+            />
           );
         }}
       />
@@ -198,11 +213,17 @@ const localStyles = StyleSheet.create({
   },
 
   expandedView: {
-    marginTop: 12,
     borderTopWidth: 1,
     borderTopColor: Colors.borderColor,
     paddingTop: 10,
   },
+  noteColumn: {
+    marginTop: 10,
+  },
+  noteTitle: {
+    fontWeight: 'bold',
+  },
+
   itemsTitle: {
     fontWeight: 'bold',
     marginBottom: 8,
@@ -213,13 +234,14 @@ const localStyles = StyleSheet.create({
   },
   rowAlign: {
     flexDirection: 'row',
-    width: '50%',
+    marginVertical: 10,
     justifyContent: 'flex-start',
-    // backgroundColor:"red"
   },
   itemName: {
     flex: 1,
     fontWeight: '500',
+    // textDecorationLine: 'underline',
+    // textDecorationColor: 'red',
   },
   itemText: {
     color: Colors.secondary,

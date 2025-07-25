@@ -8,13 +8,18 @@ export const getAllCategories = async () => {
   try {
     const response = await api.get('/nukkad/api/category/v1/get');
 
-
     console.log('✅ Get All Categories API Success:', {
       status: response.status,
       data: response.data,
     });
 
-    return response.data;
+    const content = response.data?.content;
+
+    if (!Array.isArray(content)) {
+      throw new Error('Invalid response: expected content to be an array');
+    }
+
+    return content; // ✅ Return only the category array
   } catch (error) {
     console.error('❌ Get All Categories API Error:', {
       message: error.message,
@@ -27,6 +32,7 @@ export const getAllCategories = async () => {
     );
   }
 };
+
 
 // services/category.js (same file)
 

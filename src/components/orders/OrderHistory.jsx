@@ -4,14 +4,18 @@ import { addToCart, clearCart } from '../../store/cartSlice';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
-import { addToCartAPI } from '../../services/customer/cartService';
+import {
+  addToCartAPI,
+  clearCartAPI,
+} from '../../services/customer/cartService';
 import { useAuth } from '../../contexts/authContext';
 
-const CustomerOrderCard = ({
+const OrderHistory = ({
   order,
   onPress,
   isExpanded,
   expandedView,
+  role,
   totalPrice,
 }) => {
   const { safePush } = useSafeRouter();
@@ -30,6 +34,7 @@ const CustomerOrderCard = ({
       Alert.alert('No items to reorder');
       return;
     }
+    await clearCartAPI(token);
 
     dispatch(clearCart());
 
@@ -39,7 +44,7 @@ const CustomerOrderCard = ({
         const unit = item.unit;
         const quantity = item.quantity;
         const amount = quantity.toString();
-        const isPkt = unit?.toLowerCase() === 'pkt';
+        const isPkt = unit === 'PKT';
         const itemCount = isPkt ? Number(quantity) : 1;
 
         // 🔁 Call addToCart API to sync backend
@@ -69,48 +74,92 @@ const CustomerOrderCard = ({
   };
 
   const totalQuantity = order.items?.reduce((sum, item) => {
-    return item.unit?.toLowerCase() === 'pkt'
-      ? sum + Number(item.quantity || 0)
-      : sum + 1;
+    return item.unit === 'PKT' ? sum + Number(item.quantity || 0) : sum + 1;
   }, 0);
 
-  const statusColor =
-    order.status === 'DELIVERED'
-      ? '#4CAF50'
-      : order.status === 'CANCELLED'
-      ? '#F44336'
-      : '#FFC107';
+  const getStatusBg = status => {
+    switch ((status || '').toUpperCase()) {
+      case 'PENDING':
+        return Colors.pending;
+      case 'IN_PROGRESS':
+        return Colors.inProgress;
+      case 'DISPATCH':
+        return Colors.dispatch;
+      case 'DELIVERED':
+        return Colors.delivered;
+      case 'CANCELLED':
+        return Colors.rejected;
+      default:
+        return '#eee';
+    }
+  };
+
+  const getStatusTextColor = status => {
+    switch ((status || '').toUpperCase()) {
+      case 'PENDING':
+        return Colors.pendingText;
+      case 'IN_PROGRESS':
+        return Colors.inProgressText;
+      case 'DISPATCH':
+        return Colors.primary;
+      case 'DELIVERED':
+        return Colors.deliveredText;
+      case 'CANCELLED':
+        return Colors.rejectedText;
+      default:
+        return '#000';
+    }
+  };
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
       <View style={styles.rowBetween}>
-        <View style={styles.columnBetween}>
+        <View style={styles.columnBetweenDetail}>
           <Text style={styles.name}>Order ID: {order.orderId}</Text>
-          <Text style={styles.name}>
-            Store: <Text style={styles.values}>{shopName}</Text>
-          </Text>
-          <Text style={styles.name}>
-            Total Items: <Text style={styles.values}>{totalQuantity}</Text>
-          </Text>
-          {(order.status === 'DELIVERED' || order.status === 'DISPATCHED') && (
+          {role === 'CUSTOMER' ? (
+            <Text style={styles.name}>
+              Store: <Text style={styles.values}>{shopName}</Text>
+            </Text>
+          ) : (
+            <Text style={styles.name}>Customer: {order.customerName}</Text>
+          )}
+          {(order.orderStatus === 'DELIVERED' ||
+            order.orderStatus === 'DISPATCHED') && (
             <Text style={styles.name}>
               Total Price: <Text style={styles.values}>₹{totalPrice}</Text>
             </Text>
           )}
+          <Text style={styles.name}>
+            Total Items: <Text style={styles.values}>{totalQuantity}</Text>
+          </Text>
         </View>
-        <View style={styles.columnBetween}>
+        <View style={styles.columnBetweenStatus}>
           <Text style={styles.date}>{formattedDate}</Text>
           <View style={styles.columnBetween}>
             <View
-              style={[styles.statusBadge, { backgroundColor: statusColor }]}
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusBg(order.orderStatus) },
+              ]}
             >
-              <Text style={styles.statusText}>{order.status}</Text>
+              <Text
+                style={{
+                  color: getStatusTextColor(order.orderStatus),
+                  fontWeight: '600',
+                  fontSize: Fonts.sizes.sm,
+                  textAlign: 'center',
+                }}
+              >
+                {order.orderStatus}
+              </Text>
             </View>
           </View>
 
-          <TouchableOpacity onPress={handleRepeatOrder}>
-            <Text style={styles.repeat}>Repeat Order</Text>
-          </TouchableOpacity>
+          {role === 'CUSTOMER' && (
+            <TouchableOpacity onPress={handleRepeatOrder}>
+              <Text style={styles.repeat}>Repeat Order</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -119,11 +168,11 @@ const CustomerOrderCard = ({
   );
 };
 
-export default CustomerOrderCard;
+export default OrderHistory;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -139,11 +188,15 @@ const styles = StyleSheet.create({
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
   },
-  columnBetween: {
+  columnBetweenDetail: {
     flexDirection: 'column',
     justifyContent: 'space-around',
+  },
+  columnBetweenStatus: {
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems:"flex-end"
   },
   orderId: {
     fontWeight: 'bold',

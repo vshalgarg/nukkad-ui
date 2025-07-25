@@ -203,11 +203,11 @@ console.log("addressData",addressData);
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bgClr }}>
+    <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={keyboardVisible ? 30 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={keyboardVisible ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
@@ -365,7 +365,7 @@ const formStyles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
     justifyContent: 'flex-start',
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   centerContainer: {
     flex: 1,

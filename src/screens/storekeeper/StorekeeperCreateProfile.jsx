@@ -164,7 +164,7 @@ const StorekeeperCreateProfile = () => {
   ]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bgClr }}>
+    <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <View style={innerStyles.createProfileStyling}>
         <Text style={[innerStyles.header, textStyles.subheading]}>
           My Profile
@@ -214,7 +214,7 @@ const StorekeeperCreateProfile = () => {
                 onChange={setContactNumber}
                 keyboardType="phone-pad"
                 maxLength={10}
-                isError={errors.mobile}
+                isError={errors.contactNumber}
                 required
               />
               <LabelledInput
@@ -333,7 +333,7 @@ const innerStyles = StyleSheet.create({
   },
   header: {
     fontWeight: '600',
-    color: Colors.bgClr,
+    color: Colors.white,
   },
   centerContainer: {
     flex: 1,

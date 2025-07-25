@@ -47,9 +47,8 @@ export const createStorekeeperProfile = async (profileData, token) => {
       }),
     };
 
-    formData.append('data', jsonBlob); // ✅ send as file, not string
+    formData.append('data', jsonBlob);
 
-    // ✅ 2. Append image files
     profileData.images?.forEach((img, index) => {
       if (img?.uri) {
         formData.append('images', {

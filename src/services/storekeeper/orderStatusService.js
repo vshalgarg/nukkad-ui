@@ -1,8 +1,8 @@
 import api from '../api';
 
 export const updateOrderStatusById = async (orderId, payload, token) => {
-  console.log('🔁 Update Order Status API');
-  console.log(orderId,payload,token)
+  console.log('🔁 Update Order Status API', orderId, payload);
+
   try {
     const response = await api.patch(
       `nukkad/api/orders/v1/order/updateByStatus/${orderId}`,

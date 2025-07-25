@@ -200,13 +200,13 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   title: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.sm,
   },
   indicatorContainer: {

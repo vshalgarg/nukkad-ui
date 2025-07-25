@@ -1,8 +1,4 @@
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Entypo from 'react-native-vector-icons/Entypo';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import React, { useEffect, useState } from 'react';
-import {formatTabLabel} from "../../utils/formatTabLabel"
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Alert,
   Pressable,
@@ -12,15 +8,19 @@ import {
   TouchableOpacity,
   View,
   Linking,
+  findNodeHandle,
 } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Entypo from 'react-native-vector-icons/Entypo';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getOrders } from '../../services/storekeeper/orders';
+import { getOrders } from '../../services/storekeeper/getOrders';
 import SideBar from '../../components/sidebar/SideBar';
+import ConnectPopup from '../../components/ConnectPopUp';
 import {
-
   updateOrderStatus,
-  setOrders
+  setOrders,
 } from '../../store/storekeeperOrdersSlice';
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
@@ -28,11 +28,14 @@ import Fonts from '../../styles/font';
 import textStyles from '../../styles/textStyles';
 import { useAuth } from '../../contexts/authContext';
 import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
+import { formatTabLabel } from '../../utils/formatTabLabel';
 
 const StorekeeperDashboard = () => {
   const [formState, setFormState] = useState(0);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [popupOrderId, setPopupOrderId] = useState(null);
+  const [popupCoords, setPopupCoords] = useState({ x: 0, y: 0 });
+  const dotRefs = useRef({});
   const { token } = useAuth();
 
   const dispatch = useDispatch();
@@ -40,18 +43,15 @@ const StorekeeperDashboard = () => {
   const route = useRoute();
   const tab = route?.params?.tab;
 
-  // Grouping multiple statuses per tab
-const statusTabs = [
-  { label: 'PENDING', statuses: ['PENDING'] },
-  { label: 'IN_PROGRESS', statuses: ['IN_PROGRESS', 'DISPATCH'] },
-  { label: 'DELIVERED', statuses: ['DELIVERED'] },
-];
+  const statusTabs = [
+    { label: 'PENDING', statuses: ['PENDING'] },
+    { label: 'IN_PROGRESS', statuses: ['IN_PROGRESS', 'DISPATCH'] },
+    { label: 'DELIVERED', statuses: ['DELIVERED'] },
+  ];
 
   const orders = useSelector(state => state.storekeeperOrders.orders);
-  console.log(orders)
-  
-   useEffect(() => {
-    // Load orders from backend API when component mounts or token changes
+
+  useEffect(() => {
     const loadOrders = async () => {
       try {
         if (!token) return;
@@ -61,22 +61,19 @@ const statusTabs = [
         Alert.alert('Error', error.message || 'Failed to fetch orders');
       }
     };
-
     loadOrders();
   }, [dispatch, token]);
 
   useEffect(() => {
-  const tabIndex = statusTabs.findIndex(
-    t => t.label.toLowerCase() === tab?.toLowerCase()
-  );
-  if (tabIndex !== -1) setFormState(tabIndex);
-}, [tab]);
-
+    const tabIndex = statusTabs.findIndex(
+      t => t.label.toLowerCase() === tab?.toLowerCase(),
+    );
+    if (tabIndex !== -1) setFormState(tabIndex);
+  }, [tab]);
 
   const filteredOrders = orders.filter(order =>
-  statusTabs[formState].statuses.includes(order.orderStatus)
-);
-
+    statusTabs[formState].statuses.includes(order.orderStatus),
+  );
 
   const safePush = routeObj => {
     try {
@@ -90,7 +87,6 @@ const statusTabs = [
     try {
       if (order.orderStatus === 'PENDING') {
         const payload = { orderStatus: 'IN_PROGRESS' };
-        console.log(payload.orderStatus)
         await updateOrderStatusById(order.orderId, payload, token);
         dispatch(
           updateOrderStatus({
@@ -100,7 +96,6 @@ const statusTabs = [
         );
       }
 
-      // ✅ Navigate to ShowDetails screen
       safePush({
         pathname: 'ShowDetails',
         params: {
@@ -110,65 +105,44 @@ const statusTabs = [
         },
       });
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to update order status. Please try again.',
-      );
+      Alert.alert('Error', error.message || 'Failed to update order status.');
     }
   };
 
   const handleReject = orderId => {
-    Alert.alert(
-      'Reject Order',
-      'Are you sure you want to reject this order?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reject',
-          style: 'destructive',
-          onPress: async () => {
-            const payload = { orderStatus: 'CANCELLED' };
-
-            await updateOrderStatusById(orderId, payload, token);
-
-            dispatch(
-              updateOrderStatus({
-                orderId: orderId,
-                newStatus: 'CANCELLED',
-                
-              }),
-            );
-          },
+    Alert.alert('Reject Order', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Reject',
+        style: 'destructive',
+        onPress: async () => {
+          const payload = { orderStatus: 'CANCELLED' };
+          await updateOrderStatusById(orderId, payload, token);
+          dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
         },
-      ],
-      { cancelable: true },
-    );
+      },
+    ]);
   };
 
   const handleDeliver = orderId => {
-    Alert.alert(
-      'Deliver Order',
-      'Are you sure you want to deliver this order?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, Deliver',
-          onPress: async () => {
-            const payload = { orderStatus: 'DELIVERED' };
-
-            await updateOrderStatusById(orderId, payload, token);
-
-            dispatch(
-              updateOrderStatus({
-                orderId: orderId,
-                newStatus: 'DELIVERED',
-              }),
-            );
-          },
+    Alert.alert('Deliver Order', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Yes, Deliver',
+        onPress: async () => {
+          const payload = { orderStatus: 'DELIVERED' };
+          await updateOrderStatusById(orderId, payload, token);
+          dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
         },
-      ],
-      { cancelable: true },
-    );
+      },
+    ]);
+  };
+
+  const showPopup = (orderId, ref) => {
+    ref?.measureInWindow((x, y, width, height) => {
+      setPopupCoords({ x: x + width - 160, y: y + height });
+      setPopupOrderId(orderId);
+    });
   };
 
   return (
@@ -186,31 +160,28 @@ const statusTabs = [
           <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
         </TouchableOpacity>
       </View>
-      {/* <Pressable onPress={handleReset}>
-        <Text>RESET</Text>
-      </Pressable> */}
+
       <SideBar
         isVisible={isSideBarOpen}
         onClose={() => setIsSideBarOpen(false)}
       />
 
       <View style={innerStyle.orderStatus}>
-  {statusTabs.map((tabItem, index) => (
-    <Pressable
-      key={index}
-      style={[
-        innerStyle.statusButton,
-        formState === index && { backgroundColor: Colors.secondaryText },
-      ]}
-      onPress={() => setFormState(index)}
-    >
-      <Text style={formState === index && { color: Colors.bgClr }}>
-        {formatTabLabel(tabItem.label)}
-      </Text>
-    </Pressable>
-  ))}
-</View>
-
+        {statusTabs.map((tabItem, index) => (
+          <Pressable
+            key={index}
+            style={[
+              innerStyle.statusButton,
+              formState === index && { backgroundColor: Colors.secondary },
+            ]}
+            onPress={() => setFormState(index)}
+          >
+            <Text style={formState === index && { color: Colors.white }}>
+              {formatTabLabel(tabItem.label)}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
 
       {filteredOrders.length === 0 ? (
         <View style={innerStyle.emptyStateContainer}>
@@ -221,7 +192,6 @@ const statusTabs = [
       ) : (
         <ScrollView
           style={{ paddingHorizontal: 20, marginTop: 20 }}
-          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
         >
           {filteredOrders.map(order => (
@@ -231,26 +201,26 @@ const statusTabs = [
               onPress={() => handleDetails(order)}
             >
               <View>
-                <Text style={innerStyle.orderText}>
-                  Order <Text>#{order.orderId}</Text>
-                </Text>
+                <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
                 <Text style={innerStyle.orderDetailsHeading}>
                   Customer Name:
                   <Text style={innerStyle.orderDetails}>
-                    {' ' + order.customerName}
+                    {' '}
+                    {order.customerName}
                   </Text>
                 </Text>
                 <Text style={innerStyle.orderDetailsHeading}>
-                  LandMark:
+                  Address:
                   <Text style={innerStyle.orderDetails}>
-                    {' ' + order.landmark}
+                    {' '}
+                    {order.address}, {order.landmark}
                   </Text>
                 </Text>
-        
                 <Text style={innerStyle.orderDetailsHeading}>
                   Quantity:
                   <Text style={innerStyle.orderDetails}>
-                    {' ' + order.items.length}
+                    {' '}
+                    {order.items.length}
                   </Text>
                 </Text>
                 <Text
@@ -274,7 +244,7 @@ const statusTabs = [
 
               <View
                 style={{
-                  alignItems: 'center',
+                  alignItems: 'flex-end',
                   justifyContent: 'space-between',
                 }}
               >
@@ -285,9 +255,11 @@ const statusTabs = [
                   {order.orderStatus !== 'DELIVERED' &&
                     order.orderStatus !== 'CANCELLED' && (
                       <Pressable
+                        ref={ref => (dotRefs.current[order.orderId] = ref)}
                         onPress={() =>
-                          setPopupOrderId(prev =>
-                            prev === order.orderId ? null : order.orderId,
+                          showPopup(
+                            order.orderId,
+                            dotRefs.current[order.orderId],
                           )
                         }
                       >
@@ -300,79 +272,20 @@ const statusTabs = [
                     )}
                 </View>
 
-                {popupOrderId === order.orderId && (
-                  <View style={innerStyle.popupMenu}>
-                    <Pressable
-                      style={innerStyle.popupItem}
-                      onPress={() => {
-                        setPopupOrderId(null);
-                        const url = `tel:${
-                          order?.mobileNumber || '9999999999'
-                        }`;
-                        Linking.openURL(url).catch(err =>
-                          console.error('Call error:', err),
-                        );
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={innerStyle.popupText}>Call</Text>
-                        <FontAwesome5
-                          name="phone"
-                          size={15}
-                          color={Colors.secondary}
-                        />
-                      </View>
-                    </Pressable>
-                    <Pressable
-                      style={innerStyle.popupItem}
-                      onPress={() => {
-                        setPopupOrderId(null);
-                        const url = `https://wa.me/${
-                          order?.mobileNumber || '9999999999'
-                        }`;
-                        Linking.openURL(url).catch(err =>
-                          console.error('WhatsApp error:', err),
-                        );
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={innerStyle.popupText}>WhatsApp</Text>
-                        <FontAwesome5
-                          name="whatsapp"
-                          size={18}
-                          color="#25D366"
-                        />
-                      </View>
-                    </Pressable>
-                  </View>
-                )}
-
                 {order.orderStatus !== 'DELIVERED' &&
                   order.orderStatus !== 'CANCELLED' &&
-                  order.orderStatus !== 'DISPATCH' && (
+                  order.orderStatus !== 'DISPATCHED' && (
                     <Pressable
                       style={innerStyle.showDetailsBtn}
                       onPress={() => handleReject(order.orderId)}
                     >
-                      <Text style={{ color: Colors.bgClr, fontWeight: '800' }}>
+                      <Text style={{ color: Colors.white, fontWeight: '800' }}>
                         Reject
                       </Text>
                     </Pressable>
                   )}
 
-                {order.orderStatus === 'DISPATCH' && (
+                {order.orderStatus === 'DISPATCHED' && (
                   <Pressable
                     style={[
                       innerStyle.showDetailsBtn,
@@ -380,7 +293,7 @@ const statusTabs = [
                     ]}
                     onPress={() => handleDeliver(order.orderId)}
                   >
-                    <Text style={{ color: Colors.bgClr, fontWeight: '800' }}>
+                    <Text style={{ color: Colors.white, fontWeight: '800' }}>
                       Deliver
                     </Text>
                   </Pressable>
@@ -390,6 +303,15 @@ const statusTabs = [
           ))}
         </ScrollView>
       )}
+
+      <ConnectPopup
+        visible={!!popupOrderId}
+        onClose={() => setPopupOrderId(null)}
+        position={popupCoords}
+        mobileNumber={
+          filteredOrders.find(o => o.orderId === popupOrderId)?.mobileNumber
+        }
+      />
     </View>
   );
 };
@@ -434,7 +356,7 @@ const innerStyle = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     elevation: 3,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     padding: 15,
     borderRadius: 20,
     marginBottom: 10,
@@ -466,7 +388,7 @@ const innerStyle = StyleSheet.create({
     position: 'absolute',
     top: 20, // adjust to be just below the dot icon
     right: 0,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 8,
     borderColor: Colors.borderColor,
     borderWidth: 1,

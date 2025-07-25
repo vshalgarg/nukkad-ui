@@ -62,7 +62,7 @@ const FilterModal = ({
   const [statusItems, setStatusItems] = useState([
     { label: 'Pending', value: 'PENDING' },
     { label: 'In Progress', value: 'IN_PROGRESS' },
-    { label: 'Dispatched', value: 'DISPATCHED' },
+    { label: 'Dispatched', value: 'DISPATCH' },
     { label: 'Delivered', value: 'DELIVERED' },
     { label: 'Cancelled', value: 'CANCELLED' },
   ]);
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
   container: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   buttonText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontWeight: '600',
   },
 });

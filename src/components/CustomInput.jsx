@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     height: 48,
     paddingHorizontal: 15,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     width: 300,
   },
   fixedPrefix: {

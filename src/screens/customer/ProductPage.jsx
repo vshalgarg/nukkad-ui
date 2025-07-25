@@ -175,7 +175,7 @@ const innerStyle = StyleSheet.create({
     bottom: 15,
     left: 15,
     right: 15,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderColor: Colors.primary,
     borderWidth: 1.5,
     borderRadius: 40,
@@ -203,7 +203,7 @@ const innerStyle = StyleSheet.create({
     borderRadius: 25,
   },
   goToCartText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
   },

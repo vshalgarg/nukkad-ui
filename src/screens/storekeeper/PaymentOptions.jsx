@@ -6,9 +6,8 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  TextInput,
+  Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -17,155 +16,199 @@ import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
+import CustomAlert from '../../components/CustomAlert';
+
+import {
+  deletePaymentQR,
+  fetchPaymentQRs,
+  uploadQRImage,
+  updatePaymentQR,
+  setDefaultPaymentQR,
+} from '../../services/storekeeper/PaymentQrService';
+
+import { useAuth } from '../../contexts/authContext';
 
 const PaymentOptions = () => {
+  const { token } = useAuth();
   const [qrCodes, setQrCodes] = useState([]);
-  const [defaultQRIndex, setDefaultQRIndex] = useState(null);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [defaultQRId, setDefaultQRId] = useState(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [qrToDelete, setQrToDelete] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      const storedQR = await AsyncStorage.getItem('qrCodes');
-      const storedIndex = await AsyncStorage.getItem('defaultQRIndex');
-      if (storedQR) setQrCodes(JSON.parse(storedQR));
-      if (storedIndex !== null) setDefaultQRIndex(parseInt(storedIndex));
+    const loadQRs = async () => {
+      try {
+        const fetched = await fetchPaymentQRs(token);
+        setQrCodes(fetched);
+        const defaultQr = fetched.find(qr => qr.default);
+        if (defaultQr) setDefaultQRId(defaultQr.id);
+      } catch (err) {
+        console.error('❌ Failed to load QR codes:', err);
+      }
     };
-    loadData();
-  }, []);
 
-  const saveQRs = async data => {
-    setQrCodes(data);
-    await AsyncStorage.setItem('qrCodes', JSON.stringify(data));
-  };
+    loadQRs();
+  }, [token]);
 
-  const saveDefaultQR = async index => {
-    setDefaultQRIndex(index);
-    await AsyncStorage.setItem('defaultQRIndex', index.toString());
-  };
+  const handlePickImage = async existingQR => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 1,
+      });
+      if (!result.assets || result.assets.length === 0) return;
 
-  const pickImage = async index => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 1,
-    });
+      const asset = result.assets[0];
+      const file = {
+        uri: asset.uri,
+        fileName: asset.fileName || 'qr.jpg',
+        type: asset.type || 'image/jpeg',
+      };
 
-    if (result.assets && result.assets.length > 0) {
-      const updated = [...qrCodes];
-      if (updated[index]) {
-        updated[index].uri = result.assets[0].uri;
+      let response;
+      if (existingQR?.id) {
+        response = await updatePaymentQR(existingQR.id, file, token);
       } else {
-        updated[index] = {
-          uri: result.assets[0].uri,
-          name: `QR Code ${index + 1}`,
-        };
+        response = await uploadQRImage(file, token);
       }
-      saveQRs(updated);
 
-      if (defaultQRIndex === null) {
-        saveDefaultQR(index);
+      if (response?.id) {
+        const updatedQRs = await fetchPaymentQRs(token);
+        setQrCodes(updatedQRs);
+        const defaultQr = updatedQRs.find(qr => qr.default);
+        if (defaultQr) setDefaultQRId(defaultQr.id);
+      } else {
+        Alert.alert('Upload Failed', 'Could not upload QR code. Try again.');
       }
+    } catch (error) {
+      console.error('Image pick/upload error:', error);
+      Alert.alert('Error', 'Something went wrong while uploading the QR.');
     }
   };
-  
 
-  const handleNameChange = (index, text) => {
-    const updated = [...qrCodes];
-    if (updated[index]) {
-      updated[index].name = text;
-      saveQRs(updated);
+  const handleDeleteQR = async id => {
+    try {
+      await deletePaymentQR(id, token);
+      const updated = await fetchPaymentQRs(token);
+      setQrCodes(updated);
+      const defaultQr = updated.find(qr => qr.default);
+      setDefaultQRId(defaultQr?.id || null);
+    } catch (err) {
+      console.error('❌ Delete QR failed:', err);
+      Alert.alert('Error', 'Failed to delete QR');
+    }
+  };
+
+  const handleSetDefault = async id => {
+    try {
+      await setDefaultPaymentQR(id, token);
+      setDefaultQRId(id);
+    } catch (err) {
+      console.error('❌ Set default failed:', err);
+      Alert.alert('Error', 'Could not set QR as default');
     }
   };
 
   const displaySlots = [...qrCodes];
-  if (displaySlots.length < 3) {
-    displaySlots.push(null);
-  }
+  if (displaySlots.length < 3) displaySlots.push(null);
 
   return (
     <View style={styles.pageContainer}>
       <BackButton title="Payment Options" />
-
       <ScrollView contentContainerStyle={innerStyle.container}>
         {displaySlots.map((qr, index) => {
-          const isDefault = index === defaultQRIndex;
-          const isEditing = editingIndex === index;
+          const isDefault = qr?.id === defaultQRId;
 
           return (
-            <TouchableOpacity
+            <View
               key={index}
               style={[
                 innerStyle.qrCard,
                 isDefault && innerStyle.qrCardSelected,
               ]}
-              onPress={() => {
-                if (qr?.uri) saveDefaultQR(index);
-              }}
-              activeOpacity={0.9}
             >
-              <View style={innerStyle.qrHeader}>
-                {isEditing ? (
-                  <>
-                    <TextInput
-                      value={qr?.name ?? `QR Code ${index + 1}`}
-                      onChangeText={text => handleNameChange(index, text)}
-                      style={innerStyle.nameInput}
-                      placeholder="Enter name"
-                    />
-                    <TouchableOpacity onPress={() => setEditingIndex(null)}>
-                      <Ionicons name="checkmark" size={20} color={Colors.primary}/>
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <Text style={innerStyle.qrLabel}>
-                      {qr?.name ?? `QR Code ${index + 1}`}
-                    </Text>
-                    {qr?.uri && (
-                      <TouchableOpacity onPress={() => setEditingIndex(index)}>
-                        <Feather name="edit" size={18} color={Colors.secondary} />
-                      </TouchableOpacity>
-                    )}
-                  </>
-                )}
-              </View>
+              <Text style={innerStyle.qrTitle}>
+                QR Code {index + 1}
+                {isDefault ? ' (Default)' : ''}
+              </Text>
 
-              {qr?.uri ? (
+              {qr?.qrImageUrl ? (
                 <Image
-                  source={{ uri: qr.uri }}
+                  source={{ uri: qr.qrImageUrl }}
                   style={innerStyle.qrImage}
                   resizeMode="contain"
                 />
               ) : (
                 <View style={innerStyle.qrPlaceholder}>
-                  <Ionicons name="qr-code" size={48} color={Colors.secondary} />
-                  <Text style={innerStyle.placeholderText}>No QR Selected</Text>
+                  <Ionicons
+                    name="qr-code-outline"
+                    size={60}
+                    color={Colors.borderColor}
+                  />
+                  <Text style={innerStyle.placeholderText}>No QR Uploaded</Text>
                 </View>
               )}
 
               <TouchableOpacity
-                style={[innerStyle.uploadBtn, { marginTop: 12 }]}
-                onPress={() => pickImage(index)}
+                style={innerStyle.uploadBtn}
+                onPress={() => handlePickImage(qr)}
               >
+                <Feather name="upload" size={16} color={Colors.white} />
                 <Text style={innerStyle.uploadBtnText}>
-                  {qr?.uri ? 'Change QR' : 'Upload QR'}
+                  {qr?.qrImageUrl ? 'Change QR Code' : 'Upload QR Code'}
                 </Text>
               </TouchableOpacity>
-            </TouchableOpacity>
+
+              {qr?.id && (
+                <View style={innerStyle.actionRow}>
+                  <TouchableOpacity
+                    style={[
+                      innerStyle.secondaryBtn,
+                      {
+                        backgroundColor: isDefault
+                          ? Colors.borderColor
+                          : Colors.secondary,
+                      },
+                    ]}
+                    onPress={() => handleSetDefault(qr.id)}
+                  >
+                    <Text style={innerStyle.secondaryBtnText}>
+                      {isDefault ? 'Default' : 'Set as Default'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      innerStyle.secondaryBtn,
+                      { backgroundColor: Colors.reject },
+                    ]}
+                    onPress={() => {
+                      setQrToDelete(qr.id);
+                      setAlertVisible(true);
+                    }}
+                  >
+                    <Feather name="trash-2" size={14} color={Colors.white} />
+                    <Text style={innerStyle.secondaryBtnText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           );
         })}
-
-        {/* <TouchableOpacity
-          style={innerStyle.clearBtn}
-          onPress={async () => {
-            await AsyncStorage.removeItem("qrCodes");
-            await AsyncStorage.removeItem("defaultQRIndex");
-            setQrCodes([]);
-            setDefaultQRIndex(null);
-          }}
-        >
-          <Text style={innerStyle.clearBtnText}>Clear All QR Data</Text>
-        </TouchableOpacity> */}
       </ScrollView>
+
+      <CustomAlert
+        visible={alertVisible}
+        title="Delete QR"
+        message="Are you sure you want to delete this QR code?"
+        cancelText="Cancel"
+        confirmText="Delete"
+        onCancel={() => setAlertVisible(false)}
+        onConfirm={() => {
+          handleDeleteQR(qrToDelete);
+          setAlertVisible(false);
+        }}
+      />
     </View>
   );
 };
@@ -175,101 +218,92 @@ export default PaymentOptions;
 const innerStyle = StyleSheet.create({
   container: {
     padding: 20,
+    paddingBottom: 40,
   },
   qrCard: {
-    marginBottom: 24,
-    backgroundColor:Colors.bgClr,
-    borderRadius: 16,
+    backgroundColor: Colors.white,
+    borderRadius: 18,
     padding: 16,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    shadowColor: Colors.bgClr,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
     elevation: 3,
-    transform: [{ scale: 1 }],
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
   },
-
   qrCardSelected: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
-    shadowColor: Colors.borderColor,
-    shadowOpacity: 0.2,
-    elevation: 6,
+    shadowColor: Colors.primary,
+    elevation: 5,
     transform: [{ scale: 1.01 }],
   },
-
-  qrHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  qrLabel: {
-    fontSize: Fonts.sizes.base,
+  qrTitle: {
+    fontSize: Fonts.sizes.base + 2,
     fontWeight: '600',
     color: Colors.secondary,
-  },
-  nameInput: {
-    flex: 1,
-    fontSize: Fonts.sizes.base,
-    padding: 4,
-    borderBottomWidth: 1,
-    borderColor: Colors.borderColor,
-    marginRight: 10,
-  },
-  qrPlaceholder: {
-    height: 200,
-    width: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: Colors.borderColor,
-    borderStyle: 'dashed',
-    borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: Colors.bgClr,
-  },
-  placeholderText: {
-    marginTop: 8,
-    color: Colors.borderColor,
-    fontSize: Fonts.sizes.sm,
   },
   qrImage: {
     width: 200,
-    alignSelf: 'center',
     height: 200,
     borderRadius: 12,
     borderWidth: 1,
+    alignSelf: 'center',
     borderColor: Colors.borderColor,
-    marginBottom: 12,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
+    marginBottom: 14,
+    objectFit: 'cover',
   },
-
+  qrPlaceholder: {
+    height: 200,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Colors.borderColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9F9F9',
+    marginBottom: 14,
+  },
+  placeholderText: {
+    marginTop: 8,
+    fontSize: Fonts.sizes.sm,
+    color: Colors.borderColor,
+  },
   uploadBtn: {
+    flexDirection: 'row',
+    gap: 8,
     backgroundColor: Colors.primary,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   uploadBtnText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.base,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  clearBtn: {
-    marginTop: 10,
-    alignSelf: 'center',
-    backgroundColor: Colors.reject,
-    paddingHorizontal: 20,
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    gap: 12,
+  },
+  secondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: 8,
   },
-  clearBtnText: {
-    color: Colors.bgClr,
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
+  secondaryBtnText: {
+    color: Colors.white,
+    fontSize: Fonts.sizes.base,
+    fontWeight: '500',
   },
 });

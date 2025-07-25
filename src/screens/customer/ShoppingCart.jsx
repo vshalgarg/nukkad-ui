@@ -193,6 +193,7 @@ const ShoppingCart = () => {
     );
   }
 
+  console.log("cartItems",cartItems)
   return (
     <View style={[{ flex: 1 }, styles.pageContainer]}>
       <BackButton
@@ -293,7 +294,7 @@ const innerStyle = StyleSheet.create({
     borderRadius: 30,
   },
   browseBtnText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
   },

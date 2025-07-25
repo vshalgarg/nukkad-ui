@@ -184,7 +184,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
 const styles = StyleSheet.create({
   card: {
     padding: width < 360 ? 8 : 10,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 10,
     elevation: 3,
     alignItems: 'center',

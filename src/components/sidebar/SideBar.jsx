@@ -77,8 +77,8 @@ const SideBar = ({ isVisible, onClose }) => {
       : []),
     { name: 'Notifications', icon: 'notifications' },
     { name: 'Settings', icon: 'settings-sharp' },
-    { name: 'Refer to Store', icon: 'share-social-sharp' },
-    { name: 'Refer to Customer', icon: 'person' },
+    { name: 'Refer a Store', icon: 'share-social-sharp' },
+    { name: 'Refer Store to Customer', icon: 'person' },
     { name: 'Help and Support', icon: 'help-circle' },
     { name: 'Privacy Policy', icon: 'shield-half' },
     { name: 'Terms & Conditions', icon: 'document' },
@@ -108,7 +108,7 @@ const SideBar = ({ isVisible, onClose }) => {
       Notifications: 'Notification',
       Settings: 'settings',
       // 'Help and Support': 'Help',
-      'Refer to Customer': 'ReferToCustomer',
+      'Refer Store to Customer': 'ReferToCustomer',
       'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
     };
@@ -127,7 +127,7 @@ const SideBar = ({ isVisible, onClose }) => {
     'Help and Support': 'https://support.google.com',
     'Privacy Policy': 'https://policies.google.com/privacy',
     'Terms & Conditions': 'https://policies.google.com/terms',
-    'Refer to Store': 'https://www.google.com/',
+    'Refer a Store': 'https://www.google.com/',
   };
 
   const handleOptionClick = async menuName => {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     left: 0,
     height: '100%',
     width: Dimensions.get('window').width * 0.8,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     paddingTop: 60,
     paddingHorizontal: 20,
     zIndex: 1000,

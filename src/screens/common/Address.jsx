@@ -175,7 +175,7 @@ const Address = () => {
                 <Ionicons
                   name="add-circle-outline"
                   size={24}
-                  color={Colors.bgClr}
+                  color={Colors.white}
                 />
                 <Text style={innerStyle.addButtonText}>Add Address</Text>
               </Pressable>
@@ -189,7 +189,7 @@ const Address = () => {
               <Ionicons
                 name="add-circle-outline"
                 size={24}
-                color={Colors.bgClr}
+                color={Colors.white}
               />
               <Text style={innerStyle.addButtonText}>Add Address</Text>
             </Pressable>
@@ -236,7 +236,7 @@ const innerStyle = StyleSheet.create({
     borderRadius: 50,
   },
   addButtonText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
     marginLeft: 8,

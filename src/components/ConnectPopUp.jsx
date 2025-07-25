@@ -1,110 +1,101 @@
+import React from 'react';
 import {
-  Linking,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  Pressable,
+  Linking,
+  StyleSheet,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Colors from '../styles/colors';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Fonts from '../styles/font';
 
-const ConnectPopup = ({ visible, onClose, phone }) => {
-  const handleCall = () => {
-    onClose();
-    Linking.openURL(`tel:${phone || '9999999999'}`);
-  };
+const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
+  if (!visible) return null;
 
-  const handleWhatsApp = () => {
-    onClose();
-    const message = "Hello, I'm contacting you regarding your order.";
-    Linking.openURL(
-      `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`,
+  const phoneNumber = phone || '9999999999';
+
+  const handleCall = () => {
+    onClose?.();
+    Linking.openURL(`tel:${phoneNumber}`).catch(err =>
+      console.error('Call error:', err),
     );
   };
 
+  const handleWhatsApp = () => {
+    onClose?.();
+    const message = "Hello, I'm contacting you regarding your order.";
+    Linking.openURL(
+      `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`,
+    ).catch(err => console.error('WhatsApp error:', err));
+  };
+
   return (
-    <Modal visible={visible} transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.popup}>
-          <View style={styles.container}>
-            <Text style={styles.buttonTextPhone}>
-              <Ionicons name="call" size={Fonts.sizes.base} color={Colors.reject} /> Call Now
-            </Text>
-            <TouchableOpacity onPress={handleCall} style={styles.button}>
-              <Text style={[styles.buttonText, { color: Colors.bgClr }]}>Done</Text>
-            </TouchableOpacity>
-          </View>
+    <View style={styles.absoluteFill}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay} />
+      </TouchableWithoutFeedback>
 
-          <View style={styles.container}>
-            <Text style={styles.buttonTextChat}>
-              <FontAwesome name="whatsapp" size={20} color={Colors.primary}/> WhatsApp
-            </Text>
-            <TouchableOpacity onPress={handleWhatsApp} style={styles.button}>
-              <Text style={[styles.buttonText, { color: Colors.bgClr }]}>Done</Text>
-            </TouchableOpacity>
+      <View
+        style={[
+          styles.popupMenu,
+          styles.popup,
+          { top: position?.y, left: position?.x },
+        ]}
+      >
+        <Pressable style={styles.popupItem} onPress={handleCall}>
+          <View style={styles.row}>
+            <Text style={styles.popupText}>Call</Text>
+            <FontAwesome5 name="phone" size={15} color={Colors.secondary} />
           </View>
-
-          <TouchableOpacity
-            onPress={onClose}
-            style={{ marginTop: 10, width: '100%' }}
-          >
-            <Text style={{ color: Colors.secondaryText, textAlign: 'center' }}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+        </Pressable>
+        <Pressable style={styles.popupItem} onPress={handleWhatsApp}>
+          <View style={styles.row}>
+            <Text style={styles.popupText}>WhatsApp</Text>
+            <FontAwesome5 name="whatsapp" size={18} color={Colors.primary} />
+          </View>
+        </Pressable>
       </View>
-    </Modal>
+    </View>
   );
 };
 
 export default ConnectPopup;
 
 const styles = StyleSheet.create({
+  absoluteFill: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+  },
   overlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.secondary,
+    backgroundColor: 'transparent',
   },
-  popup: {
-    backgroundColor: Colors.bgClr,
-    padding: 20,
-    borderRadius: 15,
-    width: '80%',
-    alignItems: 'center',
+  popupMenu: {
+    position: 'absolute',
+    top: 60,
+    right: 10,
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    borderColor: Colors.borderColor,
+    borderWidth: 1,
+    elevation: 5,
+    width: 150,
   },
-  button: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    borderRadius: 50,
+  popupItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderColor,
   },
-  title: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  popupText: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.secondary,
   },
-  container: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    padding: 12,
-    borderRadius: 8,
     alignItems: 'center',
-  },
-  buttonTextPhone: {
-    fontWeight: 'bold',
-    fontSize: Fonts.sizes.base,
-    alignItems: 'center',
-  },
-  buttonTextChat: {
-    fontWeight: 'bold',
-    fontSize: Fonts.sizes.base,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontWeight: 'bold',
   },
 });

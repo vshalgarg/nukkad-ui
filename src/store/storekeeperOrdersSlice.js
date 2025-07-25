@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-// import ordersData from '../HardcodeData/orderData.js';
 
 const initialState = {
   orders: [],
@@ -27,7 +26,7 @@ const storekeeperOrdersSlice = createSlice({
       }
     },
     resetOrdersFromFile: state => {
-      state.orders = [...ordersData];
+      state.orders = [...orders];
     },
     updateOrderNote: (state, action) => {
       const { orderId, storeKeeperNote } = action.payload;
@@ -46,6 +45,5 @@ export const {
   setOrders,
   updateOrderNote,
 } = storekeeperOrdersSlice.actions;
-
 
 export default storekeeperOrdersSlice.reducer;

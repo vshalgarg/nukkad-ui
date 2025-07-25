@@ -95,7 +95,7 @@ const innerStyle = StyleSheet.create({
     gap: 15,
     alignItems: 'center',
     padding: 20,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     height: screenHeight * 0.75,
     marginTop: 16,
   },
@@ -110,7 +110,7 @@ const innerStyle = StyleSheet.create({
     padding: 5,
     borderRadius: 2,
     elevation: 8,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   heading: {
     fontSize: Fonts.sizes.base,
@@ -126,7 +126,7 @@ const innerStyle = StyleSheet.create({
     width: 200,
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    backgroundColor:Colors.bgClr,
+    backgroundColor:Colors.white,
   },
   storeIdContainer: {
     flexDirection: 'row',

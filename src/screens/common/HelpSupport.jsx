@@ -114,7 +114,7 @@ const innerStyles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     padding: 16,
     borderRadius: 10,
   },

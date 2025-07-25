@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   imageBox: {
     width: 70,
     height: 70,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderWidth: 2,
     borderColor: Colors.borderColor,
     borderRadius: 10,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 10,
   },
 });

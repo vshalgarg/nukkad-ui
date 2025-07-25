@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContainer: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 20,
     width: "85%",
@@ -136,10 +136,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancel: {
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   buttonText: {
-    color: Colors.bgClr,
+    color: Colors.white,
     fontWeight: "bold",
   },
 });

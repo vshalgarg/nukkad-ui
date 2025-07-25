@@ -296,7 +296,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 40,
     paddingBottom: 40,
-    backgroundColor: Colors.bgClr,
+    backgroundColor: Colors.white,
   },
   centerContent: {
     width: '100%',
