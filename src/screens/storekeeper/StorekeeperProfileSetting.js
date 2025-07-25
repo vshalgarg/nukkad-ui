@@ -14,7 +14,8 @@ import { useAuth } from '../../contexts/authContext';
 import Toast from 'react-native-toast-message';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { z } from 'zod';
-
+import { Keyboard } from 'react-native';
+import { LinearGradient } from 'react-native-linear-gradient';
 
 const profileSchema = z.object({
     name: z.string().min(1, "Name is required").max(30, "Name can't be more that 30 characters"),
@@ -63,7 +64,7 @@ const StorekeeperProfileScreen = () => {
     const { storekeeperProfile, updateStorekeeperProfile } = useStorekeeperProfile();
     const { token } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    // const [errors, setErrors] = useState([]);
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({
         name: '',
         storeName: '',
@@ -142,6 +143,21 @@ const StorekeeperProfileScreen = () => {
             });
         }
     };
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => setKeyboardVisible(true)
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => setKeyboardVisible(false)
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
 
     useEffect(() => {
         if (storekeeperProfile) {
@@ -252,7 +268,7 @@ const StorekeeperProfileScreen = () => {
     return (
 
         <View style={{ flex: 1 }}>
-            <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 120 }}>
                 <Text style={styles.header}>Profile Setting</Text>
                 <View style={{ marginBottom: 20 }}>
                     <TouchableOpacity
@@ -311,8 +327,15 @@ const StorekeeperProfileScreen = () => {
 
             </ScrollView>
 
-            {isEditing && (
-                <View style={styles.fixedSaveButtonContainer}>
+            {isEditing && !keyboardVisible && (
+                <View style={styles.saveButtonContainer}>
+                    {/* Gradient background */}
+                    <LinearGradient
+                        colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.9)', 'white']}
+                        style={styles.saveButtonBackground}
+                        locations={[0, 0.7, 1]}
+                    />
+                    {/* Save button */}
                     <TouchableOpacity style={styles.fixedSaveButton} onPress={handleSave}>
                         <Text style={styles.saveButtonText}>Save Changes</Text>
                     </TouchableOpacity>
@@ -415,30 +438,13 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         textAlign: 'center',
     },
-    // In your StyleSheet
-    fixedSaveButtonContainer: {
-        position: 'absolute',
-        bottom: 0,  // Changed from 20 to stick to bottom
-        left: 0,
-        right: 0,
-        backgroundColor: 'white',  // Solid background
-        paddingTop: 10,  // Space above button
-        paddingBottom: 20,  // Extra space at bottom for device curves
-        paddingHorizontal: 16,  // Side padding
-        zIndex: 10,
-        // Shadow styling (optional)
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },  // Shadow above
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
     fixedSaveButton: {
         width: '100%',
         backgroundColor: '#007bff',
         padding: 14,
         borderRadius: 8,
         alignItems: 'center',
+        zIndex: 11,
     },
     saveButtonText: {
         color: '#fff',
@@ -446,8 +452,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     image: {
-        width: 70,
-        height: 70,
+        width: 65,
+        height: 65,
         borderRadius: 10,
         resizeMode: 'cover',
         overflow: 'hidden',
@@ -489,6 +495,24 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 16,
         color: '#333',
+    },
+    saveButtonContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingTop: 10,
+        paddingBottom: 20,
+        paddingHorizontal: 16,
+        zIndex: 10,
+    },
+    saveButtonBackground: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 120, // Adjust based on your button height + desired blur area
+        zIndex: 9,
     },
 });
 
