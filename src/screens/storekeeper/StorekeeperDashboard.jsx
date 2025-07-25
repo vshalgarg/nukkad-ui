@@ -274,7 +274,7 @@ const StorekeeperDashboard = () => {
 
                 {order.orderStatus !== 'DELIVERED' &&
                   order.orderStatus !== 'CANCELLED' &&
-                  order.orderStatus !== 'DISPATCH' && (
+                  order.orderStatus !== 'DISPATCHED' && (
                     <Pressable
                       style={innerStyle.showDetailsBtn}
                       onPress={() => handleReject(order.orderId)}
@@ -285,7 +285,7 @@ const StorekeeperDashboard = () => {
                     </Pressable>
                   )}
 
-                {order.orderStatus === 'DISPATCH' && (
+                {order.orderStatus === 'DISPATCHED' && (
                   <Pressable
                     style={[
                       innerStyle.showDetailsBtn,

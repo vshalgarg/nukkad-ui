@@ -135,7 +135,7 @@ const ShowDetails = () => {
     }
   }, [order?.storeKeeperNote]);
   const isInProgress = order?.orderStatus === 'IN_PROGRESS';
-  const isDispatched = order?.orderStatus === 'DISPATCH';
+  const isDispatched = order?.orderStatus === 'DISPATCHED';
   const isDelivered = order?.orderStatus === 'DELIVERED';
   const isRejected = order?.orderStatus === 'CANCELLED';
   const [outOfStockMap, setOutOfStockMap] = useState(
@@ -262,7 +262,7 @@ const ShowDetails = () => {
             dispatch(
               updateOrderPrices({ orderId, items: updatedItemsWithPrices }),
             );
-            dispatch(updateOrderStatus({ orderId, newStatus: 'DISPATCH' }));
+            dispatch(updateOrderStatus({ orderId, newStatus: 'DISPATCHED' }));
 
             if (storeKeeperNote) {
               dispatch(updateOrderNote({ orderId, storeKeeperNote }));

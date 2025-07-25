@@ -153,17 +153,23 @@ const Orders = () => {
               <View style={localStyles.expandedView}>
                 <Text style={localStyles.itemsTitle}>Items:</Text>
                 {item.items.map((itm, idx) => (
-                  <View key={idx} style={localStyles.itemRow}>
+                  <View key={idx}>
                     <View style={localStyles.rowAlign}>
                       <Text style={localStyles.itemName}>
-                        {itm.itemName} (<Text>{itm.quantity}</Text>
-                        <Text> {itm.unit}</Text>)
+                        {`${itm.itemName} (${itm.quantity} ${itm.unit})`}
                       </Text>
+                      {(item.orderStatus === 'DELIVERED' ||
+                        item.orderStatus === 'DISPATCH') && (
+                        <Text> &#8377;{itm.price}</Text>
+                      )}
                     </View>
-                    {(item.orderStatus === 'DELIVERED' ||
-                      item.orderStatus === 'DISPATCH') && (
-                      <Text> &#8377;{itm.price}</Text>
-                    )}
+                    <View
+                      style={{
+                        height: 0.3,
+                        width: '100%',
+                        backgroundColor: Colors.grayLine,
+                      }}
+                    ></View>
                   </View>
                 ))}
                 {item.storeKeeperNote && (
@@ -176,7 +182,7 @@ const Orders = () => {
                         fontWeight: '500',
                       }}
                     >
-                      {item.storeKeeperNote}
+                      {`"${item.storeKeeperNote.trim()}"`}
                     </Text>
                   </View>
                 )}
@@ -212,7 +218,7 @@ const localStyles = StyleSheet.create({
     paddingTop: 10,
   },
   noteColumn: {
-    marginTop: 5,
+    marginTop: 10,
   },
   noteTitle: {
     fontWeight: 'bold',
@@ -228,15 +234,14 @@ const localStyles = StyleSheet.create({
   },
   rowAlign: {
     flexDirection: 'row',
-    marginBottom:2,
-    width: '50%',
+    marginVertical: 10,
     justifyContent: 'flex-start',
-    // backgroundColor:"red"
   },
   itemName: {
     flex: 1,
     fontWeight: '500',
-    textDecorationLine:"underline",
+    // textDecorationLine: 'underline',
+    // textDecorationColor: 'red',
   },
   itemText: {
     color: Colors.secondary,

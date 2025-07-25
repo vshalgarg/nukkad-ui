@@ -9,6 +9,8 @@ const Colors = {
   bgClr: '#fff',
   backbuttonColor: '#eee',
   diabledText: '#A0A0A0',
+  grayLine: '#d8d8d8ff',
+
   white: '#fff',
   pending: '#fce7c9ff',
   pendingText: '#F39C12',
@@ -17,7 +19,7 @@ const Colors = {
   dispatch: '#defeecff',
   rejected: '#FADBD8',
   rejectedText: '#E74C3C',
-  delivered:'#D1F7D6',
+  delivered: '#D1F7D6',
   deliveredText: '#198754',
 };
 
