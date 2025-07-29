@@ -58,7 +58,6 @@ const RateStore = () => {
     }
 
     try {
-      console.log(storeKeeperId);
 
       await rateStore(
         {
@@ -69,7 +68,6 @@ const RateStore = () => {
         token,
       );
 
-      console.log(feedback);
       Keyboard.dismiss();
       feedbackRef.current?.blur();
       setShowThankYou(true);
@@ -103,7 +101,7 @@ const RateStore = () => {
                 <Ionicons
                   name="star"
                   size={40}
-                  color={value <= rating ? Colors.primary : Colors.diabledText}
+                  color={value <= rating ? Colors.primary : Colors.disabledText}
                 />
               </TouchableOpacity>
             ))}

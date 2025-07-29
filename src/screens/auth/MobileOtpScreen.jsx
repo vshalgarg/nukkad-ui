@@ -24,9 +24,10 @@ import Fonts from '../../styles/font';
 
 import { sendOtp, verifyOtp } from '../../services/authApi';
 import { useAuth } from '../../contexts/authContext';
-import { setCartUser } from '../../store/cartSlice';
+import { setCartItems, setCartUser } from '../../store/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
+import { getCartItemsAPI } from '../../services/customer/cartService';
 
 const MobileOtpScreen = () => {
   useBackHandlerControl({ blockBack: true });
@@ -125,9 +126,6 @@ const MobileOtpScreen = () => {
       console.log(res.firstTimeLogin);
       const returningUser = res.firstTimeLogin === 1502;
 
-      console.log(returningUser);
-      console.log(role, token);
-
       if (!token) throw new Error('No token received');
       await AsyncStorage.removeItem('selectedAddressId');
       await login({ token, role, userId });
@@ -141,6 +139,19 @@ const MobileOtpScreen = () => {
 
       if (role === 'CUSTOMER') {
         if (returningUser) {
+          const cartItems = await getCartItemsAPI(token);
+          const formattedItems = (cartItems || []).map(item => ({
+            cartItemId: item.id,
+            product: {
+              id: item.itemId,
+              name: item.itemName,
+              image: item.imageUrls?.[0] || '',
+              amount: item.quantity,
+              selectedUnit: item.selectedUnit,
+              quantity: item.allUnits,
+            },
+          }));
+          dispatch(setCartItems(formattedItems));
           safePush('CustomerDashboard', {
             toast: JSON.stringify(toastPayload),
           });
@@ -201,7 +212,7 @@ const MobileOtpScreen = () => {
             maxLength={10}
             value={mobile}
             onTextChange={text => setMobile(text.replace(/[^0-9]/g, ''))}
-            textStyle={{ color: Colors.diabledText }}
+            textStyle={{ color: Colors.disabledText }}
           />
 
           <Text
@@ -216,7 +227,16 @@ const MobileOtpScreen = () => {
             Send OTP
           </Text>
 
-          <Text style={localStyles.otpPrompt}>Enter 4 Digit Code Here</Text>
+          <Text
+            style={
+              (localStyles.otpPrompt,
+              !otpEnabled
+                ? { borderColor: Colors.disabledText, opacity: 0.2 }
+                : {})
+            }
+          >
+            Enter 4 Digit Code Here
+          </Text>
 
           <CustomInput
             placeholder="Enter OTP"
@@ -225,6 +245,11 @@ const MobileOtpScreen = () => {
             value={otp}
             editable={otpEnabled}
             onTextChange={text => setOtp(text.replace(/[^0-9]/g, ''))}
+            style={
+              !otpEnabled
+                ? { borderColor: Colors.disabledText, opacity: 0.2 }
+                : {}
+            }
           />
 
           <View style={localStyles.resendContainer}>
@@ -341,6 +366,7 @@ const localStyles = StyleSheet.create({
   },
   resendDisabled: {
     color: '#9CA3AF',
+    opacity: 0.2,
   },
   policyContainer: {
     marginTop: 40,

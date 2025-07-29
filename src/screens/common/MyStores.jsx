@@ -35,34 +35,33 @@ export default function MyStores() {
   const [selectedStoreTemp, setSelectedStoreTemp] = useState(null);
   const [loading, setLoading] = useState(true);
 
-const fetchStores = async () => {
-  try {
-    setLoading(true);
-    const response = await getMyStores(token);
-    setStores(response);
+  const fetchStores = async () => {
+    try {
+      setLoading(true);
+      const response = await getMyStores(token);
+      setStores(response);
 
-    if (response.length === 1) {
-      saveStore(response[0]);
-      setSelectedStoreTemp(response[0]);
-    } else {
-      const exists =
-        storeData &&
-        response.some(s => s.storekeeperId === storeData.storekeeperId);
-
-      if (exists) {
-        setSelectedStoreTemp(storeData); // ✅ set selected store
-      } else {
+      if (response.length === 1) {
         saveStore(response[0]);
-        setSelectedStoreTemp(response[0]); // ✅ fallback selection
-      }
-    }
-  } catch (err) {
-    console.error('❌ Failed to fetch stores:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+        setSelectedStoreTemp(response[0]);
+      } else {
+        const exists =
+          storeData &&
+          response.some(s => s.storekeeperId === storeData.storekeeperId);
 
+        if (exists) {
+          setSelectedStoreTemp(storeData); // ✅ set selected store
+        } else {
+          saveStore(response[0]);
+          setSelectedStoreTemp(response[0]); // ✅ fallback selection
+        }
+      }
+    } catch (err) {
+      console.error('❌ Failed to fetch stores:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchStores();
@@ -83,12 +82,26 @@ const fetchStores = async () => {
           style: 'destructive',
           onPress: async () => {
             try {
+              const idToDelete =
+                store.id?.toString() || store.storekeeperId?.toString();
+
+              await deleteStore(idToDelete, token);
+
+              // ✅ Use same logic as keyExtractor for filtering
+              setStores(prev =>
+                prev.filter(
+                  s =>
+                    (s.id?.toString() || s.storekeeperId?.toString()) !==
+                    idToDelete,
+                ),
+              );
+
+              if (selectedStoreTemp?.storekeeperId === store.storekeeperId) {
+                setSelectedStoreTemp(null);
+              }
               if (storeData?.storekeeperId === store.storekeeperId) {
                 saveStore(null);
               }
-              const idToDelete = store.id || store.storekeeperId;
-              await deleteStore(idToDelete, token);
-              await fetchStores();
             } catch (err) {
               console.error(
                 '❌ Delete failed:',
@@ -108,48 +121,49 @@ const fetchStores = async () => {
     navigation.goBack();
   };
 
- const handleSelectStoreTemp = store => {
-   setSelectedStoreTemp(store);
- };
+  const handleSelectStoreTemp = store => {
+    setSelectedStoreTemp(store);
+  };
 
- const renderItem = ({ item }) => {
-   const isSelected = selectedStoreTemp?.id === item.id;
+  const renderItem = ({ item }) => {
+    const isSelected = selectedStoreTemp?.id === item.id;
 
-   return (
-     <Pressable
-       style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
-       onPress={() => handleSelectStoreTemp(item)}
-     >
-       <View style={innerStyle.radioContainer}>
-         <View style={innerStyle.dataColumn}>
-           <Text style={innerStyle.shopName}>{item.storeName}</Text>
-           <Text style={innerStyle.address}>
-             {`${item.addressLine1}, ${item.city}`}
-           </Text>
-         </View>
-         {!isSelected && (
-           <View style={innerStyle.iconColumn}>
-             <Pressable onPress={() => handleDelete(item)}>
-               <MaterialIcons
-                 name="delete-outline"
-                 size={24}
-                 color={Colors.secondary}
-               />
-             </Pressable>
-           </View>
-         )}
-       </View>
-     </Pressable>
-   );
- };
-
+    return (
+      <Pressable
+        style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
+        onPress={() => handleSelectStoreTemp(item)}
+      >
+        <View style={innerStyle.radioContainer}>
+          <View style={innerStyle.dataColumn}>
+            <Text style={innerStyle.shopName}>{item.storeName}</Text>
+            <Text style={innerStyle.address}>
+              {`${item.addressLine1}, ${item.city}`}
+            </Text>
+          </View>
+          {!isSelected && (
+            <View style={innerStyle.iconColumn}>
+              <Pressable onPress={() => handleDelete(item)}>
+                <MaterialIcons
+                  name="delete-outline"
+                  size={24}
+                  color={Colors.secondary}
+                />
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </Pressable>
+    );
+  };
 
   return (
     <View style={styles.pageContainer}>
       <BackButton title="My Stores" />
       <View style={innerStyle.container}>
         {loading ? (
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <View style={innerStyle.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
         ) : stores.length === 0 ? (
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
@@ -170,7 +184,9 @@ const fetchStores = async () => {
           <>
             <FlatList
               data={stores}
-              keyExtractor={item => item.id.toString()}
+              keyExtractor={item =>
+                item.id?.toString() || item.storekeeperId?.toString()
+              }
               renderItem={renderItem}
               contentContainerStyle={{ paddingBottom: 20 }}
             />
@@ -200,6 +216,11 @@ const innerStyle = StyleSheet.create({
     flex: 1,
     padding: 15,
     backgroundColor: Colors.white,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   noStores: {
     fontSize: Fonts.sizes.lg,

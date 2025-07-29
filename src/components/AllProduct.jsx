@@ -12,15 +12,19 @@ const AllProduct = ({ products = [], loading = false }) => {
   const dispatch = useDispatch();
   const [isSorted, setIsSorted] = useState(false);
   const [dropdownOpenId, setDropdownOpenId] = useState(null);
+
   const cartItems = useSelector(state => state.cart.items);
 
-  const sortedList = isSorted
-    ? [...products].sort((a, b) =>
-        (a.name || a.title || '').localeCompare(b.name || b.title || ''),
-      )
-    : products;
+  // Optional sorting
+  const sortedList = useMemo(() => {
+    return isSorted
+      ? [...products].sort((a, b) =>
+          (a.name || a.title || '').localeCompare(b.name || b.title || ''),
+        )
+      : products;
+  }, [products, isSorted]);
 
-
+  // Pair items for grid layout
   const pairedList = useMemo(() => {
     const result = [];
     for (let i = 0; i < sortedList.length; i += 2) {
@@ -75,30 +79,23 @@ const AllProduct = ({ products = [], loading = false }) => {
       </View>
 
       {loading ? (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading...</Text>
+        <Text style={innerStyle.messageText}>Loading...</Text>
       ) : sortedList.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>
-          No products found.
-        </Text>
+        <Text style={innerStyle.messageText}>No products found.</Text>
       ) : (
         <FlatList
           data={pairedList}
           keyboardShouldPersistTaps="handled"
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={(item, index) =>
+            item.map(p => p?.id ?? `null-${index}`).join('-')
+          }
           renderItem={({ item: pair }) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent:
-                  pair.length === 1 ? 'flex-start' : 'space-around',
-                paddingHorizontal: 10,
-                marginBottom: 10,
-              }}
-            >
+            <View style={innerStyle.productRow}>
               {pair.map(product => (
                 <ProductCard
                   key={product.id}
-                  product={product}
+                  product={JSON.parse(JSON.stringify(product))}
+                  // 🔁 clone product to avoid prop mutation issues
                   onAddToCart={handleAddToCart}
                   isDropdownOpen={dropdownOpenId === product.id}
                   setDropdownOpen={open =>
@@ -107,10 +104,12 @@ const AllProduct = ({ products = [], loading = false }) => {
                   cartItems={cartItems}
                 />
               ))}
+              {pair.length === 1 && <View style={{ flex: 1 }} />}
             </View>
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={innerStyle.container}
+          scrollEnabled={false}
         />
       )}
     </View>
@@ -127,9 +126,9 @@ const innerStyle = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    width: '40%',
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
+    width: '40%',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -162,6 +161,17 @@ const innerStyle = StyleSheet.create({
   },
   container: {
     paddingBottom: 80,
+  },
+  productRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  messageText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: Fonts.sizes.base,
   },
 });
 

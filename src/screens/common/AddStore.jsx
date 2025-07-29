@@ -119,12 +119,10 @@ export default function AddStore() {
 
       const toastPayload = {
         type: 'success',
-        title: 'OTP Verified',
         message: store.message,
       };
 
       saveStore(store);
-      // showToast('success', store.message);
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', {
           toast: JSON.stringify(toastPayload),

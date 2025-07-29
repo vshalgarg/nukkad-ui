@@ -7,15 +7,16 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  Text,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Colors from '../styles/colors';
+import Icon from 'react-native-vector-icons/Feather';
+import Colors from '../styles/colors'; // Ensure Colors.primary, .borderColor etc. are defined
 
 const MAX_IMAGES = 4;
 
-const StoreImageUploader = ({ images, setImages }) => {
-  const [picking, setPicking] = useState(false); // to prevent double picker open
+const StoreImageUploader = ({ images, setImages, editable = true }) => {
+  const [picking, setPicking] = useState(false);
 
   const requestGalleryPermission = async () => {
     if (Platform.OS !== 'android') return true;
@@ -33,17 +34,13 @@ const StoreImageUploader = ({ images, setImages }) => {
     }
   };
 
-  const pickImage = async () => {
-    if (picking || images.length >= MAX_IMAGES) return;
-
-    setPicking(true); // block further taps
+  const pickImage = async index => {
+    if (picking) return;
+    setPicking(true);
 
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
-      Alert.alert(
-        'Permission Denied',
-        'Gallery access is required to upload images.',
-      );
+      Alert.alert('Permission Denied', 'Gallery access is required.');
       setPicking(false);
       return;
     }
@@ -55,93 +52,102 @@ const StoreImageUploader = ({ images, setImages }) => {
       selectionLimit: 1,
     });
 
-    if (result?.assets && result.assets.length > 0) {
-      const selectedImage = result.assets[0];
-      setImages(prev => [...prev, selectedImage]); // Store full image object
+    if (result?.assets?.length > 0) {
+      const selected = result.assets[0];
+      setImages(prev => {
+        const updated = [...prev];
+        updated[index] = selected;
+        return updated;
+      });
     }
 
-    setPicking(false); // allow next tap
+    setPicking(false);
   };
 
-  const removeImage = uri => {
+  const removeImage = index => {
     Alert.alert('Remove Image', 'Do you want to remove this image?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
         onPress: () => {
-          const updated = images.filter(img => img.uri !== uri);
-          setImages(updated);
+          setImages(prev => {
+            const updated = [...prev];
+            updated[index] = null;
+            return updated;
+          });
         },
       },
     ]);
   };
 
-  const renderBox = index => {
-    if (index < images.length) {
-      return (
-        <View style={styles.imageBox} key={images[index].uri}>
-          <Image source={{ uri: images[index].uri }} style={styles.image} />
-          <TouchableOpacity
-            style={styles.deleteIcon}
-            onPress={() => removeImage(images[index].uri)}
-          >
-            <Ionicons name="close-circle" size={20} color={Colors.reject} />
-          </TouchableOpacity>
-        </View>
-      );
-    } else {
-      return (
-        <TouchableOpacity
-          key={index}
-          style={[styles.imageBox, picking && { opacity: 0.5 }]} // Optional: visual feedback
-          onPress={pickImage}
-          disabled={picking}
-        >
-          <Ionicons name="add" size={30} color={Colors.secondary} />
-        </TouchableOpacity>
-      );
-    }
-  };
-
   return (
-    <View style={styles.grid}>
-      {[...Array(MAX_IMAGES)].map((_, i) => renderBox(i))}
+    <View style={styles.container}>
+      {[0, 1, 2, 3].map(index => {
+        const img = images[index];
+
+        return (
+          <TouchableOpacity
+            key={index}
+            onPress={() => editable && !img && pickImage(index)}
+            activeOpacity={0.8}
+            style={{ position: 'relative', marginBottom: 10 }}
+            disabled={!editable && !img}
+          >
+            {img ? (
+              <View>
+                <Image source={{ uri: img.uri }} style={styles.image} />
+                {editable && (
+                  <TouchableOpacity
+                    style={styles.removeIcon}
+                    onPress={() => removeImage(index)}
+                  >
+                    <Icon name="x" size={16} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <View style={[styles.image, styles.emptyImage]}>
+                <Text style={{ color: '#888', fontSize: 20 }}>+</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  grid: {
+  container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  imageBox: {
-    width: 70,
-    height: 70,
-    backgroundColor: Colors.white,
-    borderWidth: 2,
-    borderColor: Colors.borderColor,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    overflow: 'hidden',
+    justifyContent: 'space-between',
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: 65,
+    height: 65,
     borderRadius: 10,
+    resizeMode: 'cover',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  deleteIcon: {
+  emptyImage: {
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeIcon: {
     position: 'absolute',
-    top: 2,
-    right: 2,
-    backgroundColor: Colors.white,
-    borderRadius: 10,
+    top: -8,
+    right: -8,
+    backgroundColor: '#ff4444',
+    borderRadius: 12,
+    padding: 4,
+    zIndex: 10,
+    elevation: 3,
   },
 });
 
 export default StoreImageUploader;
+                                                                                                      

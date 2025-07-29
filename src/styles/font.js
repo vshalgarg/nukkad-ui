@@ -1,5 +1,6 @@
 const Fonts = {
   sizes: {
+    xxs: 9,
     xs: 12,
     sm: 14,
     base: 16,

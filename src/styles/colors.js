@@ -8,7 +8,7 @@ const Colors = {
   borderColor: '#ddd',
   bgClr: '#fff',
   backbuttonColor: '#eee',
-  diabledText: '#A0A0A0',
+  disabledText: '#A0A0A0',
   grayLine: '#d8d8d8ff',
 
   white: '#fff',

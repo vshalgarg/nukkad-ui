@@ -16,6 +16,7 @@ export default function CustomInput({
   placeholder,
   isError = false,
   editable=true,
+  autoFocus,
   ...props
 }) {
   // Get text part after prefix (only for display)
@@ -58,7 +59,7 @@ export default function CustomInput({
           autoCapitalize={autoCapitalize}
           autoCorrect={autoCorrect}
           style={styles.input}
-          autoFocus={props.autoFocus || false}
+          autoFocus={autoFocus}
           underlineColorAndroid="transparent"
           editable={editable}
         />

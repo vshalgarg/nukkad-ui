@@ -77,7 +77,14 @@ const UserToolbar = ({
 
               {totalItems > 0 && (
                 <View style={styles.cartBadge}>
-                  <Text style={styles.cartBadgeText}>
+                  <Text
+                    style={[
+                      totalItems > 99
+                        ? { fontSize: Fonts.sizes.xxs }
+                        : { fontSize: Fonts.sizes.xs },
+                      styles.cartBadgeText,
+                    ]}
+                  >
                     {totalItems > 99 ? '99+' : totalItems}
                   </Text>
                 </View>
@@ -120,7 +127,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: 15,
-    justifyContent:"center"
+    justifyContent: 'center',
   },
   storeName: {
     fontSize: Fonts.sizes.base,
@@ -129,9 +136,9 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     flexDirection: 'row',
-    justifyContent:"space-around",
+    justifyContent: 'space-around',
     alignItems: 'center',
-    width:"20%",
+    width: '20%',
   },
   iconWrapper: {
     marginHorizontal: 10,
@@ -150,7 +157,6 @@ const styles = StyleSheet.create({
   },
   cartBadgeText: {
     color: Colors.white,
-    fontSize: Fonts.sizes.xs,
     fontWeight: 'bold',
   },
 });

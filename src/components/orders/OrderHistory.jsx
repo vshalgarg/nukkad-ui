@@ -83,7 +83,7 @@ const OrderHistory = ({
         return Colors.pending;
       case 'IN_PROGRESS':
         return Colors.inProgress;
-      case 'DISPATCH':
+      case 'DISPATCHED':
         return Colors.dispatch;
       case 'DELIVERED':
         return Colors.delivered;
@@ -100,7 +100,7 @@ const OrderHistory = ({
         return Colors.pendingText;
       case 'IN_PROGRESS':
         return Colors.inProgressText;
-      case 'DISPATCH':
+      case 'DISPATCHED':
         return Colors.primary;
       case 'DELIVERED':
         return Colors.deliveredText;

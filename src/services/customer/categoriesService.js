@@ -13,13 +13,7 @@ export const getAllCategories = async () => {
       data: response.data,
     });
 
-    const content = response.data?.content;
-
-    if (!Array.isArray(content)) {
-      throw new Error('Invalid response: expected content to be an array');
-    }
-
-    return content; // ✅ Return only the category array
+    return  response.data; // ✅ Return only the category array
   } catch (error) {
     console.error('❌ Get All Categories API Error:', {
       message: error.message,

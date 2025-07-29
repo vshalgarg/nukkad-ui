@@ -39,7 +39,6 @@ const ShoppingCart = () => {
   const { fromRepeatOrder } = route.params || {};
 
   const dispatch = useDispatch();
-  console.log('selectedAddressId', selectedAddressId);
 
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(true);
@@ -47,23 +46,18 @@ const ShoppingCart = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
   const { storeData } = useStore();
-  console.log('storeData', storeData);
   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
   const selectedAddress =
     address.find(item => item.id.toString() === selectedAddressId) ||
     address.find(item => item.isDefault);
-  console.log(selectedAddress);
 
   const fetchCartItems = async () => {
-     setLoading(true);
+    setLoading(true);
     try {
       const res = await getCartItemsAPI(token);
-      console.log('res+data', res);
       const formattedItems = (res || []).map(item => ({
         cartItemId: item.id,
-        selectedUnit: item.selectedUnit,
-        quantity: item.quantity,
         product: {
           id: item.itemId,
           name: item.itemName,
@@ -87,10 +81,29 @@ const ShoppingCart = () => {
     fetchCartItems();
   }, []);
 
+  const itemAmounts = cartItems.map(item => {
+    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
+    const amount = isPacket ? parseInt(item.product.amount) || 0 : 1;
+
+    return {
+      productId: item.product.id,
+      name: item.product.name,
+      amount,
+      selectedUnit:item.product.selectedUnit
+    };
+
+  });
+
+  console.log('itemAmounts', itemAmounts);
+
   const totalCount = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
+    console.log('total', total);
+    console.log('item.product.amount', item.product.amount);
+
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
+  console.log('totalCount', totalCount);
 
   const handleAddAddress = async () => {
     setMode('add');
@@ -142,11 +155,9 @@ const ShoppingCart = () => {
         unit: item.product.selectedUnit,
       })),
     };
-    console.log('payload', payload);
 
     try {
       const res = await placeOrder(payload, token);
-      console.log('✅ Order Placed:', res);
 
       // ✅ Navigate
       safePush('PlaceOrder');
@@ -169,7 +180,12 @@ const ShoppingCart = () => {
 
   if (loading) {
     return (
-      <View style={[styles.pageContainer, {justifyContent:"center",alignItems:"center"}]}>
+      <View
+        style={[
+          styles.pageContainer,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
@@ -193,7 +209,6 @@ const ShoppingCart = () => {
     );
   }
 
-  console.log("cartItems",cartItems)
   return (
     <View style={[{ flex: 1 }, styles.pageContainer]}>
       <BackButton

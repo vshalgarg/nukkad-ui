@@ -298,7 +298,16 @@ const ProfileSetting = () => {
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={handleDateChange}
-                  maximumDate={new Date()}
+                  maximumDate={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 10),
+                    )
+                  }
+                  minimumDate={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 75),
+                    )
+                  }
                 />
               )}
             </>

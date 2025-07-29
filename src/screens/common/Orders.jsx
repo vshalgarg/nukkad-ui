@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  TextInput,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../components/orders/FilterModal';
@@ -19,13 +18,16 @@ import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 
 import { useAuth } from '../../contexts/authContext';
-import { getOrderHistory } from '../../services/common/OrderHistoryService';
-import { getFilteredOrderHistory } from '../../services/common/OrderHistoryService';
+import {
+  getOrderHistory,
+  getFilteredOrderHistory,
+} from '../../services/common/OrderHistoryService';
 
 const Orders = () => {
   const { token, role, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
 
@@ -37,29 +39,33 @@ const Orders = () => {
   const [activePicker, setActivePicker] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  const fetchOrders = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await getOrderHistory(token);
+      setOrders(Array.isArray(res) ? res : []);
+    } catch (err) {
+      console.error('❌ Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [token]);
+
   useEffect(() => {
-    if (authLoading || !token) return;
+    if (!authLoading && token) {
+      fetchOrders();
+    }
+  }, [authLoading, token, role, fetchOrders]);
 
-    const fetchOrders = async () => {
-      try {
-        const res = await getOrderHistory(token);
-        setOrders(Array.isArray(res) ? res : []);
-      } catch (err) {
-        console.error('❌ Failed to fetch orders:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [authLoading, token, role]);
-  console.log('orders', orders);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrders();
+  };
 
   const toggleExpand = id => {
     setExpandedOrderId(prev => (prev === id ? null : id));
   };
-
-  console.log(orders);
 
   const applyFilteredOrders = async () => {
     try {
@@ -134,6 +140,8 @@ const Orders = () => {
         data={orders}
         keyExtractor={item => item.orderId?.toString()}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         ListEmptyComponent={
           <Text style={{ textAlign: 'center', marginTop: 50 }}>
             No orders found.
@@ -145,6 +153,7 @@ const Orders = () => {
             item.items?.reduce((sum, itm) => {
               return sum + (Number(itm.price) || 0);
             }, 0) || 0;
+
           const commonProps = {
             order: item,
             isExpanded,
@@ -159,17 +168,17 @@ const Orders = () => {
                         {`${itm.itemName} (${itm.quantity} ${itm.unit})`}
                       </Text>
                       {(item.orderStatus === 'DELIVERED' ||
-                        item.orderStatus === 'DISPATCH') && (
+                        item.orderStatus === 'DISPATCHED') && (
                         <Text> &#8377;{itm.price}</Text>
                       )}
                     </View>
                     <View
                       style={{
-                        height: 0.3,
+                        height: 0.4,
                         width: '100%',
                         backgroundColor: Colors.grayLine,
                       }}
-                    ></View>
+                    />
                   </View>
                 ))}
                 {item.storeKeeperNote && (
@@ -189,6 +198,7 @@ const Orders = () => {
               </View>
             ),
           };
+
           return (
             <OrderHistory
               {...commonProps}
@@ -211,7 +221,6 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 16,
     marginVertical: 12,
   },
-
   expandedView: {
     borderTopWidth: 1,
     borderTopColor: Colors.borderColor,
@@ -223,7 +232,6 @@ const localStyles = StyleSheet.create({
   noteTitle: {
     fontWeight: 'bold',
   },
-
   itemsTitle: {
     fontWeight: 'bold',
     marginBottom: 8,
@@ -240,8 +248,6 @@ const localStyles = StyleSheet.create({
   itemName: {
     flex: 1,
     fontWeight: '500',
-    // textDecorationLine: 'underline',
-    // textDecorationColor: 'red',
   },
   itemText: {
     color: Colors.secondary,

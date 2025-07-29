@@ -27,52 +27,62 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   const cartItem = cartItems.find(item => item.product.id === product.id);
   const { token } = useAuth();
 
-  const initialUnit = (product.unit|| [])[0] || null;
-  const [selectedUnit, setSelectedUnit] = useState(initialUnit);
-
-  const [amount, setAmount] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState(
+    cartItem?.selectedUnit || (product.unit || [])[0] || null,
+  );
+  const [amount, setAmount] = useState(
+    cartItem?.product?.amount?.toString() || '',
+  );
   const [imageError, setImageError] = useState(false);
-  const placeholderImageUrl =require("../../assets/images/itemNotFound.jpg")
-  const units =  product.unit || [];
+  const placeholderImageUrl = require('../../assets/images/itemNotFound.jpg');
+
+  const units = product.unit || [];
   const unitOptions = units.map(q => ({ label: q.trim(), value: q }));
 
-  useEffect(() => {
-    const defaultUnit = (product.unit || product.quantity || [])[0] || null;
-    setSelectedUnit(defaultUnit);
-  }, [product]);
-  
+ useEffect(() => {
+   if (cartItem) {
+     const newAmount = cartItem.product.amount?.toString() || '';
+     const newUnit = cartItem.selectedUnit || product.unit?.[0] || '';
+
+     // Only update if changed (to avoid cursor jump issues)
+     if (amount !== newAmount) setAmount(newAmount);
+     if (selectedUnit !== newUnit) setSelectedUnit(newUnit);
+   }
+ }, [cartItem?.product.amount, cartItem?.selectedUnit]);
+
 
   const isValidAmount =
     amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0;
 
-  const hasChanged =
-    (cartItem &&
-      (cartItem.product.amount?.toString() !== amount ||
-        cartItem.selectedUnit !== selectedUnit)) ||
-    (!cartItem && selectedUnit && amount);
-
-  const canSubmit = isValidAmount && selectedUnit && hasChanged;
+  const isInCart = !!cartItem;
 
   const isRecentlyAdded =
-    cartItem &&
+    isInCart &&
     cartItem.selectedUnit === selectedUnit &&
     cartItem.product.amount?.toString() === amount;
 
+  const hasChanged =
+    (isInCart &&
+      (cartItem.product?.selectedUnit !== selectedUnit ||
+        cartItem.product.amount?.toString() !== amount)) ||
+    !isInCart;
+
+  const canSubmit = isValidAmount && selectedUnit && hasChanged;
+
   const handleAddToCart = async () => {
-    Keyboard.dismiss()
-    const cartQuantity = parseFloat(amount);
+    Keyboard.dismiss();
+    const cartQuantity = amount;
     const validAmount = cartQuantity.toString();
 
     if (isNaN(cartQuantity) || cartQuantity <= 0) return;
-
-    let response = null;
 
     try {
       const itemId = product.id;
       const isPkt = selectedUnit?.toLowerCase() === 'pkt';
       const itemCount = isPkt ? Math.round(cartQuantity) : 1;
 
-      if (cartItem && cartItem.itemId) {
+      if (isInCart && itemId) {
+        // ✅ Update cart
         await updateCartAPI(itemId, cartQuantity, selectedUnit, token);
 
         dispatch(
@@ -83,16 +93,18 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
             itemCount,
           }),
         );
+        setAmount(validAmount);
+        setSelectedUnit(selectedUnit);
       } else {
         // ➕ Add new item
-        response = await addToCartAPI(
+        const response = await addToCartAPI(
           itemId,
           cartQuantity,
           selectedUnit,
           token,
         );
 
-        const newItemId = response?.itemIds?.[0] || response?.id || itemId; // fallback
+        const newItemId = response?.itemIds?.[0] || response?.id || itemId;
 
         const newItem = {
           itemId: newItemId,
@@ -110,6 +122,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
       showToast('error', 'Failed to add item to cart');
     }
   };
+
   useEffect(() => {
     setImageError(false);
   }, [product.image]);
@@ -121,7 +134,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
           style={styles.image}
           source={
             imageError || !product.imageUrls?.[0]
-              ?  placeholderImageUrl 
+              ? placeholderImageUrl
               : { uri: product.image || product.imageUrls?.[0] }
           }
           onError={() => setImageError(true)}
@@ -135,7 +148,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
         <TextInput
           value={amount !== undefined && amount !== null ? String(amount) : ''}
           onChangeText={setAmount}
-          placeholder="Amt"
+          placeholder="Qty."
           keyboardType="numeric"
           maxLength={4}
           style={styles.textInput}
@@ -162,8 +175,8 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
       <TouchableOpacity
         style={[
           styles.button,
-          !canSubmit && isRecentlyAdded && styles.buttonDisabled,
-          isRecentlyAdded && styles.buttonAdded,
+          (!hasChanged || isRecentlyAdded) && styles.buttonDisabled,
+          (!hasChanged || isRecentlyAdded) && styles.buttonAdded,
         ]}
         onPress={handleAddToCart}
         disabled={!canSubmit}
@@ -171,10 +184,13 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
         <Text
           style={[
             styles.buttonText,
-            isRecentlyAdded && { color: Colors.primary },
+            (!hasChanged || isRecentlyAdded) && {
+              color: Colors.primary,
+              borderColor: Colors.primary,
+            },
           ]}
         >
-          {isRecentlyAdded ? 'Added' : 'Add to Cart'}
+          {!hasChanged || isRecentlyAdded ? 'Added' : 'Add to Cart'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -230,8 +246,7 @@ const styles = StyleSheet.create({
   },
   dropdownBox: {
     borderColor: Colors.borderColor,
-    justifyContent:"center",
-    
+    justifyContent: 'center',
   },
   text: {
     fontSize: Fonts.sizes.sm,
@@ -265,6 +280,9 @@ const styles = StyleSheet.create({
   },
   buttonAdded: {
     borderColor: Colors.primary,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
 

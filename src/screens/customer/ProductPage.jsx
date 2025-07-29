@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -27,7 +28,6 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 const ProductPage = () => {
   useBackHandlerControl({ confirmBack: false });
 
-  const navigation = useNavigation();
   const route = useRoute();
   const { safePush } = useSafeRouter();
 
@@ -54,34 +54,37 @@ const ProductPage = () => {
     };
   }, []);
 
-
   const cartItems = useSelector(state => state.cart.items);
   const totalItems = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
 
-  useEffect(() => {
-    if (categoryId) {
-      (async () => {
-        setSearching(true);
-        try {
-          const items = await getProductsByCategory(categoryId);
-          const category = {
-            id: categoryId,
-            name: categoryName || 'Category',
-            items,
-          };
-          setGroupedResults([category]);
-        } catch (err) {
-          console.error('❌ Category fetch failed:', err.message);
-          setGroupedResults([]);
-        } finally {
-          setSearching(false);
-        }
-      })();
-    }
-  }, [categoryId]);
+  useFocusEffect(
+    useCallback(() => {
+      // Only fetch if categoryId exists
+      if (categoryId) {
+        (async () => {
+          setSearching(true);
+          try {
+            const items = await getProductsByCategory(categoryId);
+            setGroupedResults([
+              {
+                id: categoryId,
+                name: categoryName || 'Category',
+                items,
+              },
+            ]);
+          } catch (err) {
+            console.error('❌ Focus-fetch failed:', err.message);
+            setGroupedResults([]);
+          } finally {
+            setSearching(false);
+          }
+        })();
+      }
+    }, [categoryId]),
+  );
 
   useEffect(() => {
     if (search && !categoryId) {
@@ -91,10 +94,39 @@ const ProductPage = () => {
   }, [search, categoryId]);
 
   const handleSearch = async keyword => {
-    if (!keyword.trim()) return;
+    const trimmed = keyword.trim();
+    setSearchQuery(trimmed);
+
+    if (!trimmed) {
+      if (categoryId) {
+        // Re-fetch category products if category exists
+        setSearching(true);
+        try {
+          const items = await getProductsByCategory(categoryId);
+          setGroupedResults([
+            {
+              id: categoryId,
+              name: categoryName || 'Category',
+              items,
+            },
+          ]);
+        } catch (err) {
+          console.error('❌ Category fetch failed (on clear):', err.message);
+          setGroupedResults([]);
+        } finally {
+          setSearching(false);
+        }
+      } else {
+        // No category or query — just clear results
+        setGroupedResults([]);
+      }
+      return;
+    }
+
+    // Normal search flow
     setSearching(true);
     try {
-      const result = await searchProducts(keyword);
+      const result = await searchProducts(trimmed);
       const items = result?.items || [];
       setGroupedResults([{ id: 'search', items }]);
     } catch (err) {
@@ -113,7 +145,7 @@ const ProductPage = () => {
           <FlatList
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, index) => item.id}
             ListHeaderComponent={
               <View>
                 <SearchContainer
@@ -123,7 +155,6 @@ const ProductPage = () => {
                     handleSearch(newQuery);
                   }}
                 />
-                <CategoryListLayout selectedCategoryId={categoryId} />
 
                 {groupedResults.map(category => (
                   <View
