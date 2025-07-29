@@ -34,7 +34,6 @@ export const StorekeeperProfileProvider = ({ children }) => {
   //   })();
   // }, []);
 
-
   const resetStorekeeperProfile = async () => {
     setStorekeeperProfile(null);
     await AsyncStorage.removeItem('storekeeperProfile');
@@ -58,7 +57,6 @@ export const StorekeeperProfileProvider = ({ children }) => {
       const apiData = await createProfileAPI(fields, token);
       setStorekeeperProfile(apiData);
       await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(apiData));
-
     } catch (err) {
       console.error('❌ Failed to create storekeeper profile:', err);
       throw err;

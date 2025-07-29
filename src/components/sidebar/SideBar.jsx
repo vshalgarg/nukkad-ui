@@ -20,7 +20,6 @@ import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../../store/cartSlice.js';
-import { resetOrdersFromFile } from '../../store/storekeeperOrdersSlice.js';
 import { resetUser } from '../../store/userSlice.js';
 
 import { useAddress } from '../../contexts/addressContext.js';
@@ -70,10 +69,10 @@ const SideBar = ({ isVisible, onClose }) => {
   const baseMenuItems = [
     ...(userRole !== 'STOREKEEPER'
       ? [
-        { name: 'Add Store', icon: 'add-circle-sharp' },
-        { name: 'Addresses', icon: 'location-sharp' },
-        { name: 'My Stores', icon: 'storefront' },
-      ]
+          { name: 'My Stores', icon: 'storefront' },
+          { name: 'Add Store', icon: 'add-circle-sharp' },
+          { name: 'Addresses', icon: 'location-sharp' },
+        ]
       : []),
     { name: 'Notifications', icon: 'notifications' },
     { name: 'Settings', icon: 'settings-sharp' },
@@ -111,11 +110,8 @@ const SideBar = ({ isVisible, onClose }) => {
       'Refer Store to Customer': 'ReferToCustomer',
       'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
+      'My Stores': 'MyStores'
     };
-
-    if (menuName === 'My Stores') {
-      return userRole === 'STOREKEEPER' ? 'StoreDetail' : 'MyStores';
-    }
     if (menuName === 'My Orders' || menuName === 'Order History') {
       return 'Orders';
     }

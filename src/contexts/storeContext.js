@@ -1,14 +1,17 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StoreContext = createContext();
-
 const STORE_KEY = '@selected_store';
 
 export const StoreProvider = ({ children }) => {
   const [storeData, setStoreData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // ✅ New loading state
 
-  // 🔄 Expose this to manually load from AsyncStorage
+  useEffect(() => {
+    loadStoreFromStorage();
+  }, []);
+
   const loadStoreFromStorage = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORE_KEY);
@@ -19,6 +22,8 @@ export const StoreProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('❌ Failed to load selected store:', err.message);
+    } finally {
+      setIsLoading(false); // ✅ Done loading
     }
   };
 
@@ -37,15 +42,14 @@ export const StoreProvider = ({ children }) => {
       console.error('❌ Failed to save selected store:', err.message);
     }
   };
-  
 
   const resetStore = async () => {
     try {
       await AsyncStorage.removeItem(STORE_KEY);
+      setStoreData(null);
     } catch (err) {
       console.error('❌ Failed to reset selected store:', err.message);
     }
-    setStoreData(null);
   };
 
   return (
@@ -56,6 +60,7 @@ export const StoreProvider = ({ children }) => {
         saveStore,
         resetStore,
         loadStoreFromStorage,
+        isLoading, // ✅ Expose loading
       }}
     >
       {children}

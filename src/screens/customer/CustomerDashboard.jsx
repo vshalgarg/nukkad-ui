@@ -23,18 +23,19 @@ import { getMyStores } from '../../services/customer/getAllStoreService.js';
 import { useAuth } from '../../contexts/authContext.js';
 import { getCustomerProfile } from '../../services/customer/profileService.js';
 import { useProfile } from '../../contexts/profileContext.js';
+import { showToast } from '../../utils/toastUtils.js';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
   const route = useRoute();
-  const { toastMessage } = route.params || {};
+  const { toast } = route.params || {};
   const { createProfile } = useProfile();
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token, role } = useAuth();
-  const { saveStore, storeData } = useStore();
+  const { saveStore, isLoading: storeLoading } = useStore();
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -62,27 +63,28 @@ const CustomerDashboard = () => {
         image: userProfile.image || null,
         dob: userProfile.dob || '',
       };
-
       await createProfile(formattedProfile);
 
       const stores = await getMyStores(token);
+      console.log('stores from dashboard', stores);
+
+      const savedStoreString = await AsyncStorage.getItem('@selected_store');
+      const savedStore = savedStoreString ? JSON.parse(savedStoreString) : null;
 
       if (stores.length === 1) {
         saveStore(stores[0]);
+      } else if (
+        savedStore &&
+        stores.some(s => s.storeId === savedStore.storeId)
+      ) {
+        saveStore(savedStore);
       } else {
-        const exists =
-          storeData &&
-          stores.some(s => s.storekeeperId === storeData.storekeeperId);
-        if (exists) {
-          saveStore(storeData);
-        } else {
-          saveStore(stores[0]);
-        }
       }
     } catch (err) {
       console.warn('⚠️ Failed to fetch store/profile:', err.message);
     }
   };
+
   const syncAddressAndSetDefault = async () => {
     try {
       await syncAddressesFromServer();
@@ -115,18 +117,7 @@ const CustomerDashboard = () => {
   };
 
   useEffect(() => {
-    if (toastMessage) {
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: toastMessage,
-        position: 'bottom',
-        visibilityTime: 3000,
-      });
-    }
-  }, [toastMessage]);
-  useEffect(() => {
-    fetchCategories();
+    fetchCategories(true);
     syncAddressAndSetDefault();
     fetchStoreAndProfile();
   }, [fetchCategories]);
@@ -197,7 +188,6 @@ const CustomerDashboard = () => {
           contentContainerStyle={{ paddingBottom: 40 }}
         />
       )}
-      <Toast />
     </SafeAreaView>
   );
 };

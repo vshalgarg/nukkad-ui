@@ -7,8 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Linking,
-  findNodeHandle,
+  RefreshControl,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -34,7 +33,8 @@ const StorekeeperDashboard = () => {
   const [formState, setFormState] = useState(0);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [popupOrderId, setPopupOrderId] = useState(null);
-  const [popupCoords, setPopupCoords] = useState({ x: 0, y: 0 });
+  const [refreshing, setRefreshing] = useState(false);
+  const [popupCards, setPopupCards] = useState({ x: 0, y: 0 });
   const dotRefs = useRef({});
   const { token } = useAuth();
 
@@ -51,18 +51,25 @@ const StorekeeperDashboard = () => {
 
   const orders = useSelector(state => state.storekeeperOrders.orders);
 
+  const loadOrders = async () => {
+    try {
+      if (!token) return;
+      const orderData = await getOrders(token);
+      dispatch(setOrders(orderData));
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to fetch orders');
+    }
+  };
+
   useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        if (!token) return;
-        const ordersData = await getOrders(token);
-        dispatch(setOrders(ordersData));
-      } catch (error) {
-        Alert.alert('Error', error.message || 'Failed to fetch orders');
-      }
-    };
     loadOrders();
   }, [dispatch, token]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadOrders();
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     const tabIndex = statusTabs.findIndex(
@@ -71,9 +78,9 @@ const StorekeeperDashboard = () => {
     if (tabIndex !== -1) setFormState(tabIndex);
   }, [tab]);
 
-  const filteredOrders = orders.filter(order =>
-    statusTabs[formState].statuses.includes(order.orderStatus),
-  );
+  const filteredOrders = orders
+    .filter(order => statusTabs[formState].statuses.includes(order.orderStatus))
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
   const safePush = routeObj => {
     try {
@@ -140,7 +147,7 @@ const StorekeeperDashboard = () => {
 
   const showPopup = (orderId, ref) => {
     ref?.measureInWindow((x, y, width, height) => {
-      setPopupCoords({ x: x + width - 160, y: y + height });
+      setPopupCards({ x: x + width - 160, y: y + height });
       setPopupOrderId(orderId);
     });
   };
@@ -193,6 +200,9 @@ const StorekeeperDashboard = () => {
         <ScrollView
           style={{ paddingHorizontal: 20, marginTop: 20 }}
           contentContainerStyle={{ paddingBottom: 30 }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
         >
           {filteredOrders.map(order => (
             <Pressable
@@ -307,7 +317,7 @@ const StorekeeperDashboard = () => {
       <ConnectPopup
         visible={!!popupOrderId}
         onClose={() => setPopupOrderId(null)}
-        position={popupCoords}
+        position={popupCards}
         mobileNumber={
           filteredOrders.find(o => o.orderId === popupOrderId)?.mobileNumber
         }

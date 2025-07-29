@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
   },
   disabledButton: {
-    backgroundColor: Colors.diabledText,
-    borderColor:Colors.diabledText
+    backgroundColor: Colors.disabledText,
+    borderColor: Colors.disabledText,
   },
 });

@@ -18,6 +18,7 @@ const AllProduct = ({ products = [], loading = false }) => {
   const dispatch = useDispatch();
   const [isSorted, setIsSorted] = useState(false);
   const [dropdownOpenId, setDropdownOpenId] = useState(null);
+
   const cartItems = useSelector(state => state.cart.items);
 
   const sortedList = isSorted
@@ -56,9 +57,7 @@ const AllProduct = ({ products = [], loading = false }) => {
       {loading && products.length === 0 ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
       ) : sortedList.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>
-          No products found.
-        </Text>
+        <Text style={innerStyle.messageText}>No products found.</Text>
       ) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 10 }}>
           {sortedList.map(product => (

@@ -197,6 +197,7 @@ const StorekeeperCreateProfile = () => {
                 onChange={text => sanitizeText(text, /[^a-zA-Z\s]/g, setName)}
                 maxLength={30}
                 isError={errors.name}
+                autoFocus
               />
               <LabelledInput
                 label="Store Name"
@@ -206,6 +207,7 @@ const StorekeeperCreateProfile = () => {
                 onChange={setStoreName}
                 maxLength={30}
                 isError={errors.storeName}
+                autoFocus
               />
               <LabelledInput
                 label="Contact Number"
@@ -216,6 +218,7 @@ const StorekeeperCreateProfile = () => {
                 maxLength={10}
                 isError={errors.contactNumber}
                 required
+                autoFocus
               />
               <LabelledInput
                 label="GSTIN"
@@ -225,7 +228,8 @@ const StorekeeperCreateProfile = () => {
                 autoCapitalize="characters"
                 onChange={text => setGstNum(text.toUpperCase())}
                 maxLength={15}
-                isError={errors.gstIn}
+                isError={errors.gstNum}
+                autoFocus
               />
               <LabelledInput
                 label="Address Line 1"
@@ -237,6 +241,7 @@ const StorekeeperCreateProfile = () => {
                 }
                 maxLength={40}
                 isError={errors.addressLine1}
+                autoFocus
               />
               <LabelledInput
                 label="Address Line 2"
@@ -246,6 +251,7 @@ const StorekeeperCreateProfile = () => {
                   sanitizeText(text, /[^a-zA-Z0-9\s,\/-]/g, setAddressLine2)
                 }
                 maxLength={40}
+                autoFocus
               />
               <LabelledInput
                 label="Landmark"

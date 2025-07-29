@@ -8,8 +8,10 @@ import {
 import React, { useEffect, useState } from 'react';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../styles/colors';
+import { useSafeRouter } from '../hooks/useSafeRouter';
 
 const SearchContainer = ({ query, onSearchSubmit }) => {
+    const { safePush } = useSafeRouter();
   const [input, setInput] = useState(query || '');
 
   useEffect(() => {
@@ -18,6 +20,7 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
   const handleClear = () => {
     setInput('');
     if (onSearchSubmit) onSearchSubmit('');
+    safePush("CustomerDashboard")
   };
 
   return (

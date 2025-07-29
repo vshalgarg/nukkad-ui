@@ -268,16 +268,6 @@ const ShowDetails = () => {
             if (storeKeeperNote) {
               dispatch(updateOrderNote({ orderId, storeKeeperNote }));
             }
-
-            Alert.alert('Success', 'Order dispatched successfully!', [
-              {
-                text: 'OK',
-                onPress: () => {
-                  navigation.navigate('StorekeeperDashboard', { tab: fromTab });
-                },
-              },
-            ]);
-
           } catch (err) {
             Alert.alert('Error', err.message || 'Failed to dispatch order');
           }
@@ -337,178 +327,176 @@ const ShowDetails = () => {
   });
 
   return (
-    <View style={{ flex: 1 }}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={[styles.pageContainer, { flex: 1 }]}>
-          <BackButton title="Order Details" />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={[styles.pageContainer, { flex: 1 }]}>
+        <BackButton title="Order Details" />
 
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-          >
-            <FlatList
-              data={parsedItems}
-              keyExtractor={(item, index) =>
-                item.id || item.productId || index.toString()
-              }
-              contentContainerStyle={{
-                padding: 20,
-              }}
-              showsVerticalScrollIndicator={false}
-              initialNumToRender={5}
-              maxToRenderPerBatch={8}
-              windowSize={10}
-              getItemLayout={(data, index) => ({
-                length: 115,
-                offset: 115 * index,
-                index,
-              })}
-              ListHeaderComponent={
-                <View>
-                  <Text style={innerStyle.heading}>Delivery Address</Text>
-                  <View style={innerStyle.AddressCard}>
-                    <View style={innerStyle.rowBetween}>
-                      <Text style={innerStyle.addressCardDetails}>
-                        {order.customerName}
-                      </Text>
-                      {(isInProgress || isDispatched) && (
-                        <TouchableOpacity
-                          ref={dotRef}
-                          onPress={() => {
-                            dotRef.current?.measure(
-                              (fx, fy, width, height, px, py) => {
-                                setPopupPosition({
-                                  x: px + width - 160,
-                                  y: py + height + 5,
-                                });
-                                setShowPopup(true);
-                              },
-                            );
-                          }}
-                        >
-                          <Entypo
-                            name="dots-three-vertical"
-                            size={18}
-                            color={Colors.secondary}
-                          />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                    <View>
-                      <Text style={innerStyle.addressCardDetails}>
-                        {order.customerMobileNumber}
-                      </Text>
-                    </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        >
+          <FlatList
+            data={parsedItems}
+            keyExtractor={(item, index) =>
+              item.id || item.productId || index.toString()
+            }
+            contentContainerStyle={{
+              padding: 20,
+            }}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={5}
+            maxToRenderPerBatch={8}
+            windowSize={10}
+            getItemLayout={(data, index) => ({
+              length: 115,
+              offset: 115 * index,
+              index,
+            })}
+            ListHeaderComponent={
+              <View>
+                <Text style={innerStyle.heading}>Delivery Address</Text>
+                <View style={innerStyle.AddressCard}>
+                  <View style={innerStyle.rowBetween}>
                     <Text style={innerStyle.addressCardDetails}>
-                      {order.address}
+                      {order.customerName}
                     </Text>
-                  </View>
-                  <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
-                </View>
-              }
-              renderItem={({ item }) => {
-                const itemId = item.itemId || item.id || item.productId;
-                return (
-                  <OrderItem
-                    item={item}
-                    price={prices[itemId]} // ✅ Correct key
-                    isEditable={!isDelivered && !isDispatched && !isRejected}
-                    onPriceChange={handlePriceChange}
-                    outOfStock={outOfStockMap[itemId]}
-                    onToggleOutOfStock={handleToggleOutOfStock}
-                  />
-                );
-              }}
-              ListFooterComponent={
-                // isPending ||
-                isInProgress ||
-                ((isDispatched || isDelivered) && storeKeeperNote?.trim()) ? (
-                  <View style={{ marginTop: 10, marginHorizontal: 5 }}>
-                    <Text
-                      style={{
-                        marginBottom: 5,
-                        fontWeight: 'bold',
-                        fontSize: Fonts.sizes.base,
-                      }}
-                    >
-                      Note :
-                    </Text>
-
-                    {isInProgress ? (
-                      <TextInput
-                        style={{
-                          height: 100,
-                          borderWidth: 1,
-                          borderColor: Colors.borderColor,
-                          borderRadius: 10,
-                          padding: 10,
-                          textAlignVertical: 'top',
-                          backgroundColor: Colors.white,
+                    {(isInProgress || isDispatched) && (
+                      <TouchableOpacity
+                        ref={dotRef}
+                        onPress={() => {
+                          dotRef.current?.measure(
+                            (fx, fy, width, height, px, py) => {
+                              setPopupPosition({
+                                x: px + width - 160,
+                                y: py + height + 5,
+                              });
+                              setShowPopup(true);
+                            },
+                          );
                         }}
-                        multiline
-                        placeholder="Write a note to the customer about this order"
-                        value={storeKeeperNote}
-                        editable
-                        onChangeText={setStoreKeeperNote}
-                      />
-                    ) : (
-                      <Text
-                        style={{
-                          fontStyle: 'italic',
-                          color: Colors.textColor,
-                          fontSize: 15,
-                        }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
                       >
-                        {` ${storeKeeperNote} `}
-                      </Text>
+                        <Entypo
+                          name="dots-three-vertical"
+                          size={18}
+                          color={Colors.secondary}
+                        />
+                      </TouchableOpacity>
                     )}
                   </View>
-                ) : null
-              }
-            />
-          </KeyboardAvoidingView>
-
-          {(isInProgress || isDispatched) && (
-            <View style={innerStyle.fixedButtonWrapper}>
-              <View style={innerStyle.buttonContainer}>
-                {isInProgress && (
-                  <>
-                    <CustomButton
-                      title="Reject Order"
-                      onPress={() => handleReject(orderId)}
-                      style={{ backgroundColor: Colors.reject, borderWidth: 0 }}
-                    />
-                    <CustomButton
-                      title="Dispatch Order"
-                      onPress={handleDispatch}
-                      disabled={allPricesZero}
-                      style={{ fontSize: Fonts.sizes.sm }}
-                    />
-                  </>
-                )}
-                {isDispatched && (
-                  <CustomButton
-                    title="Deliver Order"
-                    onPress={() => handleDeliver(orderId)}
-                    style={{ backgroundColor: Colors.primary, borderWidth: 0 }}
-                  />
-                )}
+                  <View>
+                    <Text style={innerStyle.addressCardDetails}>
+                      {order.customerMobileNumber}
+                    </Text>
+                  </View>
+                  <Text style={innerStyle.addressCardDetails}>
+                    {order.address}
+                  </Text>
+                </View>
+                <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
               </View>
-            </View>
-          )}
+            }
+            renderItem={({ item }) => {
+              const itemId = item.itemId || item.id || item.productId;
+              return (
+                <OrderItem
+                  item={item}
+                  price={prices[itemId]} // ✅ Correct key
+                  isEditable={!isDelivered && !isDispatched && !isRejected}
+                  onPriceChange={handlePriceChange}
+                  outOfStock={outOfStockMap[itemId]}
+                  onToggleOutOfStock={handleToggleOutOfStock}
+                />
+              );
+            }}
+            ListFooterComponent={
+              // isPending ||
+              isInProgress ||
+              ((isDispatched || isDelivered) && storeKeeperNote?.trim()) ? (
+                <View style={{ marginTop: 10, marginHorizontal: 5 }}>
+                  <Text
+                    style={{
+                      marginBottom: 5,
+                      fontWeight: 'bold',
+                      fontSize: Fonts.sizes.base,
+                    }}
+                  >
+                    Note :
+                  </Text>
 
-          <ConnectPopup
-            visible={showPopup}
-            onClose={() => setShowPopup(false)}
-            phone={order?.customerMobileNumber || '9999999999'}
-            position={popupPosition}
+                  {isInProgress ? (
+                    <TextInput
+                      style={{
+                        height: 100,
+                        borderWidth: 1,
+                        borderColor: Colors.borderColor,
+                        borderRadius: 10,
+                        padding: 10,
+                        textAlignVertical: 'top',
+                        backgroundColor: Colors.white,
+                      }}
+                      multiline
+                      placeholder="Write a note to the customer about this order"
+                      value={storeKeeperNote}
+                      editable
+                      onChangeText={setStoreKeeperNote}
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        fontStyle: 'italic',
+                        color: Colors.textColor,
+                        fontSize: 15,
+                      }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {` ${storeKeeperNote} `}
+                    </Text>
+                  )}
+                </View>
+              ) : null
+            }
           />
-        </View>
-      </TouchableWithoutFeedback>
-    </View>
+        </KeyboardAvoidingView>
+
+        {(isInProgress || isDispatched) && (
+          <View style={innerStyle.fixedButtonWrapper}>
+            <View style={innerStyle.buttonContainer}>
+              {isInProgress && (
+                <>
+                  <CustomButton
+                    title="Reject Order"
+                    onPress={() => handleReject(orderId)}
+                    style={{ backgroundColor: Colors.reject, borderWidth: 0 }}
+                  />
+                  <CustomButton
+                    title="Dispatch Order"
+                    onPress={handleDispatch}
+                    disabled={allPricesZero}
+                    style={{ fontSize: Fonts.sizes.sm }}
+                  />
+                </>
+              )}
+              {isDispatched && (
+                <CustomButton
+                  title="Deliver Order"
+                  onPress={() => handleDeliver(orderId)}
+                  style={{ backgroundColor: Colors.primary, borderWidth: 0 }}
+                />
+              )}
+            </View>
+          </View>
+        )}
+
+        <ConnectPopup
+          visible={showPopup}
+          onClose={() => setShowPopup(false)}
+          phone={order?.customerMobileNumber || '9999999999'}
+          position={popupPosition}
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

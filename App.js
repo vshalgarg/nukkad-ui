@@ -20,44 +20,73 @@ import { toastConfig } from './src/utils/toastConfig';
 
 export default function App() {
   useEffect(() => {
-    messaging()
-      .requestPermission()
-      .then(authStatus => {
-        if (
-          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-          authStatus === messaging.AuthorizationStatus.PROVISIONAL
-        ) {
-          // Get the device token
-          messaging()
-            .getToken()
-            .then(token => {
-              console.log('FCM Token:', token);
-              // Send this token to your backend if needed
-            });
-        }
+    const setupFCM = async () => {
+      await notifee.requestPermission();
+
+      await notifee.createChannel({
+        id: 'default',
+        name: 'Default Channel',
+        importance: AndroidImportance.HIGH,
       });
 
-    // Listen for foreground messages
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log('FCM Message Data:', remoteMessage.data);
-      // Show a local notification, update UI, etc.
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        const token = await messaging().getToken();
+        console.log('FCM Token:', token);
+        // Send token to backend
+      }
+    };
+
+    setupFCM();
+
+    // Foreground messages
+    const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
+      console.log('FCM Message (foreground):', remoteMessage);
       await notifee.displayNotification({
         title: remoteMessage.notification?.title || 'Notification',
         body: remoteMessage.notification?.body || 'You have a new message',
         android: {
           channelId: 'default',
+          smallIcon: 'ic_notification',
           importance: AndroidImportance.HIGH,
-          smallIcon: 'ic_notification', // Ensure you have this icon in your project
         },
       });
     });
 
+    // Background messages (handled automatically unless it's a data-only message)
     messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Message handled in the background!', remoteMessage);
+      console.log('Message handled in the background:', remoteMessage);
+      // Only needed for data-only messages
     });
 
-    return unsubscribe;
+    // App opened from background via notification
+    const unsubscribeOnOpened = messaging().onNotificationOpenedApp(
+      remoteMessage => {
+        console.log('Notification opened from background:', remoteMessage);
+        // Navigate or do something
+      },
+    );
+
+    // App opened from quit (cold start) via notification
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log('Notification opened from quit state:', remoteMessage);
+          // Navigate or do something
+        }
+      });
+
+    return () => {
+      unsubscribeOnMessage();
+      unsubscribeOnOpened();
+    };
   }, []);
+
   return (
     <AuthProvider>
       <Provider store={store}>

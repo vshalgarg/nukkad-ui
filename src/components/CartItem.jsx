@@ -14,7 +14,11 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import { useDispatch } from 'react-redux';
-import { removeFromCart, updateCartItemQuantity } from '../store/cartSlice';
+import {
+  removeFromCart,
+  updateCartItemQuantity,
+  clearProductCartData,
+} from '../store/cartSlice';
 import {
   updateCartAPI,
   deleteCartItemAPI,
@@ -29,10 +33,10 @@ const CartItem = ({
 }) => {
   const dispatch = useDispatch();
   const { token } = useAuth();
-   if (!item || !item.product) {
-     console.warn('⛔️ CartItem received undefined item or product', item);
-     return null;
-   }
+  if (!item || !item.product) {
+    console.warn('⛔️ CartItem received undefined item or product', item);
+    return null;
+  }
   const [imageError, setImageError] = useState(false);
   const placeholderImageUrl = require('../../assets/images/itemNotFound.jpg');
   const { product } = item;
@@ -45,6 +49,7 @@ const CartItem = ({
 
   const handleDelete = async () => {
     try {
+      dispatch(clearProductCartData(product.id));
       await deleteCartItemAPI(product.id, token);
       dispatch(removeFromCart({ itemId: product.id }));
       if (onItemRemoved) onItemRemoved();
@@ -59,7 +64,8 @@ const CartItem = ({
       setSelectedUnit(unit); // update local state
       dispatch(
         updateCartItemQuantity({
-          itemId: item.itemId,
+          itemId: item.product.id,
+          amount: amountInput,
           selectedUnit: unit,
         }),
       );
@@ -71,7 +77,7 @@ const CartItem = ({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const numericValue = parseFloat(amountInput);
+      const numericValue = amountInput;
       if (
         !isNaN(numericValue) &&
         numericValue >= 0 &&
@@ -82,8 +88,9 @@ const CartItem = ({
             originalAmount.current = amountInput;
             dispatch(
               updateCartItemQuantity({
-                itemId: item.itemId,
+                itemId: item.product.id,
                 amount: numericValue,
+                selectedUnit,
               }),
             );
           })

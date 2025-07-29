@@ -251,7 +251,7 @@ const CustomerCreateProfile = () => {
                   editable={false}
                   keyboardType="phone-pad"
                   maxLength={10}
-                  style={{ color: Colors.diabledText }}
+                  style={{ color: Colors.disabledText }}
                   isError={errors.mobile}
                 />
 
@@ -278,7 +278,11 @@ const CustomerCreateProfile = () => {
                       errors.dob && { borderColor: Colors.reject },
                     ]}
                   >
-                    <Text style={{ color: dob ? Colors.secondary : Colors.diabledText }}>
+                    <Text
+                      style={{
+                        color: dob ? Colors.secondary : Colors.disabledText,
+                      }}
+                    >
                       {dob ? dob.toDateString() : 'Select Date of Birth'}
                     </Text>
                   </View>

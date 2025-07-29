@@ -135,8 +135,6 @@ export const clearCartAPI = async token => {
       console.warn('🧺 Cart already empty. Proceeding without error.');
       return { message: 'Cart already empty' };
     }
-
-    // Handle known backend bugs
     if (
       errorMessage.includes('No EntityManager') ||
       errorMessage.includes('cannot reliably process')
