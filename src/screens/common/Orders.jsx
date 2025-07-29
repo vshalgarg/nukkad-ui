@@ -159,7 +159,7 @@ const Orders = () => {
                         {`${itm.itemName} (${itm.quantity} ${itm.unit})`}
                       </Text>
                       {(item.orderStatus === 'DELIVERED' ||
-                        item.orderStatus === 'DISPATCH') && (
+                        item.orderStatus === 'DISPATCHED') && (
                         <Text> &#8377;{itm.price}</Text>
                       )}
                     </View>

@@ -10,31 +10,27 @@ import {
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-
 import Grocery from '../../../assets/images/grocery-logo.svg';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
-
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import styles from '../../styles/globalStyles';
 import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
 import Fonts from '../../styles/font';
-
 import { sendOtp, verifyOtp } from '../../services/authApi';
 import { useAuth } from '../../contexts/authContext';
 import { setCartUser } from '../../store/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
+import {useStorekeeperProfile} from '../../contexts/storeKeeperProfileContext'
 
 const MobileOtpScreen = () => {
   useBackHandlerControl({ blockBack: true });
   const { safePush } = useSafeRouter();
-
   const { login } = useAuth();
   const dispatch = useDispatch();
-
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
   const [otpEnabled, setOtpEnabled] = useState(false);
@@ -42,9 +38,8 @@ const MobileOtpScreen = () => {
   const [canResend, setCanResend] = useState(false);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
-
   const userType = useSelector(state => state.user.userType);
-
+  const {fetchStorekeeperProfile} = useStorekeeperProfile()
   useEffect(() => {
     setSendOtpClicked(false);
     setCanResend(false);
@@ -68,7 +63,6 @@ const MobileOtpScreen = () => {
     try {
       const role = userType === 'I AM CUSTOMER' ? 'CUSTOMER' : 'STOREKEEPER';
       const res = await sendOtp(mobile, isResend ? null : role);
-
       showToast(
         'success',
         isResend ? 'OTP Resent' : 'OTP Sent',
@@ -121,10 +115,8 @@ const MobileOtpScreen = () => {
       const token = res?.token;
       const role = res?.roles?.[0];
       const userId = res?.userId;
-
       console.log(res.firstTimeLogin);
       const returningUser = res.firstTimeLogin === 1502;
-
       console.log(returningUser);
       console.log(role, token);
 
@@ -153,6 +145,7 @@ const MobileOtpScreen = () => {
         }
       } else {
         if (returningUser) {
+          fetchStorekeeperProfile()
           safePush('StorekeeperDashboard', {
             toast: JSON.stringify(toastPayload),
           });

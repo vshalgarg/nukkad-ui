@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { 
+  FlatList, 
+  Pressable, 
+  StyleSheet, 
+  Text, 
+  View,
+  ActivityIndicator 
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { addToCart } from '../store/cartSlice';
 import styles from '../styles/globalStyles';
 import ProductCard from './ProductCard';
@@ -19,7 +25,6 @@ const AllProduct = ({ products = [], loading = false }) => {
         (a.name || a.title || '').localeCompare(b.name || b.title || ''),
       )
     : products;
-
 
   const pairedList = useMemo(() => {
     const result = [];
@@ -46,75 +51,109 @@ const AllProduct = ({ products = [], loading = false }) => {
     );
   };
 
-  return (
-    <View style={styles.pageContainer}>
-      <View style={innerStyle.header}>
-        <Text style={innerStyle.title}>All Products</Text>
-        <View style={innerStyle.filterContainer}>
-          <Pressable
-            onPress={() => setIsSorted(!isSorted)}
-            style={[
-              innerStyle.sortButton,
-              isSorted
-                ? innerStyle.sortButtonActive
-                : innerStyle.sortButtonInactive,
-            ]}
-          >
-            <Text
-              style={[
-                innerStyle.sortText,
-                isSorted
-                  ? innerStyle.sortTextActive
-                  : innerStyle.sortTextInactive,
-              ]}
-            >
-              Sort A-Z
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+  // return (
+  //   <View style={styles.pageContainer}>
+  //     <View style={innerStyle.header}>
+  //       <Text style={innerStyle.title}>All Products</Text>
+  //       <View style={innerStyle.filterContainer}>
+  //         <Pressable
+  //           onPress={() => setIsSorted(!isSorted)}
+  //           style={[
+  //             innerStyle.sortButton,
+  //             isSorted
+  //               ? innerStyle.sortButtonActive
+  //               : innerStyle.sortButtonInactive,
+  //           ]}
+  //         >
+  //           <Text
+  //             style={[
+  //               innerStyle.sortText,
+  //               isSorted
+  //                 ? innerStyle.sortTextActive
+  //                 : innerStyle.sortTextInactive,
+  //             ]}
+  //           >
+  //             Sort A-Z
+  //           </Text>
+  //         </Pressable>
+  //       </View>
+  //     </View>
 
-      {loading ? (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading...</Text>
-      ) : sortedList.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>
-          No products found.
-        </Text>
-      ) : (
-        <FlatList
-          data={pairedList}
-          keyboardShouldPersistTaps="handled"
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item: pair }) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent:
-                  pair.length === 1 ? 'flex-start' : 'space-around',
-                paddingHorizontal: 10,
-                marginBottom: 10,
-              }}
-            >
-              {pair.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  isDropdownOpen={dropdownOpenId === product.id}
-                  setDropdownOpen={open =>
-                    setDropdownOpenId(open ? product.id : null)
-                  }
-                  cartItems={cartItems}
-                />
-              ))}
-            </View>
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={innerStyle.container}
-        />
-      )}
-    </View>
-  );
+  //     {loading && products.length === 0 ? (
+  //       <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading...</Text>
+  //     ) : sortedList.length === 0 ? (
+  //       <Text style={{ textAlign: 'center', marginTop: 20 }}>
+  //         No products found.
+  //       </Text>
+  //     ) : (
+  //       <FlatList
+  //         data={pairedList}
+  //         keyboardShouldPersistTaps="handled"
+  //         keyExtractor={(_, index) => index.toString()}
+  //         renderItem={({ item: pair }) => (
+  //           <View
+  //             style={{
+  //               flexDirection: 'row',
+  //               justifyContent:
+  //                 pair.length === 1 ? 'flex-start' : 'space-around',
+  //               paddingHorizontal: 10,
+  //               marginBottom: 10,
+  //             }}
+  //           >
+  //             {pair.map(product => (
+  //               <ProductCard
+  //                 key={product.id}
+  //                 product={product}
+  //                 onAddToCart={handleAddToCart}
+  //                 isDropdownOpen={dropdownOpenId === product.id}
+  //                 setDropdownOpen={open =>
+  //                   setDropdownOpenId(open ? product.id : null)
+  //                 }
+  //                 cartItems={cartItems}
+  //               />
+  //             ))}
+  //           </View>
+  //         )}
+  //         showsVerticalScrollIndicator={false}
+  //         contentContainerStyle={innerStyle.container}
+  //         scrollEnabled={false}
+  //         ListFooterComponent={
+  //           loading && products.length > 0 ? (
+  //             <View style={{ padding: 20 }}>
+  //               <ActivityIndicator size="small" color={Colors.primary} />
+  //             </View>
+  //           ) : null
+  //         }
+  //       />
+  //     )}
+  //   </View>
+  // );
+
+  
+return (
+  <View style={{ flex: 1 }}>
+    {loading && products.length === 0 ? (
+      <ActivityIndicator style={{ marginTop: 20 }} />
+    ) : sortedList.length === 0 ? (
+      <Text style={{ textAlign: 'center', marginTop: 20 }}>
+        No products found.
+      </Text>
+    ) : (
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+        {sortedList.map(product => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onAddToCart={handleAddToCart}
+            isDropdownOpen={dropdownOpenId === product.id}
+            setDropdownOpen={open => setDropdownOpenId(open ? product.id : null)}
+            cartItems={cartItems}
+          />
+        ))}
+      </View>
+    )}
+  </View>
+);
 };
 
 const innerStyle = StyleSheet.create({
@@ -166,3 +205,4 @@ const innerStyle = StyleSheet.create({
 });
 
 export default AllProduct;
+

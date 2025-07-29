@@ -9,12 +9,10 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-
 import CategoryGridLayout from '../../components/category/CategoriesGridLayout.jsx';
 import ProductSlider from '../../components/ProductSlider.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
 import UserToolbar from '../../components/UserToolbar.jsx';
-
 import styles from '../../styles/globalStyles.js';
 import { getAllCategories } from '../../services/customer/categoriesService.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
@@ -31,26 +29,15 @@ const CustomerDashboard = () => {
   const route = useRoute();
   const { toastMessage } = route.params || {};
   const { createProfile } = useProfile();
-
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
-
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token, role } = useAuth();
   const { saveStore, storeData } = useStore();
 
-  const fetchCategories = useCallback(async (force = false) => {
+  const fetchCategories = useCallback(async () => {
     try {
-      if (!force) {
-        const cached = await AsyncStorage.getItem('categories');
-        if (cached) {
-          setCategories(JSON.parse(cached));
-          setLoading(false);
-          return;
-        }
-      }
-
       const response = await getAllCategories();
       if (Array.isArray(response)) {
         setCategories(response);

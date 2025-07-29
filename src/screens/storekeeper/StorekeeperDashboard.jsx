@@ -45,7 +45,7 @@ const StorekeeperDashboard = () => {
 
   const statusTabs = [
     { label: 'PENDING', statuses: ['PENDING'] },
-    { label: 'IN_PROGRESS', statuses: ['IN_PROGRESS', 'DISPATCH'] },
+    { label: 'IN_PROGRESS', statuses: ['IN_PROGRESS', 'DISPATCHED'] },
     { label: 'DELIVERED', statuses: ['DELIVERED'] },
   ];
 

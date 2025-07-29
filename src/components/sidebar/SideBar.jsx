@@ -68,11 +68,11 @@ const SideBar = ({ isVisible, onClose }) => {
   };
 
   const baseMenuItems = [
-    { name: 'My Stores', icon: 'storefront' },
     ...(userRole !== 'STOREKEEPER'
       ? [
         { name: 'Add Store', icon: 'add-circle-sharp' },
         { name: 'Addresses', icon: 'location-sharp' },
+        { name: 'My Stores', icon: 'storefront' },
       ]
       : []),
     { name: 'Notifications', icon: 'notifications' },

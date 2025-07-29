@@ -12,27 +12,27 @@ export const StorekeeperProfileProvider = ({ children }) => {
   const [storekeeperProfile, setStorekeeperProfile] = useState(null);
   const [loading, setLoading] = useState(true); // Optional: helpful in screens
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const savedProfile = await AsyncStorage.getItem('storekeeperProfile');
-        if (savedProfile) {
-          const parsed = JSON.parse(savedProfile);
-          setStorekeeperProfile(parsed);
-        } else {
-          // ⬇️ Try loading from API if local not found
-          const token = await AsyncStorage.getItem('authToken'); // or get from authContext
-          if (token) {
-            const remoteProfile = await getStorekeeperProfile(token);
-            setStorekeeperProfile(remoteProfile);
-            await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(remoteProfile));
-          }
-        }
-      } catch (err) {
-        console.log('❌ Failed to load storekeeper profile:', err);
-      }
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const savedProfile = await AsyncStorage.getItem('storekeeperProfile');
+  //       if (savedProfile) {
+  //         const parsed = JSON.parse(savedProfile);
+  //         setStorekeeperProfile(parsed);
+  //       } else {
+  //         // ⬇️ Try loading from API if local not found
+  //         const token = await AsyncStorage.getItem('authToken'); // or get from authContext
+  //         if (token) {
+  //           const remoteProfile = await getStorekeeperProfile(token);
+  //           setStorekeeperProfile(remoteProfile);
+  //           await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(remoteProfile));
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.log('❌ Failed to load storekeeper profile:', err);
+  //     }
+  //   })();
+  // }, []);
 
 
   const resetStorekeeperProfile = async () => {
