@@ -120,11 +120,16 @@ const ShoppingCart = () => {
   };
 
   const handleCompleteOrder = async () => {
-    if (orderInProgress) return; // prevent double tap
+    if (orderInProgress) return; 
     setOrderInProgress(true);
 
     if (!selectedAddress) {
       showToast('error', 'Add address before checkout');
+      setOrderInProgress(false);
+      return;
+    }
+    if(!storeKeeperId){
+      showToast('error', 'Add or Select Store before checkout');
       setOrderInProgress(false);
       return;
     }
@@ -157,9 +162,8 @@ const ShoppingCart = () => {
     };
 
     try {
+      console.log(payload);
       const res = await placeOrder(payload, token);
-
-      // ✅ Navigate
       safePush('PlaceOrder');
       setTimeout(() => {
         dispatch(clearCart());

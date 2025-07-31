@@ -9,7 +9,7 @@ export const createStorekeeperProfile = async (profileData, token) => {
       string: JSON.stringify({
         name: profileData.name,
         storeName: profileData.storeName,
-        gstNum: profileData.gstIn,
+        gstNum: profileData.gstNum,
         contactNumber: profileData.contactNumber,
         addressLine1: profileData.addressLine1,
         addressLine2: profileData.addressLine2,

@@ -216,6 +216,8 @@ export default function AddStore() {
                   value={storeId}
                   onTextChange={setStoreID}
                   fixedPrefix="STR"
+                  keyboardType="phone-pad"
+                  maxLength={14}
                 />
               </View>
             </View>

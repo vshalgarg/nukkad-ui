@@ -98,7 +98,7 @@ export const updateExistingAddress = async (addressId, updatedData) => {
       });
 
       return response.data;
-    } catch (error) {
+    } catch (error) {z
       console.error('❌ Mark Default Address API Error:', {
         message: error.message,
         status: error.response?.status,

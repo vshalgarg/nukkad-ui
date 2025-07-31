@@ -1,5 +1,5 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -13,7 +13,6 @@ import {
 
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
-import { useAddress } from '../../contexts/addressContext';
 import { useProfile } from '../../contexts/profileContext';
 import styles from '../../styles/globalStyles';
 import Colors from '../../styles/colors';
@@ -27,6 +26,7 @@ import { useDispatch } from 'react-redux';
 import Fonts from '../../styles/font';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 // import { setCartUser } from '../../store/cartSlice';
+import { validateCustomerProfile } from '../../schema/validation';
 
 let pressLock = false;
 
@@ -46,8 +46,16 @@ const CustomerCreateProfile = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const nameRef = useRef();
+  const emailRef = useRef();
+  const addressRef = useRef();
+  const landmarkRef = useRef();
+  const cityRef = useRef();
+  const stateRef = useRef();
+  const pincodeRef = useRef();
+
   const { token } = useAuth();
-  const { profile, createProfile } = useProfile();
+  const { createProfile } = useProfile();
 
   const { safePush } = useSafeRouter();
   const route = useRoute();
@@ -82,7 +90,22 @@ const CustomerCreateProfile = () => {
 
   const handleDobChange = (event, selectedDate) => {
     setShowDatePicker(false);
-    if (selectedDate) setDob(selectedDate);
+
+    if (event.type === 'dismissed') return; // prevent setting date if dismissed
+
+    const currentDate = selectedDate || dob;
+    const today = new Date();
+
+    // Optional: Validate that DOB is not in the future and user is at least 13 years old
+    const age = today.getFullYear() - currentDate.getFullYear();
+    const isFutureDate = currentDate > today;
+
+    if (isFutureDate || age < 13) {
+      setErrors(prev => ({ ...prev, dob: true }));
+    } else {
+      setDob(currentDate);
+      setErrors(prev => ({ ...prev, dob: false }));
+    }
   };
 
   const handleContinue = async () => {
@@ -90,101 +113,67 @@ const CustomerCreateProfile = () => {
     pressLock = true;
     setIsSubmitting(true);
 
-    const newErrors = {};
-    let firstErrorMessage = '';
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      dob,
+      addressLine1: addressLine1.trim(),
+      landmark: landmark.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      pincode: pincode.trim(),
+    };
 
-    if (!name.trim()) {
-      newErrors.name = true;
-      firstErrorMessage ||= 'Please enter your name.';
-    } else if (!isAlpha(name)) {
-      newErrors.name = true;
-      firstErrorMessage ||= 'Name must contain only letters.';
-    }
+    const { isValid, fieldErrors, message } = validateCustomerProfile(payload);
 
-    if (!email.trim()) {
-      newErrors.email = true;
-      firstErrorMessage ||= 'Please enter your email.';
-    } else if (!isValidEmail(email)) {
-      newErrors.email = true;
-      firstErrorMessage ||= 'Invalid email format.';
-    }
+    setErrors(fieldErrors);
 
-    if (!dob) {
-      newErrors.dob = true;
-      firstErrorMessage ||= 'Please select your date of birth.';
-    }
+    if (!isValid) {
+      showToast('error', message);
 
-    if (!addressLine1.trim() || !isValidAddress(addressLine1)) {
-      newErrors.addressLine1 = true;
-      firstErrorMessage ||= 'Invalid Address Line 1.';
-    }
-
-    if (!landmark.trim() || landmark.length < 2) {
-      newErrors.landmark = true;
-      firstErrorMessage ||= 'Please enter a landmark.';
-    }
-
-    if (!city.trim() || !isAlpha(city)) {
-      newErrors.city = true;
-      firstErrorMessage ||= 'Invalid city name.';
-    }
-
-    if (!state.trim() || !isAlpha(state)) {
-      newErrors.state = true;
-      firstErrorMessage ||= 'Invalid state name.';
-    }
-
-    if (!pincode.trim() || !isValidPincode(pincode)) {
-      newErrors.pincode = true;
-      firstErrorMessage ||= 'Pincode must be 6 digits.';
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      if (firstErrorMessage) showToast('error', firstErrorMessage);
-      setIsSubmitting(false);
+      // Auto focus first invalid field
+      if (fieldErrors.name) nameRef.current?.focus();
+      else if (fieldErrors.email) emailRef.current?.focus();
+      else if (fieldErrors.addressLine1) addressRef.current?.focus();
+      else if (fieldErrors.landmark) landmarkRef.current?.focus();
+      else if (fieldErrors.city) cityRef.current?.focus();
+      else if (fieldErrors.state) stateRef.current?.focus();
+      else if (fieldErrors.pincode) pincodeRef.current?.focus();
       pressLock = false;
       return;
     }
 
-    const nameParts = name.trim().split(' ');
+    const nameParts = payload.name.split(' ');
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
 
-    const payload = {
-      name,
-      email,
+    const formattedPayload = {
+      ...payload,
+      dob: formatDateYYYYMMDD(payload.dob),
       mobile,
-      dob: formatDateYYYYMMDD(dob),
-      addressLine1,
       addressLine2,
-      landmark,
-      city,
-      state,
-      pincode,
     };
 
     const newAddress = {
       id: Date.now().toString(),
-      name,
-      addressLine1,
+      name: payload.name,
+      addressLine1: payload.addressLine1,
       addressLine2,
-      landmark,
-      city,
-      state,
-      pincode,
+      landmark: payload.landmark,
+      city: payload.city,
+      state: payload.state,
+      pincode: payload.pincode,
     };
 
     try {
-      await createCustomerProfile(payload, token);
+      await createCustomerProfile(formattedPayload, token);
 
       const newProfile = {
         firstName,
         lastName,
-        email,
+        email: payload.email,
         mobile,
-        dob: formatDateYYYYMMDD(dob),
+        dob: formatDateYYYYMMDD(payload.dob),
         role: 'customer',
         image: null,
       };
@@ -233,12 +222,24 @@ const CustomerCreateProfile = () => {
                   Name <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
                   maxLength={35}
-                  onTextChange={text =>
-                    setName(text.replace(/[^a-zA-Z\s]/g, ''))
-                  }
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                    setName(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        name:
+                          cleaned.trim().length >= 2 &&
+                          /^[A-Za-z\s]+$/.test(cleaned)
+                            ? false
+                            : true,
+                      }));
+                    }
+                  }}
                   autoCapitalize="words"
                   isError={errors.name}
                 />
@@ -259,11 +260,22 @@ const CustomerCreateProfile = () => {
                   Email <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={emailRef}
                   placeholder="Enter Your Email"
                   value={email}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  onTextChange={setEmail}
+                  onTextChange={text => {
+                    setEmail(text);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text.trim())
+                          ? false
+                          : true,
+                      }));
+                    }
+                  }}
                   maxLength={38}
                   isError={errors.email}
                 />
@@ -301,12 +313,20 @@ const CustomerCreateProfile = () => {
                   Address Line 1 <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={addressRef}
                   value={addressLine1}
                   placeholder="Enter Your Address"
                   maxLength={38}
-                  onTextChange={text =>
-                    setAddressLine1(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
-                  }
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z0-9\s,\/-]/g, '');
+                    setAddressLine1(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        addressLine1: cleaned.trim().length > 0 ? false : true,
+                      }));
+                    }
+                  }}
                   isError={errors.addressLine1}
                 />
 
@@ -324,9 +344,18 @@ const CustomerCreateProfile = () => {
                   Landmark <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={landmarkRef}
                   value={landmark}
                   placeholder="Enter Landmark"
-                  onTextChange={setLandmark}
+                  onTextChange={text => {
+                    setLandmark(text);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        landmark: text.trim().length >= 2 ? false : true,
+                      }));
+                    }
+                  }}
                   maxLength={38}
                   isError={errors.landmark}
                 />
@@ -335,11 +364,19 @@ const CustomerCreateProfile = () => {
                   City <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={cityRef}
                   placeholder="Enter City"
                   value={city}
-                  onTextChange={text =>
-                    setCity(text.replace(/[^a-zA-Z\s]/g, ''))
-                  }
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                    setCity(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        city: cleaned.trim().length >= 2 ? false : true,
+                      }));
+                    }
+                  }}
                   maxLength={38}
                   isError={errors.city}
                 />
@@ -348,11 +385,19 @@ const CustomerCreateProfile = () => {
                   State <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={stateRef}
                   placeholder="Enter State"
                   value={state}
-                  onTextChange={text =>
-                    setState(text.replace(/[^a-zA-Z\s]/g, ''))
-                  }
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                    setState(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        state: cleaned.trim().length >= 2 ? false : true,
+                      }));
+                    }
+                  }}
                   maxLength={38}
                   isError={errors.state}
                 />
@@ -361,11 +406,21 @@ const CustomerCreateProfile = () => {
                   Pincode <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={pincodeRef}
                   value={pincode}
                   placeholder="Enter Pincode"
                   keyboardType="number-pad"
                   maxLength={6}
-                  onTextChange={setPincode}
+                  onTextChange={text => {
+                    const cleaned = text.replace(/\D/g, '');
+                    setPincode(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        pincode: /^\d{6}$/.test(cleaned) ? false : true,
+                      }));
+                    }
+                  }}
                   isError={errors.pincode}
                 />
 

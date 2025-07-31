@@ -44,7 +44,7 @@ const AddressForm = () => {
     setAddressData,
     setMode,
   } = useAddress();
-console.log("addressData",addressData);
+  console.log('addressData', addressData);
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [address1, setAddress1] = useState('');
@@ -178,28 +178,28 @@ console.log("addressData",addressData);
     }
 
     // Submit logic below...
-        const addressObject = {
-          name: trimmedName,
-          mobileNumber: mobile,
-          addressLine1: trimmedAddress1,
-          addressLine2: address2.trim(),
-          landmark: trimmedLandmark,
-          city: trimmedCity,
-          state: trimmedState,
-          pincode: trimmedPincode,
-        };
+    const addressObject = {
+      name: trimmedName,
+      mobileNumber: mobile,
+      addressLine1: trimmedAddress1,
+      addressLine2: address2.trim(),
+      landmark: trimmedLandmark,
+      city: trimmedCity,
+      state: trimmedState,
+      pincode: trimmedPincode,
+    };
 
-        if (mode === 'edit' && addressData?.id) {
-          updateAddress({ ...addressObject, id: addressData.id });
-        } else {
-          const newId = Date.now().toString();
-          addAddress({ ...addressObject, id: newId });
-        }
+    if (mode === 'edit' && addressData?.id) {
+      updateAddress({ ...addressObject, id: addressData.id });
+    } else {
+      const newId = Date.now().toString();
+      addAddress({ ...addressObject, id: newId });
+    }
 
-        setMode('add');
-        setAddressData(null);
+    setMode('add');
+    setAddressData(null);
 
-        navigation.goBack();
+    navigation.goBack();
   };
 
   return (
@@ -234,9 +234,17 @@ console.log("addressData",addressData);
                   ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
-                  maxLength={25}
+                  maxLength={35}
+                  onTextChange={text => {
+                    setName(text);
+
+                    setErrors(prev => ({
+                      ...prev,
+                      name:
+                        prev.name && text.trim().length > 0 ? false : prev.name,
+                    }));
+                  }}
                   autoCapitalize="words"
-                  onTextChange={setName}
                   isError={errors.name}
                 />
               </View>
@@ -250,7 +258,18 @@ console.log("addressData",addressData);
                   value={mobile}
                   maxLength={10}
                   keyboardType="phone-pad"
-                  onTextChange={setMobile}
+                  onTextChange={text => {
+                    const cleaned = text.replace(/\D/g, '');
+                    setMobile(cleaned);
+
+                    setErrors(prev => ({
+                      ...prev,
+                      mobile:
+                        prev.mobile && cleaned.length === 10
+                          ? false
+                          : prev.mobile,
+                    }));
+                  }}
                   isError={errors.mobile}
                 />
               </View>
@@ -266,7 +285,12 @@ console.log("addressData",addressData);
                   value={address1}
                   maxLength={50}
                   autoCapitalize="sentences"
-                  onTextChange={setAddress1}
+                  onTextChange={text => {
+                    setAddress1(text);
+                    if (errors.address1 && text.trim().length > 0) {
+                      setErrors(prev => ({ ...prev, address1: false }));
+                    }
+                  }}
                   isError={errors.address1}
                 />
               </View>
@@ -294,7 +318,12 @@ console.log("addressData",addressData);
                   value={landmark}
                   maxLength={25}
                   autoCapitalize="sentences"
-                  onTextChange={setLandmark}
+                  onTextChange={text => {
+                    setLandmark(text);
+                    if (errors.landmark && text.trim().length > 0) {
+                      setErrors(prev => ({ ...prev, landmark: false }));
+                    }
+                  }}
                   isError={errors.landmark}
                 />
               </View>
@@ -310,7 +339,12 @@ console.log("addressData",addressData);
                   value={city}
                   maxLength={25}
                   autoCapitalize="sentences"
-                  onTextChange={setCity}
+                  onTextChange={text => {
+                    setCity(text);
+                    if (errors.city && text.trim().length > 0) {
+                      setErrors(prev => ({ ...prev, city: false }));
+                    }
+                  }}
                   isError={errors.city}
                 />
               </View>
@@ -326,7 +360,12 @@ console.log("addressData",addressData);
                   value={state}
                   maxLength={25}
                   autoCapitalize="sentences"
-                  onTextChange={setState}
+                  onTextChange={text => {
+                    setState(text);
+                    if (errors.state && text.trim().length > 0) {
+                      setErrors(prev => ({ ...prev, state: false }));
+                    }
+                  }}
                   isError={errors.state}
                 />
               </View>
@@ -342,11 +381,16 @@ console.log("addressData",addressData);
                   value={pincode}
                   maxLength={6}
                   keyboardType="number-pad"
-                  onTextChange={setPincode}
+                  onTextChange={text => {
+                    const cleaned = text.replace(/\D/g, '');
+                    setPincode(cleaned);
+                    if (errors.pincode && cleaned.length === 6) {
+                      setErrors(prev => ({ ...prev, pincode: false }));
+                    }
+                  }}
                   isError={errors.pincode}
                 />
               </View>
-
               <View style={formStyles.buttonContainer}>
                 <CustomButton title="Continue" onPress={handleContinue} />
               </View>

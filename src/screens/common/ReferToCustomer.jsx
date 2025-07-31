@@ -126,7 +126,7 @@ const innerStyle = StyleSheet.create({
     width: 200,
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    backgroundColor:Colors.white,
+    backgroundColor: Colors.white,
   },
   storeIdContainer: {
     flexDirection: 'row',
