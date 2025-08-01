@@ -27,6 +27,7 @@ import Fonts from '../../styles/font';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 // import { setCartUser } from '../../store/cartSlice';
 import { validateCustomerProfile } from '../../schema/validation';
+import strings from '../../constants/string';
 
 let pressLock = false;
 
@@ -75,11 +76,6 @@ const CustomerCreateProfile = () => {
     if (params.mobile) setMobile(params.mobile);
   }, [params]);
 
-  const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isAlpha = text => /^[A-Za-z\s]{2,}$/.test(text);
-  const isValidAddress = text => /^[a-zA-Z0-9\s,\/-]*$/.test(text);
-  const isValidPincode = pin => /^\d{6}$/.test(pin);
-
   const formatDateYYYYMMDD = date => {
     if (!(date instanceof Date) || isNaN(date)) return null;
     const year = date.getFullYear();
@@ -117,7 +113,9 @@ const CustomerCreateProfile = () => {
       name: name.trim(),
       email: email.trim(),
       dob,
+      mobile,
       addressLine1: addressLine1.trim(),
+      addressLine2: addressLine2.trim(),
       landmark: landmark.trim(),
       city: city.trim(),
       state: state.trim(),
@@ -150,8 +148,6 @@ const CustomerCreateProfile = () => {
     const formattedPayload = {
       ...payload,
       dob: formatDateYYYYMMDD(payload.dob),
-      mobile,
-      addressLine2,
     };
 
     const newAddress = {
@@ -181,15 +177,15 @@ const CustomerCreateProfile = () => {
       await createProfile(newProfile);
       // dispatch(setCartUser(profile.userId));
 
-      showToast('success', 'Registered Successfully');
+      showToast('success', strings.registeredSuccessfully);
       Keyboard.dismiss();
       setTimeout(() => {
         pressLock = false;
         safePush('AddStore', { hideBackButton: true });
       }, 100);
     } catch (err) {
-      console.error(err);
-      showToast('error', 'Profile creation failed.');
+      showToast('error', err.message);
+
       pressLock = false;
     } finally {
       setIsSubmitting(false);
@@ -200,7 +196,7 @@ const CustomerCreateProfile = () => {
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <View style={localStyles.createProfileStyling}>
         <Text style={[localStyles.header, textStyles.subheading]}>
-          My Profile
+          {strings.myProfile}
         </Text>
       </View>
 
@@ -219,7 +215,7 @@ const CustomerCreateProfile = () => {
             <View style={localStyles.centerContainer}>
               <View style={[localStyles.formContainer, { marginTop: 30 }]}>
                 <Text style={localStyles.label}>
-                  Name <Text style={localStyles.mandatory}>*</Text>
+                  {strings.name} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={nameRef}
@@ -245,7 +241,7 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Contact Number <Text style={localStyles.mandatory}>*</Text>
+                  {strings.mobile} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   value={mobile}
@@ -257,7 +253,7 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Email <Text style={localStyles.mandatory}>*</Text>
+                  {strings.email} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={emailRef}
@@ -281,7 +277,7 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Date of Birth <Text style={localStyles.mandatory}>*</Text>
+                  {strings.dob} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <Pressable onPress={() => setShowDatePicker(true)}>
                   <View
@@ -310,7 +306,8 @@ const CustomerCreateProfile = () => {
                 )}
 
                 <Text style={localStyles.label}>
-                  Address Line 1 <Text style={localStyles.mandatory}>*</Text>
+                  {strings.addressLine1}
+                  <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={addressRef}
@@ -330,7 +327,7 @@ const CustomerCreateProfile = () => {
                   isError={errors.addressLine1}
                 />
 
-                <Text style={localStyles.label}>Address Line 2</Text>
+                <Text style={localStyles.label}>{strings.addressLine2}</Text>
                 <CustomInput
                   value={addressLine2}
                   placeholder="Enter Address Line 2"
@@ -341,7 +338,8 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Landmark <Text style={localStyles.mandatory}>*</Text>
+                  {strings.landmark}{' '}
+                  <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={landmarkRef}
@@ -361,7 +359,7 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  City <Text style={localStyles.mandatory}>*</Text>
+                  {strings.city} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={cityRef}
@@ -382,7 +380,7 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  State <Text style={localStyles.mandatory}>*</Text>
+                  {strings.state} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={stateRef}
@@ -403,7 +401,7 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Pincode <Text style={localStyles.mandatory}>*</Text>
+                  {strings.pincode} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={pincodeRef}
@@ -426,9 +424,8 @@ const CustomerCreateProfile = () => {
 
                 <View style={localStyles.buttonWrapper}>
                   <CustomButton
-                    title={isSubmitting ? 'Please wait...' : 'Continue'}
+                    title={strings.continue}
                     onPress={handleContinue}
-                    disabled={isSubmitting}
                   />
                 </View>
               </View>

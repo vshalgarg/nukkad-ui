@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/authContext';
 // ✅ SVG for success modal
 import TickIcon from '../../../assets/images/review.svg';
 import { useStore } from '../../contexts/storeContext';
+import strings from '../../constants/string';
 
 const RateStore = () => {
   const [rating, setRating] = useState(0);
@@ -40,7 +41,7 @@ const RateStore = () => {
 
   const handleSubmitReview = async () => {
     if (rating === 0 || feedback.trim() === '') {
-      showToast('error', 'Please provide both rating and feedback.');
+      showToast('error', strings.provideRatingAndFeedback);
 
       return;
     }
@@ -50,8 +51,8 @@ const RateStore = () => {
     if (!storeKeeperId) {
       showToast(
         'error',
-        'No store found.',
-        'Please add or select a store first.',
+        strings.noStoresFound,
+        strings.noStoresFound2,
       );
 
       return;
@@ -72,7 +73,7 @@ const RateStore = () => {
       feedbackRef.current?.blur();
       setShowThankYou(true);
     } catch (error) {
-     showToast('error', 'Failed to submit rating.', error.message);
+     showToast('error', strings.failedToSubmitRating, error.message);
 
     }
   };
@@ -87,7 +88,7 @@ const RateStore = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.pageContainer}>
         <BackButton
-          title="Rate Store"
+          title={strings.rateStore}
           backgroundColor={Colors.backbuttonColor}
         />
         <View style={styles.container}>
@@ -110,16 +111,16 @@ const RateStore = () => {
           <TextInput
             ref={feedbackRef}
             style={styles.textArea}
-            placeholder="Write your feedback here..."
+            placeholder={strings.feedbackPlaceholder}
             multiline
             value={feedback}
             onChangeText={setFeedback}
           />
 
-          <Text style={styles.wordCount}>{feedback.length} characters</Text>
+          <Text style={styles.wordCount}>{feedback.length} {strings.characters}</Text>
 
           <View style={styles.btnContainer}>
-            <CustomButton title="Submit Review" onPress={handleSubmitReview} />
+            <CustomButton title={strings.submitReview} onPress={handleSubmitReview} />
           </View>
         </View>
 
@@ -127,12 +128,11 @@ const RateStore = () => {
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <TickIcon width={80} height={80} />
-              <Text style={styles.modalTitle}>Thank you!</Text>
+              <Text style={styles.modalTitle}>{strings.thankyou}</Text>
               <Text style={styles.modalMessage}>
-                We appreciate your feedback. It helps us improve your
-                experience.
+                {strings.appriciateFeedback}
               </Text>
-              <CustomButton title="Done" onPress={handleDone} />
+              <CustomButton title={strings.done} onPress={handleDone} />
             </View>
           </View>
         </Modal>

@@ -16,6 +16,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { z } from 'zod';
 import { Keyboard } from 'react-native';
 import { LinearGradient } from 'react-native-linear-gradient';
+import strings from '../../constants/string';
 
 const profileSchema = z.object({
   name: z
@@ -286,13 +287,13 @@ const StorekeeperProfileScreen = () => {
       await updateStorekeeperProfile(filteredProfile, token);
       Toast.show({
         type: 'success',
-        text1: 'Profile Updated',
+        text1: strings.profileUpdatedSuccessfully,
       });
       setIsEditing(false);
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1: 'Update Failed',
+        text1: strings.failedToUpdateProfile,
         text2: err?.message || 'Something went wrong',
       });
     }
@@ -305,7 +306,7 @@ const StorekeeperProfileScreen = () => {
         style={styles.container}
         contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 120 }}
       >
-        <Text style={styles.header}>Profile Setting</Text>
+        <Text style={styles.header}>{strings.profileSetting}</Text>
         <View style={{ marginBottom: 20 }}>
           <TouchableOpacity
             style={styles.editIcon}
@@ -322,7 +323,7 @@ const StorekeeperProfileScreen = () => {
           </View>
         ))}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Store Images</Text>
+          <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
           <View
             style={{
               flexDirection: 'row',
@@ -373,7 +374,7 @@ const StorekeeperProfileScreen = () => {
           />
           {/* Save button */}
           <TouchableOpacity style={styles.fixedSaveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+            <Text style={styles.saveButtonText}>{strings.saveChanges}</Text>
           </TouchableOpacity>
         </View>
       )}

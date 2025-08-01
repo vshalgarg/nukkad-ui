@@ -1,33 +1,32 @@
 import { BaseToast, ErrorToast } from 'react-native-toast-message';
+import Colors from '../styles/colors';
+import Fonts from '../styles/font';
 
 export const toastConfig = {
   success: props => (
     <BaseToast
       {...props}
       style={{
-        borderLeftColor: 'green',
-        marginTop: 30,
-        paddingVertical: 12,
+        borderLeftColor: Colors.successToast,
         alignItems: 'center',
       }}
       contentContainerStyle={{
-        paddingHorizontal: 20,
+        paddingHorizontal: 15,
         flexDirection: 'column',
         alignItems: 'center',
       }}
       text1Style={{
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: 'green',
+        fontSize: Fonts.sizes.base,
+        fontWeight: '600',
+        color: Colors.successToast,
         width: '100%',
       }}
       text2Style={{
-        fontSize: 13,
-        color: '#006600',
+        fontSize: Fonts.sizes.sm,
+        color: Colors.successToast,
         width: '100%',
-        marginTop: 4,
       }}
-      text2NumberOfLines={0}
+      text2NumberOfLines={2}
     />
   ),
 
@@ -35,29 +34,26 @@ export const toastConfig = {
     <ErrorToast
       {...props}
       style={{
-        borderLeftColor: 'red',
-        marginTop: 10,
-        paddingVertical: 12,
+        borderLeftColor: Colors.errorToast,
         alignItems: 'center',
       }}
       contentContainerStyle={{
-        paddingHorizontal: 20,
+        paddingHorizontal: 15,
         flexDirection: 'column',
         alignItems: 'center',
       }}
       text1Style={{
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: 'red',
+        fontSize: Fonts.sizes.base,
+        fontWeight: 600,
+        color: Colors.errorToast,
         width: '100%',
       }}
       text2Style={{
-        fontSize: 13,
-        color: '#800000',
+        fontSize: Fonts.sizes.sm,
+        color: Colors.errorToast,
         width: '100%',
-        marginTop: 4,
       }}
-      text2NumberOfLines={0}
+      text2NumberOfLines={2}
     />
   ),
 };

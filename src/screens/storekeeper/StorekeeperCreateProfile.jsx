@@ -21,6 +21,7 @@ import Fonts from '../../styles/font';
 import { useAuth } from '../../contexts/authContext';
 import { createStorekeeperProfile } from '../../services/storekeeper/storekeeperProfileService';
 import { storekeeperProfileSchema } from '../../schema/validation';
+import strings from '../../constants/string';
 
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
@@ -142,12 +143,12 @@ const StorekeeperCreateProfile = () => {
       await createStorekeeperProfile(formData, token);
       await createProfile(updatedProfile);
       await saveStorekeeperAddress(newAddress);
-      showToast('success', 'Registered Successfully');
+      showToast('success', strings.registeredSuccessfully);
       setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
     } catch (err) {
       console.error('❌ Storekeeper profile error:', err.message);
-      showToast('error', 'Profile update failed.');
+      showToast('error', strings.failedToCreateProfile);
       pressLock = false;
     } finally {
       setIsSubmitting(false);
@@ -175,7 +176,7 @@ const StorekeeperCreateProfile = () => {
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <View style={innerStyles.createProfileStyling}>
         <Text style={[innerStyles.header, textStyles.subheading]}>
-          My Profile
+          {strings.myProfile}
         </Text>
       </View>
 
@@ -198,7 +199,7 @@ const StorekeeperCreateProfile = () => {
           <View style={innerStyles.centerContainer}>
             <View style={[innerStyles.formContainer, { marginTop: 30 }]}>
               <Text style={innerStyles.label}>
-                Storekeeper Name <Text style={innerStyles.mandatory}>*</Text>
+                {strings.storekeeperName} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={nameRef}
@@ -222,7 +223,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                Store Name <Text style={innerStyles.mandatory}>*</Text>
+                {strings.storeName} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={storeNameRef}
@@ -242,7 +243,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                Contact Number <Text style={innerStyles.mandatory}>*</Text>
+                {strings.mobile} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={contactNumberRef}
@@ -264,7 +265,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                GST IN <Text style={innerStyles.mandatory}>*</Text>
+               {strings.gst} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={gstRef}
@@ -286,7 +287,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                Address Line 1 <Text style={innerStyles.mandatory}>*</Text>
+                {strings.addressLine1} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={address1Ref}
@@ -306,7 +307,7 @@ const StorekeeperCreateProfile = () => {
                 isError={errors.addressLine1}
               />
 
-              <Text style={innerStyles.label}>Address Line 2</Text>
+              <Text style={innerStyles.label}>{strings.addressLine2}</Text>
               <CustomInput
                 ref={address2Ref}
                 placeholder="Enter Address Line 2"
@@ -318,7 +319,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                Landmark <Text style={innerStyles.mandatory}>*</Text>
+                {strings.landmark} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={landmarkRef}
@@ -338,7 +339,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                City <Text style={innerStyles.mandatory}>*</Text>
+                {strings.city} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={cityRef}
@@ -361,7 +362,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                State <Text style={innerStyles.mandatory}>*</Text>
+                {strings.state} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={stateRef}
@@ -384,7 +385,7 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                Pincode <Text style={innerStyles.mandatory}>*</Text>
+                {strings.pincode} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={pincodeRef}
@@ -404,7 +405,7 @@ const StorekeeperCreateProfile = () => {
                 }}
                 isError={errors.pincode}
               />
-              <Text style={innerStyles.label}>Upload Store Picture</Text>
+              <Text style={innerStyles.label}>{strings.uploadStoreImage}</Text>
               <StoreImageUploader images={images} setImages={setImages} />
 
               <View style={innerStyles.buttonWrapper}>

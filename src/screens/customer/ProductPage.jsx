@@ -24,6 +24,7 @@ import styles from '../../styles/globalStyles.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import Fonts from '../../styles/font.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
+import strings from '../../constants/string.js';
 
 const ProductPage = () => {
   useBackHandlerControl({ confirmBack: false });
@@ -173,7 +174,7 @@ const ProductPage = () => {
                       color: Colors.secondaryText,
                     }}
                   >
-                    No items found.
+                    {strings.noItemsFound}
                   </Text>
                 )}
               </View>
@@ -183,16 +184,16 @@ const ProductPage = () => {
         </View>
       </TouchableWithoutFeedback>
 
-      {totalItems > 0 && !keyboardVisible && (
+      {totalItems > 0 && !keyboardVisible && ( 
         <View style={innerStyle.fixedBottomBanner}>
           <Text style={innerStyle.popupText}>
-            {totalItems} item{totalItems > 1 ? 's' : ''} in cart
+            <Text>{strings.productCount(totalItems)}</Text>
           </Text>
           <TouchableOpacity
             style={innerStyle.goToCartButton}
             onPress={() => safePush('ShoppingCart')}
           >
-            <Text style={innerStyle.goToCartText}>Go to Cart</Text>
+            <Text style={innerStyle.goToCartText}>{strings.goToCart}</Text>
           </TouchableOpacity>
         </View>
       )}

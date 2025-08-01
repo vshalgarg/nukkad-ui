@@ -8,8 +8,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUserType } from './../store/userSlice.js';
 import textStyles from '../styles/textStyles.js';
 import Fonts from '../styles/font.js';
+import strings from '../constants/string.js';
 
-export default function Index() {
+export default function HomeScreen() {
   const { safePush } = useSafeRouter();
   const dispatch = useDispatch();
   const userType = useSelector(state => state.user.userType);
@@ -28,7 +29,7 @@ export default function Index() {
       <Text
         style={[styles.pageHeading, textStyles.heading, { marginBottom: 20 }]}
       >
-        Select User Type
+        {strings.selectUserType}
       </Text>
 
       <View
@@ -51,17 +52,22 @@ export default function Index() {
               borderWidth: 2,
               borderColor:
                 userType === option ? Colors.selectUser : Colors.userRoles,
-              backgroundColor: userType === option ? Colors.selectUserBackground : Colors.white,
+              backgroundColor:
+                userType === option
+                  ? Colors.selectUserBackground
+                  : Colors.white,
               alignItems: 'center',
               paddingVertical: 12,
               width: 291,
               height: 48,
             }}
+            accessibilityLabel={`Select ${option}`}
           >
             <Text
               style={{
                 fontSize: Fonts.sizes.base,
-                color: userType === option ? Colors.selectUser : Colors.secondary,
+                color:
+                  userType === option ? Colors.selectUser : Colors.secondary,
                 fontWeight: userType === option ? 'bold' : 'normal',
               }}
             >

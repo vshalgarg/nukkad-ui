@@ -12,7 +12,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import Toast from 'react-native-toast-message';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
@@ -28,6 +27,7 @@ import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import { getCustomerProfile } from '../../services/customer/profileService';
 import { useAuth } from '../../contexts/authContext';
+import strings from '../../constants/string';
 
 const formatDate = date => {
   if (!date) return '';
@@ -41,7 +41,6 @@ const ProfileSetting = () => {
   const scrollRef = useRef();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const firstNameRef = useRef(null);
-
 
   const { safePush } = useSafeRouter();
   const { token, role } = useAuth();
@@ -79,14 +78,14 @@ const ProfileSetting = () => {
         };
 
         setProfile(formattedProfile);
-        await createProfile(formattedProfile); 
+        await createProfile(formattedProfile);
 
         if (userProfile.dob) {
           setDOB(formatDate(userProfile.dob));
           setDobDate(new Date(userProfile.dob));
         }
       } catch (err) {
-        showToast('error', err.message || 'Failed to load profile');
+        showToast('error', err.message || strings.failedToLoadProfile);
       } finally {
         setLoading(false);
       }
@@ -151,13 +150,13 @@ const ProfileSetting = () => {
       await updateProfile(updatedProfile, token);
       setIsEditing(false);
       showToast('success', 'Profile updated successfully');
-      handlePress()
+      handlePress();
     } catch (err) {
       showToast('error', err.message || 'Failed to update profile');
     } finally {
       setIsSaving(false);
     }
-  };  
+  };
 
   const handlePress = () => {
     if (profile.role === 'STOREKEEPER') safePush('StorekeeperDashboard');
@@ -185,7 +184,7 @@ const ProfileSetting = () => {
 
   return (
     <ScrollView style={styles.pageContainer} ref={scrollRef}>
-      <BackButton title="Profile Setting" onPress={handlePress} />
+      <BackButton title={strings.profileSetting} onPress={handlePress} />
 
       <View style={innerStyle.container}>
         <View style={innerStyle.profileImageSection}>
@@ -232,7 +231,7 @@ const ProfileSetting = () => {
             </Pressable>
           ) : (
             <Pressable onPress={cancelEdit}>
-              <Text style={innerStyle.cancelText}>Cancel</Text>
+              <Text style={innerStyle.cancelText}>{strings.cancel}</Text>
             </Pressable>
           )}
         </View>
@@ -240,8 +239,8 @@ const ProfileSetting = () => {
 
       <View style={innerStyle.profileDetails}>
         <View style={innerStyle.row}>
-          <Text style={innerStyle.halfLabel}>First Name</Text>
-          <Text style={innerStyle.halfLabel}>Last Name</Text>
+          <Text style={innerStyle.halfLabel}>{strings.firstName}</Text>
+          <Text style={innerStyle.halfLabel}>{strings.lastName}</Text>
         </View>
         <View style={innerStyle.row}>
           {isEditing ? (
@@ -267,12 +266,13 @@ const ProfileSetting = () => {
         </View>
 
         <View style={innerStyle.email}>
-          <Text style={innerStyle.fullLabel}>Email Address</Text>
+          <Text style={innerStyle.fullLabel}>{strings.email}</Text>
           {isEditing ? (
             <TextInput
               style={innerStyle.fullInput}
               value={profile.email}
               keyboardType="email-address"
+              maxLength={50}
               autoCapitalize="none"
               onChangeText={val => handleChange('email', val)}
             />
@@ -282,7 +282,7 @@ const ProfileSetting = () => {
         </View>
 
         <View>
-          <Text style={innerStyle.fullLabel}>Date of Birth</Text>
+          <Text style={innerStyle.fullLabel}>{strings.dob}</Text>
           {isEditing ? (
             <>
               <Pressable onPress={() => setShowPicker(true)}>
@@ -337,7 +337,6 @@ const ProfileSetting = () => {
         </View>
       )}
 
-      <Toast />
     </ScrollView>
   );
 };

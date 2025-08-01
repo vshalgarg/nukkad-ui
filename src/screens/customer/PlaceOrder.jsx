@@ -3,42 +3,42 @@ import { useSafeRouter } from '../../hooks/useSafeRouter';
 
 import CompleteOrderImage from '../../../assets/images/complete-order.svg';
 import Design from '../../../assets/images/design.svg';
-import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
+import strings from '../../constants/string';
 
 const PlaceOrder = () => {
-  const { safePush } = useSafeRouter(); 
+  const { safePush } = useSafeRouter();
 
   const handleContinueShopping = () => {
-    safePush('CustomerDashboard'); 
+    safePush('CustomerDashboard');
   };
 
   return (
     <View style={styles.pageContainer}>
-      <Text style={[textStyles.heading,{textAlign:"center",marginTop:"5%"}]}>CheckOut</Text>
+      <Text
+        style={[textStyles.heading, { textAlign: 'center', marginTop: '5%' }]}
+      >
+        {strings.checkout}
+      </Text>
       <View style={innerStyle.container}>
         <View style={innerStyle.topImage}>
           <Design width="100%" height={100} />
         </View>
-        <Text style={innerStyle.heading}>Order Placed</Text>
+        <Text style={innerStyle.heading}>{strings.orderPlaced}</Text>
         <View style={innerStyle.image}>
           <CompleteOrderImage width={150} height={150} />
           <View style={innerStyle.textContainer}>
-            <Text style={innerStyle.text}>Thank you for your purchase.</Text>
-            <Text style={innerStyle.text}>
-              You can view your order in ‘My Orders’
-            </Text>
-            <Text style={innerStyle.text}>section.</Text>
+            <Text style={innerStyle.text}>{strings.thankyouForPurchase}</Text>
           </View>
         </View>
         <TouchableOpacity
           style={innerStyle.btn}
           onPress={handleContinueShopping}
         >
-          <Text style={innerStyle.btnText}>Continue Shopping</Text>
+          <Text style={innerStyle.btnText}>{strings.continueShopping}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -74,6 +74,7 @@ const innerStyle = StyleSheet.create({
     textAlign: 'center',
     fontSize: Fonts.sizes.base,
     marginVertical: 2,
+    lineHeight: 25,
   },
   btn: {
     backgroundColor: Colors.primary,

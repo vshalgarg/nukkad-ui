@@ -19,6 +19,7 @@ import Fonts from '../../styles/font';
 import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import { useRef } from 'react';
+import strings from '../../constants/string';
 
 const AddressForm = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -228,7 +229,7 @@ const AddressForm = () => {
               {/* Name */}
               <View>
                 <Text style={formStyles.label}>
-                  Name <Text style={formStyles.mandatory}>*</Text>
+                  {strings.name} <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={nameRef}
@@ -250,7 +251,7 @@ const AddressForm = () => {
               </View>
               <View>
                 <Text style={formStyles.label}>
-                  Contact Number <Text style={formStyles.mandatory}>*</Text>
+                  {strings.mobile} <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={mobileRef}
@@ -277,7 +278,8 @@ const AddressForm = () => {
               {/* Address Line 1 */}
               <View>
                 <Text style={formStyles.label}>
-                  Address Line 1 <Text style={formStyles.mandatory}>*</Text>
+                  {strings.addressLine1}{' '}
+                  <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   placeholder="Enter Your Address Line 1"
@@ -297,7 +299,7 @@ const AddressForm = () => {
 
               {/* Address Line 2 */}
               <View>
-                <Text style={formStyles.label}>Address Line 2</Text>
+                <Text style={formStyles.label}>{strings.addressLine2}</Text>
                 <CustomInput
                   placeholder="Enter Your Address Line 2"
                   value={address2}
@@ -310,7 +312,7 @@ const AddressForm = () => {
               {/* Landmark */}
               <View>
                 <Text style={formStyles.label}>
-                  Landmark <Text style={formStyles.mandatory}>*</Text>
+                  {strings.landmark} <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={landmarkRef}
@@ -331,7 +333,7 @@ const AddressForm = () => {
               {/* City */}
               <View>
                 <Text style={formStyles.label}>
-                  City <Text style={formStyles.mandatory}>*</Text>
+                  {strings.city} <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={cityRef}
@@ -352,7 +354,7 @@ const AddressForm = () => {
               {/* State */}
               <View>
                 <Text style={formStyles.label}>
-                  State <Text style={formStyles.mandatory}>*</Text>
+                  {strings.state} <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={stateRef}
@@ -373,7 +375,7 @@ const AddressForm = () => {
               {/* Pincode */}
               <View>
                 <Text style={formStyles.label}>
-                  Pincode <Text style={formStyles.mandatory}>*</Text>
+                  {strings.pincode} <Text style={formStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={pincodeRef}
@@ -392,7 +394,7 @@ const AddressForm = () => {
                 />
               </View>
               <View style={formStyles.buttonContainer}>
-                <CustomButton title="Continue" onPress={handleContinue} />
+                <CustomButton title={strings.continue} onPress={handleContinue} />
               </View>
             </View>
           </ScrollView>

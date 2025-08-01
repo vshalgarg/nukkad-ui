@@ -9,9 +9,10 @@ import React, { useEffect, useState } from 'react';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../styles/colors';
 import { useSafeRouter } from '../hooks/useSafeRouter';
+import strings from '../constants/string';
 
 const SearchContainer = ({ query, onSearchSubmit }) => {
-    const { safePush } = useSafeRouter();
+  const { safePush } = useSafeRouter();
   const [input, setInput] = useState(query || '');
 
   useEffect(() => {
@@ -20,7 +21,7 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
   const handleClear = () => {
     setInput('');
     if (onSearchSubmit) onSearchSubmit('');
-    safePush("CustomerDashboard")
+    safePush('CustomerDashboard');
   };
 
   return (
@@ -35,7 +36,7 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
 
         <TextInput
           style={styles.input}
-          placeholder="Search here for anything you want..."
+          placeholder={`${strings.searchPlaceholder}`}
           placeholderTextColor={Colors.secondaryText}
           value={input}
           onChangeText={setInput}
@@ -44,10 +45,11 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
           }}
           returnKeyType="search"
         />
-        {input&&
-        <TouchableOpacity onPress={handleClear}>
-          <Entypo name="cross" size={20} color={Colors.secondaryText} />
-        </TouchableOpacity>}
+        {input && (
+          <TouchableOpacity onPress={handleClear}>
+            <Entypo name="cross" size={20} color={Colors.secondaryText} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

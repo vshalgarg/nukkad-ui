@@ -22,6 +22,7 @@ import { useAddress } from '../../contexts/addressContext';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
+import strings from '../../constants/string';
 
 const Address = () => {
   const {
@@ -167,7 +168,7 @@ const Address = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
             <View style={innerStyle.emptyContainer}>
-              <Text style={innerStyle.emptyText}>No address added</Text>
+              <Text style={innerStyle.emptyText}> {strings.noAddressFound} </Text>
               <Pressable
                 style={innerStyle.addButton}
                 onPress={handleAddAddress}
@@ -177,7 +178,7 @@ const Address = () => {
                   size={24}
                   color={Colors.white}
                 />
-                <Text style={innerStyle.addButtonText}>Add Address</Text>
+                <Text style={innerStyle.addButtonText}>{strings.addAddress}</Text>
               </Pressable>
             </View>
           )}
@@ -191,7 +192,7 @@ const Address = () => {
                 size={24}
                 color={Colors.white}
               />
-              <Text style={innerStyle.addButtonText}>Add Address</Text>
+              <Text style={innerStyle.addButtonText}>{strings.addAddress}</Text>
             </Pressable>
           </View>
         )}

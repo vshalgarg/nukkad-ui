@@ -16,6 +16,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { getOrderHistory } from '../../services/common/OrderHistoryService';
 import { useAuth } from '../../contexts/authContext';
+import strings from '../../constants/string';
 
 
 const FilterModal = ({
@@ -49,7 +50,6 @@ const FilterModal = ({
   };
   const {token}=useAuth();
   const handleClearFilter = async () => {
-    console.log('clear pressed');
     const res = await getOrderHistory(token);
     setOrders(Array.isArray(res) ? res : []);
     setDateFrom(''), setDateTo('');
@@ -151,10 +151,10 @@ const FilterModal = ({
                 alignItems: 'center',
               }}
             >
-              <Text style={styles.title}>Filter Orders</Text>
+              <Text style={styles.title}>{strings.filterOrders}</Text>
               {applyFilter && (
                 <TouchableOpacity onPress={handleClearFilter}>
-                  <Text style={styles.subtitle}>Clear</Text>
+                  <Text style={styles.subtitle}>{strings.clear}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -207,7 +207,7 @@ const FilterModal = ({
             {selectedStatus === 'DISPATCHED' ||
             selectedStatus === 'DELIVERED' ? (
               <>
-                <Text style={styles.sectionTitle}>Price Range</Text>
+                <Text style={styles.sectionTitle}>{strings.priceRange}</Text>
 
                 <MultiSlider
                   values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
@@ -222,9 +222,9 @@ const FilterModal = ({
                     setMinPrice(min.toString());
                     setMaxPrice(max.toString());
                   }}
-                  selectedStyle={{ backgroundColor: '#4CAF50' }}
+                  selectedStyle={{ backgroundColor: Colors.primary }}
                   markerStyle={{
-                    backgroundColor: '#4CAF50',
+                    backgroundColor: Colors.primary,
                     height: 20,
                     width: 20,
                   }}
@@ -236,10 +236,10 @@ const FilterModal = ({
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{strings.cancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalBtn} onPress={applyFilter}>
-                <Text style={styles.buttonText}>Apply</Text>
+                <Text style={styles.buttonText}>{strings.apply}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   marker: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: 'Colors.primary',
     height: 20,
     width: 20,
     borderRadius: 10,

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, StatusBar } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 
 import notifee, { AndroidImportance } from '@notifee/react-native';
@@ -96,11 +96,15 @@ export default function App() {
               <AddressProvider>
                 <StoreProvider>
                   <StorekeeperAddressProvider>
-                    <SafeAreaView style={{ flex: 1 }}>
+                    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+                      <StatusBar
+                        backgroundColor="white"
+                        barStyle="dark-content"
+                      />
                       <NavigationContainer>
                         <AppNavigator />
                       </NavigationContainer>
-                      <Toast config={toastConfig} topOffset={2} />
+                      <Toast config={toastConfig} topOffset={1} />
                     </SafeAreaView>
                   </StorekeeperAddressProvider>
                 </StoreProvider>

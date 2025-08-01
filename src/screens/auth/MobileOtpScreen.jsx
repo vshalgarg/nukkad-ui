@@ -28,6 +28,7 @@ import { setCartItems, setCartUser } from '../../store/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { getCartItemsAPI } from '../../services/customer/cartService';
+import strings from '../../constants/string';
 
 const MobileOtpScreen = () => {
   useBackHandlerControl({ blockBack: true });
@@ -72,7 +73,7 @@ const MobileOtpScreen = () => {
 
       showToast(
         'success',
-        isResend ? 'OTP Resent' : 'OTP Sent',
+        isResend ? strings.otpResent : strings.otpSent,
         res.message ||
           `OTP has been ${isResend ? 'resent' : 'sent'} successfully`,
       );
@@ -84,15 +85,19 @@ const MobileOtpScreen = () => {
       console.error(`${isResend ? 'Resend' : 'Send'} OTP Error:`, error);
       showToast(
         'error',
-        `Failed to ${isResend ? 'resend' : 'send'} OTP`,
         error.message || 'Something went wrong',
+        `Failed to ${isResend ? 'resend' : 'send'} OTP`,
       );
     }
   };
 
   const handleSendOtp = () => {
     if (!mobile || mobile.length < 10) {
-      showToast('error', 'Invalid number', 'Enter a 10-digit number');
+      showToast(
+        'error',
+        `${strings.invalidMobile}`,
+        `${strings.validMobileNumber}`,
+      );
       return;
     }
     sendOtpRequest(false);
@@ -105,15 +110,11 @@ const MobileOtpScreen = () => {
 
   const handleLogin = async () => {
     if (mobile.length !== 10) {
-      showToast(
-        'error',
-        'Invalid Mobile Number',
-        'Please enter a valid 10-digit mobile number',
-      );
+      showToast('error', `${strings.invalidMobile}`, `${strings.tryAgain}`);
       return;
     }
     if (!otp || otp.length !== 4) {
-      showToast('error', 'Invalid OTP', 'Please enter a valid 4-digit OTP');
+      showToast('error', `${strings.invalidOtp}`, `${strings.tryAgain}`);
       return;
     }
 
@@ -133,8 +134,7 @@ const MobileOtpScreen = () => {
 
       const toastPayload = {
         type: 'success',
-        title: 'OTP Verified',
-        message: 'Registered Successfully',
+        title: `${strings.verifiedOtp}`,
       };
 
       if (role === 'CUSTOMER') {
@@ -177,7 +177,7 @@ const MobileOtpScreen = () => {
       console.error('OTP Verify Error:', error);
       showToast(
         'error',
-        'OTP Verification Failed',
+        `${strings.otpFailed}`,
         error.message || 'Something went wrong',
       );
     }
@@ -202,7 +202,7 @@ const MobileOtpScreen = () => {
               { marginBottom: 20 },
             ]}
           >
-            Login
+            {strings.login}
           </Text>
 
           <CustomInput
@@ -224,18 +224,16 @@ const MobileOtpScreen = () => {
             ]}
             onPress={!sendOtpClicked ? handleSendOtp : null}
           >
-            Send OTP
+            {strings.sendOtp}
           </Text>
 
           <Text
-            style={
-              (localStyles.otpPrompt,
-              !otpEnabled
-                ? { borderColor: Colors.disabledText, opacity: 0.2 }
-                : {})
-            }
+            style={[
+              localStyles.otpPrompt,
+              !otpEnabled && { borderColor: Colors.disabledText, opacity: 0.2 },
+            ]}
           >
-            Enter 4 Digit Code Here
+            {strings.enterOtp}
           </Text>
 
           <CustomInput
@@ -253,7 +251,7 @@ const MobileOtpScreen = () => {
           />
 
           <View style={localStyles.resendContainer}>
-            <Text>Haven't received OTP? </Text>
+            <Text>{strings.havnotReceivedOtp}</Text>
             <Pressable
               onPress={handleResendOtp}
               disabled={!canResend || !sendOtpClicked}
@@ -263,29 +261,30 @@ const MobileOtpScreen = () => {
                   localStyles.resendText,
                   canResend && sendOtpClicked
                     ? localStyles.resendEnabled
+                    : sendOtpClicked
+                    ? localStyles.resendWaiting // <-- New intermediate style
                     : localStyles.resendDisabled,
                 ]}
               >
                 {!sendOtpClicked
-                  ? 'Resend OTP'
+                  ? `${strings.resendOtp}`
                   : canResend
-                  ? 'Resend OTP'
-                  : `Resend available in ${timer}s`}
+                  ? `${strings.resendOtp}`
+                  : strings.resendOtpAvailable(timer)}
               </Text>
             </Pressable>
           </View>
 
           <View style={localStyles.policyContainer}>
             <Text style={localStyles.policyText}>
-              I agreed to{' '}
+              {strings.agreeTo}
               <Text
                 onPress={() =>
                   Linking.openURL('https://policies.google.com/terms?hl=en-US')
                 }
+                style={localStyles.underline}
               >
-                <Text style={localStyles.underline}>
-                  Terms and conditions &{'\n'}Privacy Policy
-                </Text>
+                {strings.termsAndConditions}
               </Text>
             </Text>
           </View>
@@ -293,7 +292,7 @@ const MobileOtpScreen = () => {
         <View style={localStyles.loginBtn}>
           <CustomButton
             onPress={handleLogin}
-            title="Login"
+            title={strings.login}
             disabled={!otpEnabled}
           />
         </View>
@@ -323,10 +322,6 @@ const localStyles = StyleSheet.create({
     paddingBottom: 40,
     backgroundColor: Colors.white,
   },
-  centerContent: {
-    width: '100%',
-    alignItems: 'center',
-  },
   sendOtpText: {
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
@@ -339,7 +334,7 @@ const localStyles = StyleSheet.create({
     color: Colors.primary,
   },
   sendOtpDisabled: {
-    color: '#9CA3AF',
+    color: Colors.disabledText,
     opacity: 0.5,
   },
   otpPrompt: {
@@ -365,9 +360,14 @@ const localStyles = StyleSheet.create({
     color: Colors.primary,
   },
   resendDisabled: {
-    color: '#9CA3AF',
+    color: Colors.disabledText,
     opacity: 0.2,
   },
+  resendWaiting: {
+    color: Colors.disabled,
+    opacity: 0.6,
+  },
+
   policyContainer: {
     marginTop: 40,
     paddingHorizontal: 10,

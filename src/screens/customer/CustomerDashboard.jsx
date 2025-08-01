@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/authContext.js';
 import { getCustomerProfile } from '../../services/customer/profileService.js';
 import { useProfile } from '../../contexts/profileContext.js';
 import { showToast } from '../../utils/toastUtils.js';
+import strings from '../../constants/string.js';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
@@ -32,15 +33,16 @@ const CustomerDashboard = () => {
   const { toast } = route.params || {};
   const { createProfile } = useProfile();
   useEffect(() => {
+    console.log(toast)
     if (toast) {
       try {
         const parsedToast = JSON.parse(toast);
-        showToast(parsedToast.type, parsedToast.message);
+        showToast(parsedToast.type, parsedToast.title);
       } catch (e) {
         console.warn('⚠️ Failed to parse toast:', e.message);
       }
     }
-  }, [toast]);
+  }, []);
 
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
@@ -203,7 +205,7 @@ const CustomerDashboard = () => {
           renderItem={renderItem}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 20 }}>
-              <Text>No categories found</Text>
+              <Text>{strings.noCategoriesFound}</Text>
             </View>
           }
           contentContainerStyle={{ paddingBottom: 40 }}

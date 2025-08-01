@@ -47,7 +47,7 @@ export default function AppNavigator() {
       <Stack.Screen
         name="AddressForm"
         getComponent={() =>
-          require('../screens/common/AddressForm.jsx').default
+          require('../screens/customer/AddressForm.jsx').default
         }
       />
       <Stack.Screen

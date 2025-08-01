@@ -89,12 +89,12 @@ const SideBar = ({ isVisible, onClose }) => {
     userRole === 'CUSTOMER'
       ? { name: 'My Orders', icon: 'bag-add' }
       : { name: 'Order History', icon: 'time' };
-  const storekeeperExtraItems =
+  const STOREKEEPERExtraItems =
     userRole === 'STOREKEEPER'
       ? [{ name: 'Payment Options', icon: 'card' }]
       : [];
 
-  const menuItems = [roleBasedItem, ...storekeeperExtraItems, ...baseMenuItems];
+  const menuItems = [roleBasedItem, ...STOREKEEPERExtraItems, ...baseMenuItems];
 
   const getRouteForMenuItem = (menuName, userRole) => {
     const routes = {
@@ -196,7 +196,7 @@ const SideBar = ({ isVisible, onClose }) => {
           <View style={styles.profileTextContainer}>
             <Text style={styles.profileName}>{name}</Text>
             <Text style={styles.profileEmail}>
-              {userRole === 'storekeeper' ? profile?.storeName : email}
+              {userRole === 'STOREKEEPER' ? profile?.storeName : email}
             </Text>
           </View>
 

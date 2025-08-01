@@ -3,6 +3,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import Colors from '../styles/colors.js';
 import Fonts from '../styles/font.js';
+import strings from '../constants/string.js';
 
 const { width } = Dimensions.get('window');
 
@@ -48,7 +49,7 @@ const AddressCard = ({
         <View style={styles.actionContainer}>
           {showChangeAddress && (
             <Pressable style={styles.changeAddressBtn} onPress={onSelect}>
-              <Text style={styles.changeAddressText}>Change Address</Text>
+              <Text style={styles.changeAddressText}>{strings.changeAddress}</Text>
             </Pressable>
           )}
 
@@ -81,7 +82,7 @@ const AddressCard = ({
                   onPress={() => onMarkDefault?.(item.id)}
                   style={styles.defaultBtn}
                 >
-                  <Text style={styles.defaultBtnText}>Mark as Default</Text>
+                  <Text style={styles.defaultBtnText}>{strings.markAsDefault}</Text>
                 </Pressable>
               )}
             </View>

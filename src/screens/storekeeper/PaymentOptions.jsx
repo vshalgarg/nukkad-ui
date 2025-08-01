@@ -27,6 +27,8 @@ import {
 } from '../../services/storekeeper/PaymentQrService';
 
 import { useAuth } from '../../contexts/authContext';
+import { showToast } from '../../utils/toastUtils';
+import strings from '../../constants/string';
 
 const PaymentOptions = () => {
   const { token } = useAuth();
@@ -78,11 +80,11 @@ const PaymentOptions = () => {
         const defaultQr = updatedQRs.find(qr => qr.default);
         if (defaultQr) setDefaultQRId(defaultQr.id);
       } else {
-        Alert.alert('Upload Failed', 'Could not upload QR code. Try again.');
+        showToast('error', strings.uploadFailed, strings.couldnotUploadQR);
       }
     } catch (error) {
       console.error('Image pick/upload error:', error);
-      Alert.alert('Error', 'Something went wrong while uploading the QR.');
+      showToast('error', error.message);
     }
   };
 
@@ -95,7 +97,7 @@ const PaymentOptions = () => {
       setDefaultQRId(defaultQr?.id || null);
     } catch (err) {
       console.error('❌ Delete QR failed:', err);
-      Alert.alert('Error', 'Failed to delete QR');
+      showToast('error', strings.failedToDeleteQR);
     }
   };
 
@@ -105,7 +107,7 @@ const PaymentOptions = () => {
       setDefaultQRId(id);
     } catch (err) {
       console.error('❌ Set default failed:', err);
-      Alert.alert('Error', 'Could not set QR as default');
+      showToast('error', strings.failedTosetDefaultQR);
     }
   };
 
@@ -114,7 +116,7 @@ const PaymentOptions = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title="Payment Options" />
+      <BackButton title={strings.paymentOptions} />
       <ScrollView contentContainerStyle={innerStyle.container}>
         {displaySlots.map((qr, index) => {
           const isDefault = qr?.id === defaultQRId;
@@ -128,7 +130,7 @@ const PaymentOptions = () => {
               ]}
             >
               <Text style={innerStyle.qrTitle}>
-                QR Code {index + 1}
+                {strings.qrCode} {index + 1}
                 {isDefault ? ' (Default)' : ''}
               </Text>
 
@@ -145,7 +147,9 @@ const PaymentOptions = () => {
                     size={60}
                     color={Colors.borderColor}
                   />
-                  <Text style={innerStyle.placeholderText}>No QR Uploaded</Text>
+                  <Text style={innerStyle.placeholderText}>
+                    {strings.noQrUploaded}
+                  </Text>
                 </View>
               )}
 
@@ -155,7 +159,7 @@ const PaymentOptions = () => {
               >
                 <Feather name="upload" size={16} color={Colors.white} />
                 <Text style={innerStyle.uploadBtnText}>
-                  {qr?.qrImageUrl ? 'Change QR Code' : 'Upload QR Code'}
+                  {qr?.qrImageUrl ? strings.changeQr : strings.uploadQr}
                 </Text>
               </TouchableOpacity>
 
@@ -173,7 +177,7 @@ const PaymentOptions = () => {
                     onPress={() => handleSetDefault(qr.id)}
                   >
                     <Text style={innerStyle.secondaryBtnText}>
-                      {isDefault ? 'Default' : 'Set as Default'}
+                      {isDefault ? strings.default : strings.setDefault}
                     </Text>
                   </TouchableOpacity>
 
@@ -188,7 +192,9 @@ const PaymentOptions = () => {
                     }}
                   >
                     <Feather name="trash-2" size={14} color={Colors.white} />
-                    <Text style={innerStyle.secondaryBtnText}>Delete</Text>
+                    <Text style={innerStyle.secondaryBtnText}>
+                      {strings.delete}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -199,10 +205,10 @@ const PaymentOptions = () => {
 
       <CustomAlert
         visible={alertVisible}
-        title="Delete QR"
-        message="Are you sure you want to delete this QR code?"
-        cancelText="Cancel"
-        confirmText="Delete"
+        title={strings.confirmDeleteQrTitle}
+        message={strings.confirmDeleteQrMessage}
+        cancelText={strings.confirm}
+        confirmText={strings.delete}
         onCancel={() => setAlertVisible(false)}
         onConfirm={() => {
           handleDeleteQR(qrToDelete);

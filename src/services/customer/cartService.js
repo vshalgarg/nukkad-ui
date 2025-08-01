@@ -1,8 +1,7 @@
 import api from '../api';
 
-/**
- * Add item to cart via API
- */
+//Add item to cart via API
+
 export const addToCartAPI = async (itemId, quantity, unit, token) => {
   try {
     console.log('🛒 [addToCartAPI] Request:', { itemId, quantity, unit });
@@ -29,9 +28,7 @@ export const addToCartAPI = async (itemId, quantity, unit, token) => {
   }
 };
 
-/**
- * Update item quantity in cart via API
- */
+//Update item quantity in cart via API
 export const updateCartAPI = async (itemId, quantity, unit, token) => {
   try {
     const payload = { itemId };
@@ -60,9 +57,7 @@ export const updateCartAPI = async (itemId, quantity, unit, token) => {
   }
 };
 
-/**
- * Delete item from cart using itemId
- */
+// Delete item from cart using itemId
 export const deleteCartItemAPI = async (itemId, token) => {
   try {
     console.log('🗑️ [deleteCartItemAPI] Deleting itemId:', itemId);
@@ -86,9 +81,8 @@ export const deleteCartItemAPI = async (itemId, token) => {
   }
 };
 
-/**
- * Fetch all items from the cart
- */
+// Fetch all items from the cart
+
 export const getCartItemsAPI = async token => {
   if (!token) {
     console.log('❌ No token provided');
@@ -114,6 +108,7 @@ export const getCartItemsAPI = async token => {
   }
 };
 
+// Clear the entire cart
 export const clearCartAPI = async token => {
   if (!token) throw new Error('Authentication token missing');
 
@@ -147,5 +142,3 @@ export const clearCartAPI = async token => {
     throw new Error(errorMessage);
   }
 };
-
-

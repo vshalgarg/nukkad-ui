@@ -1,4 +1,5 @@
 import { isRejected } from '@reduxjs/toolkit';
+import { SuccessToast } from 'react-native-toast-message';
 
 const Colors = {
   primary: '#58BF68',
@@ -12,7 +13,8 @@ const Colors = {
   backbuttonColor: '#eee',
   disabledText: '#A0A0A0',
   grayLine: '#d8d8d8ff',
-
+  successToast: '#10771fff',
+  errorToast: '#e70909ff',
   white: '#fff',
   pending: '#fce7c9ff',
   pendingText: '#F39C12',

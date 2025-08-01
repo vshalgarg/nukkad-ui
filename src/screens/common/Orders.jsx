@@ -22,6 +22,7 @@ import {
   getOrderHistory,
   getFilteredOrderHistory,
 } from '../../services/common/OrderHistoryService';
+import strings from '../../constants/string';
 
 const Orders = () => {
   const { token, role, loading: authLoading } = useAuth();
@@ -102,7 +103,7 @@ const Orders = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title="My Orders" />
+      <BackButton title={strings.myOrders}/>
 
       <View style={localStyles.filterRow}>
         <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
@@ -144,7 +145,7 @@ const Orders = () => {
         onRefresh={handleRefresh}
         ListEmptyComponent={
           <Text style={{ textAlign: 'center', marginTop: 50 }}>
-            No orders found.
+            {strings.noOrderFound}
           </Text>
         }
         renderItem={({ item }) => {

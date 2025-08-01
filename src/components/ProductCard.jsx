@@ -61,13 +61,13 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
     cartItem.selectedUnit === selectedUnit &&
     cartItem.product.amount?.toString() === amount;
 
-  const hasChanged =
+  const isModifiedSinceInCart =
     (isInCart &&
       (cartItem.product?.selectedUnit !== selectedUnit ||
         cartItem.product.amount?.toString() !== amount)) ||
     !isInCart;
 
-  const canSubmit = isValidAmount && selectedUnit && hasChanged;
+  const isReadyToSubmit = isValidAmount && selectedUnit && isModifiedSinceInCart;
 
   const handleAddToCart = async () => {
     Keyboard.dismiss();
@@ -175,22 +175,22 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
       <TouchableOpacity
         style={[
           styles.button,
-          (!hasChanged || isRecentlyAdded) && styles.buttonDisabled,
-          (!hasChanged || isRecentlyAdded) && styles.buttonAdded,
+          (!isModifiedSinceInCart || isRecentlyAdded) && styles.buttonDisabled,
+          (!isModifiedSinceInCart || isRecentlyAdded) && styles.buttonAdded,
         ]}
         onPress={handleAddToCart}
-        disabled={!canSubmit}
+        disabled={!isReadyToSubmit}
       >
         <Text
           style={[
             styles.buttonText,
-            (!hasChanged || isRecentlyAdded) && {
+            (!isModifiedSinceInCart || isRecentlyAdded) && {
               color: Colors.primary,
               borderColor: Colors.primary,
             },
           ]}
         >
-          {!hasChanged || isRecentlyAdded ? 'Added' : 'Add to Cart'}
+          {!isModifiedSinceInCart || isRecentlyAdded ? 'Added' : 'Add to Cart'}
         </Text>
       </TouchableOpacity>
     </View>

@@ -24,6 +24,7 @@ import {
 } from '../../services/customer/getAllStoreService';
 import { useAuth } from '../../contexts/authContext';
 import { useNavigation } from '@react-navigation/native';
+import strings from '../../constants/string';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
@@ -158,7 +159,7 @@ export default function MyStores() {
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title="My Stores" />
+      <BackButton title={strings.myStores}/>
       <View style={innerStyle.container}>
         {loading ? (
           <View style={innerStyle.loadingContainer}>
@@ -168,7 +169,7 @@ export default function MyStores() {
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
-            <Text style={innerStyle.noStores}>No stores found</Text>
+            <Text style={innerStyle.noStores}>{strings.noStoresFound}</Text>
             <View style={innerStyle.addStoreContainer}>
               <Pressable style={innerStyle.button} onPress={handleAddStore}>
                 <Ionicons
@@ -176,7 +177,7 @@ export default function MyStores() {
                   size={24}
                   color={Colors.secondary}
                 />
-                <Text style={innerStyle.buttonText}> Add store</Text>
+                <Text style={innerStyle.buttonText}> {strings.addStore} </Text>
               </Pressable>
             </View>
           </View>
@@ -193,13 +194,13 @@ export default function MyStores() {
             <View style={innerStyle.btnContainer}>
               <CustomButton
                 onPress={handleAddStore}
-                title="Add Store"
+                title={strings.addStore}
                 className="bg-white"
                 textClassName="text-black"
               />
               <CustomButton
                 onPress={handleChangeStore}
-                title="Change Store"
+                title={strings.changeStore}
                 className="bg-white"
                 textClassName="text-black"
               />
