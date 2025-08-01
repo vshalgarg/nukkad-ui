@@ -11,9 +11,8 @@ import {
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import StoreImageUploader from '../../components/StoreImageUploader';
-import { useStorekeeperAddress } from '../../contexts/storekeeperAddressContext';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-import { useProfile } from '../../contexts/profileContext';
+import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
 import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
@@ -32,6 +31,7 @@ const StorekeeperCreateProfile = () => {
   const [name, setName] = useState('');
   const [storeName, setStoreName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
+  const [gstNum, setGstNum] = useState('');
   const [gstNum, setGstNum] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -55,9 +55,8 @@ const StorekeeperCreateProfile = () => {
   const pincodeRef = useRef();
 
   const { token } = useAuth();
-
-  const { profile, createProfile } = useProfile();
-  const { saveStorekeeperAddress } = useStorekeeperAddress();
+ 
+  const {  createStorekeeperProfile } = useStorekeeperProfile();
   const { safePush } = useSafeRouter();
 
   const handleContinue = useCallback(async () => {
@@ -141,8 +140,6 @@ const StorekeeperCreateProfile = () => {
 
     try {
       await createStorekeeperProfile(formData, token);
-      await createProfile(updatedProfile);
-      await saveStorekeeperAddress(newAddress);
       showToast('success', strings.registeredSuccessfully);
       setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
@@ -272,6 +269,7 @@ const StorekeeperCreateProfile = () => {
                 placeholder="Enter GSTIN Number"
                 value={gstNum}
                 autoCapitalize="characters"
+                onChange={text => setGstIn(text.toUpperCase())}
                 maxLength={15}
                 onTextChange={text => {
                   const upper = text.toUpperCase();

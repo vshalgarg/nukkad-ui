@@ -2,13 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   Alert,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   RefreshControl,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivityIndicator } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -37,6 +38,12 @@ const StorekeeperDashboard = () => {
   const [popupCards, setPopupCards] = useState({ x: 0, y: 0 });
   const dotRefs = useRef({});
   const { token } = useAuth();
+  // Component state for pagination
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const size = 10;
+
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -51,24 +58,52 @@ const StorekeeperDashboard = () => {
 
   const orders = useSelector(state => state.storekeeperOrders.orders);
 
-  const loadOrders = async () => {
+  const loadOrders = async (status, page = 0, append = false) => {
     try {
       if (!token) return;
-      const orderData = await getOrders(token);
-      dispatch(setOrders(orderData));
+
+      // Set loading states
+      if (page === 0) setRefreshing(true);
+      else setLoadingMore(true);
+
+      const orderData = await getOrders(token, status, page, size);
+
+      dispatch(setOrders({
+        orders: orderData.orders,
+        append
+      }));
+
+      // Determine if more pages exist
+      setHasMore(orderData.orders.length > 0);
+
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to fetch orders');
+    } finally {
+      setRefreshing(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      const currentStatus = statusTabs[formState].statuses[0];
+      const nextPage = currentPage + 1;
+      loadOrders(currentStatus, nextPage, true);
+      setCurrentPage(nextPage);
     }
   };
 
   useEffect(() => {
-    loadOrders();
-  }, [dispatch, token]);
+    const currentStatus = statusTabs[formState].statuses[0]; // Keep category filtering
+    setCurrentPage(0); // Reset to first page when category changes
+    loadOrders(currentStatus, 0, false); // Pass status and page
+  }, [formState, token]);
+
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadOrders();
-    setRefreshing(false);
+    const currentStatus = statusTabs[formState].statuses[0];
+    setCurrentPage(0);
+    await loadOrders(currentStatus, 0, false);
   };
 
   useEffect(() => {
@@ -78,9 +113,9 @@ const StorekeeperDashboard = () => {
     if (tabIndex !== -1) setFormState(tabIndex);
   }, [tab]);
 
-  const filteredOrders = orders
-    .filter(order => statusTabs[formState].statuses.includes(order.orderStatus))
+  const filteredOrders = (Array.isArray(orders) ? [...orders] : [])
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
 
   const safePush = routeObj => {
     try {
@@ -190,129 +225,138 @@ const StorekeeperDashboard = () => {
         ))}
       </View>
 
-      {filteredOrders.length === 0 ? (
-        <View style={innerStyle.emptyStateContainer}>
-          <Text style={innerStyle.emptyStateText}>
-            No {formatTabLabel(statusTabs[formState].label)} orders found.
-          </Text>
-        </View>
-      ) : (
-        <ScrollView
-          style={{ paddingHorizontal: 20, marginTop: 20 }}
-          contentContainerStyle={{ paddingBottom: 30 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-        >
-          {filteredOrders.map(order => (
-            <Pressable
-              key={order.orderId}
-              style={innerStyle.orderCard}
-              onPress={() => handleDetails(order)}
-            >
-              <View>
-                <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
-                <Text style={innerStyle.orderDetailsHeading}>
-                  Customer Name:
-                  <Text style={innerStyle.orderDetails}>
-                    {' '}
-                    {order.customerName}
-                  </Text>
+      <FlashList
+        data={filteredOrders}
+        estimatedItemSize={150}
+        keyExtractor={item => item.orderId.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        contentContainerStyle={[
+          { paddingHorizontal: 20, paddingBottom: 30, marginTop: 20 },
+          filteredOrders.length === 0 && {
+            flex: 1,
+            justifyContent: 'center',
+          },
+        ]}
+        ListEmptyComponent={() => (
+          <View style={innerStyle.emptyStateContainer}>
+            <Text style={innerStyle.emptyStateText}>
+              No {formatTabLabel(statusTabs[formState].label)} orders found.
+            </Text>
+          </View>
+        )}
+        renderItem={({ item: order }) => (
+          <Pressable
+            key={order.orderId}
+            style={innerStyle.orderCard}
+            onPress={() => handleDetails(order)}
+          >
+            <View>
+              <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
+              <Text style={innerStyle.orderDetailsHeading}>
+                Customer Name:
+                <Text style={innerStyle.orderDetails}> {order.customerName}</Text>
+              </Text>
+              <Text style={innerStyle.orderDetailsHeading}>
+                Address:
+                <Text style={innerStyle.orderDetails}>
+                  {' '}
+                  {order.address}, {order.landmark}
                 </Text>
-                <Text style={innerStyle.orderDetailsHeading}>
-                  Address:
-                  <Text style={innerStyle.orderDetails}>
-                    {' '}
-                    {order.address}, {order.landmark}
-                  </Text>
-                </Text>
-                <Text style={innerStyle.orderDetailsHeading}>
-                  Quantity:
-                  <Text style={innerStyle.orderDetails}>
-                    {' '}
-                    {order.items.length}
-                  </Text>
-                </Text>
-                <Text
-                  style={[
-                    innerStyle.updatedStatus,
-                    {
-                      color:
-                        order.orderStatus === 'PENDING'
-                          ? 'red'
-                          : order.orderStatus === 'IN_PROGRESS'
+              </Text>
+              <Text style={innerStyle.orderDetailsHeading}>
+                Quantity:
+                <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
+              </Text>
+              <Text
+                style={[
+                  innerStyle.updatedStatus,
+                  {
+                    color:
+                      order.orderStatus === 'PENDING'
+                        ? 'red'
+                        : order.orderStatus === 'IN_PROGRESS'
                           ? 'orange'
                           : order.orderStatus === 'DELIVERED'
-                          ? 'green'
-                          : 'red',
-                    },
-                  ]}
-                >
-                  {order.orderStatus.toUpperCase()}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  alignItems: 'flex-end',
-                  justifyContent: 'space-between',
-                }}
+                            ? 'green'
+                            : 'red',
+                  },
+                ]}
               >
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
-                >
-                  <Text style={innerStyle.orderDetails}>{order.date}</Text>
-                  {order.orderStatus !== 'DELIVERED' &&
-                    order.orderStatus !== 'CANCELLED' && (
-                      <Pressable
-                        ref={ref => (dotRefs.current[order.orderId] = ref)}
-                        onPress={() =>
-                          showPopup(
-                            order.orderId,
-                            dotRefs.current[order.orderId],
-                          )
-                        }
-                      >
-                        <Entypo
-                          name="dots-three-vertical"
-                          size={18}
-                          color={Colors.secondary}
-                        />
-                      </Pressable>
-                    )}
-                </View>
+                {order.orderStatus.toUpperCase()}
+              </Text>
+            </View>
 
+            <View
+              style={{
+                alignItems: 'flex-end',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+              >
+                <Text style={innerStyle.orderDetails}>{order.date}</Text>
                 {order.orderStatus !== 'DELIVERED' &&
-                  order.orderStatus !== 'CANCELLED' &&
-                  order.orderStatus !== 'DISPATCHED' && (
+                  order.orderStatus !== 'CANCELLED' && (
                     <Pressable
-                      style={innerStyle.showDetailsBtn}
-                      onPress={() => handleReject(order.orderId)}
+                      ref={ref => (dotRefs.current[order.orderId] = ref)}
+                      onPress={() =>
+                        showPopup(
+                          order.orderId,
+                          dotRefs.current[order.orderId],
+                        )
+                      }
                     >
-                      <Text style={{ color: Colors.white, fontWeight: '800' }}>
-                        Reject
-                      </Text>
+                      <Entypo
+                        name="dots-three-vertical"
+                        size={18}
+                        color={Colors.secondary}
+                      />
                     </Pressable>
                   )}
+              </View>
 
-                {order.orderStatus === 'DISPATCHED' && (
+              {order.orderStatus !== 'DELIVERED' &&
+                order.orderStatus !== 'CANCELLED' &&
+                order.orderStatus !== 'DISPATCHED' && (
                   <Pressable
-                    style={[
-                      innerStyle.showDetailsBtn,
-                      { backgroundColor: Colors.primary },
-                    ]}
-                    onPress={() => handleDeliver(order.orderId)}
+                    style={innerStyle.showDetailsBtn}
+                    onPress={() => handleReject(order.orderId)}
                   >
                     <Text style={{ color: Colors.white, fontWeight: '800' }}>
-                      Deliver
+                      Reject
                     </Text>
                   </Pressable>
                 )}
-              </View>
-            </Pressable>
-          ))}
-        </ScrollView>
-      )}
+
+              {order.orderStatus === 'DISPATCHED' && (
+                <Pressable
+                  style={[
+                    innerStyle.showDetailsBtn,
+                    { backgroundColor: Colors.primary },
+                  ]}
+                  onPress={() => handleDeliver(order.orderId)}
+                >
+                  <Text style={{ color: Colors.white, fontWeight: '800' }}>
+                    Deliver
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </Pressable>
+        )}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ padding: 16 }}>
+              <ActivityIndicator size="small" color={Colors.secondary} />
+            </View>
+          ) : null
+        }
+      />
 
       <ConnectPopup
         visible={!!popupOrderId}
@@ -344,6 +388,7 @@ const innerStyle = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
+    marginBottom:20
   },
   statusButton: {
     paddingHorizontal: 20,
@@ -370,6 +415,7 @@ const innerStyle = StyleSheet.create({
     padding: 15,
     borderRadius: 20,
     marginBottom: 10,
+    marginHorizontal:12
   },
   showDetailsBtn: {
     paddingHorizontal: 20,

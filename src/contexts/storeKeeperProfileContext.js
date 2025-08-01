@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import {
   getStorekeeperProfile,
   createStorekeeperProfile as createProfileAPI,
-  UpdateStorekeeperProfile as updateProfileAPI,
+  UpdateStorekeeperProfile as updateProfileAPI
 } from '../services/storekeeper/storekeeperProfileService';
 
 const StorekeeperProfileContext = createContext();
@@ -40,7 +40,7 @@ export const StorekeeperProfileProvider = ({ children }) => {
   };
 
   // ✅ USE THIS to fetch profile for existing users
-  const fetchStorekeeperProfile = async token => {
+  const fetchStorekeeperProfile = async (token) => {
     try {
       const data = await getStorekeeperProfile(token);
       setStorekeeperProfile(data);
@@ -66,16 +66,13 @@ export const StorekeeperProfileProvider = ({ children }) => {
   // ✅ USE THIS to update profile
   const updateStorekeeperProfile = async (fields, token) => {
     if (!storekeeperProfile) throw new Error('Storekeeper profile not found');
-    console.log('fields to update', fields);
+    console.log("fields to update",fields)
 
     try {
       await updateProfileAPI(fields, token);
       const updatedProfile = { ...storekeeperProfile, ...fields };
       setStorekeeperProfile(updatedProfile);
-      await AsyncStorage.setItem(
-        'storekeeperProfile',
-        JSON.stringify(updatedProfile),
-      );
+      await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(updatedProfile));
     } catch (err) {
       console.error('❌ Failed to update storekeeper profile:', err);
       throw err;
@@ -98,5 +95,4 @@ export const StorekeeperProfileProvider = ({ children }) => {
   );
 };
 
-export const useStorekeeperProfile = () =>
-  useContext(StorekeeperProfileContext);
+export const useStorekeeperProfile = () => useContext(StorekeeperProfileContext);

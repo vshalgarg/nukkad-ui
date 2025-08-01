@@ -1,12 +1,15 @@
 import api from '../api';
 
-export const getStorekeeperProfile = async token => {
+export const getStorekeeperProfile = async ( token) => {
   try {
-    const response = await api.get('/nukkad/api/storekeeper/v1/get/profile', {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await api.get(
+      '/nukkad/api/storekeeper/v1/get/profile',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
 
     console.log('✅ Storekeeper get profile API success:', response.data);
     return response.data;

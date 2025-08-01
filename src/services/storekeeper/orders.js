@@ -1,8 +1,6 @@
-
-
 import api from '../api';
 
-export const getOrders = async (token, status,page,size) => {
+export const getOrders = async (token) => {
   const endpoint = '/nukkad/api/orders/v1/order/orderByStoreKeeper';
   const fullUrl = api.defaults.baseURL
     ? `${api.defaults.baseURL}${endpoint}`
@@ -19,11 +17,6 @@ export const getOrders = async (token, status,page,size) => {
 
   try {
     const response = await api.get(endpoint, {
-      params: {
-        statusFilter: status,
-        page,
-        size
-      },
       headers,
     });
 
@@ -42,6 +35,8 @@ export const getOrders = async (token, status,page,size) => {
       console.error('Error Message:', error.message);
     }
 
-    throw new Error(error.response?.data?.message || 'Failed to get orders');
+    throw new Error(
+      error.response?.data?.message || 'Failed to get orders'
+    );
   }
 };

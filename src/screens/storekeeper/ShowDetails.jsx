@@ -160,6 +160,7 @@ const ShowDetails = () => {
     }, {}),
   );
 
+
   const handleToggleOutOfStock = itemId => {
     setOutOfStockMap(prev => {
       const isNowOut = !prev[itemId];

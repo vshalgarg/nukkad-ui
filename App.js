@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar, Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
-
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -14,73 +13,118 @@ import { ProfileProvider } from './src/contexts/profileContext';
 import { StoreProvider } from './src/contexts/storeContext';
 import { AddressProvider } from './src/contexts/addressContext';
 import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressContext';
-import { StorekeeperProfileProvider } from './src/contexts/storeKeeperProfileContext';
-
+import { StorekeeperProfileProvider } from "./src/contexts/storeKeeperProfileContext"
 import { toastConfig } from './src/utils/toastConfig';
+
+// 1. Headless task handler for kill mode (MUST be at top level)
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  await notifee.displayNotification({
+    title: remoteMessage.data?.title || 'New Message',
+    body: remoteMessage.data?.body,
+    android: {
+      channelId: 'default',
+      smallIcon: 'ic_notification',
+      color: '#FF0000',
+      pressAction: {
+        id: 'default',
+        launchActivity: 'default',
+      },
+      sound: 'default'
+    },
+    data: remoteMessage.data
+  });
+  return Promise.resolve();
+});
 
 export default function App() {
   useEffect(() => {
     const setupFCM = async () => {
-      await notifee.requestPermission();
+      try {
+        // Request permissions
+        await notifee.requestPermission();
+        
+        // Create notification channel (Android only)
+        if (Platform.OS === 'android') {
+          await notifee.createChannel({
+            id: 'default',
+            name: 'Default Channel',
+            importance: AndroidImportance.HIGH,
+            sound: 'default',
+            vibration: true,
+          });
+        }
 
-      await notifee.createChannel({
-        id: 'default',
-        name: 'Default Channel',
-        importance: AndroidImportance.HIGH,
-      });
-
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (enabled) {
+        // Get and log FCM token
         const token = await messaging().getToken();
         console.log('FCM Token:', token);
-        // Send token to backend
+        // Send token to your backend here
+        
+      } catch (error) {
+        console.error('FCM Setup Error:', error);
       }
     };
 
+    // 2. Foreground message handler (unchanged)
+    const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
+      try {
+        console.log('Foreground FCM Message:', JSON.stringify(remoteMessage, null, 2));
+        
+        await notifee.displayNotification({
+          id: String(Math.random()),
+          title: remoteMessage.data?.title || 'New Message',
+          body: remoteMessage.data?.body || 'You have a new notification',
+          android: {
+            channelId: 'default',
+            smallIcon: 'ic_notification',
+            color: '#FF0000',
+            importance: AndroidImportance.HIGH,
+            pressAction: {
+              id: 'default',
+              launchActivity: 'default',
+            },
+            sound: 'default',
+          },
+          data: remoteMessage.data
+        });
+      } catch (error) {
+        console.error('Foreground Notification Error:', error);
+      }
+    });
+
+    // 3. Background message handler (unchanged)
+    const unsubscribeOnOpened = messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Notification opened from background:', remoteMessage);
+      // Handle navigation here if needed
+    });
+
+    // 4. Enhanced quit state handler
+    messaging().getInitialNotification().then(async remoteMessage => {
+      if (remoteMessage) {
+        console.log('App opened from quit state via notification:', remoteMessage);
+        
+        // Recreate notification
+        await notifee.displayNotification({
+          title: remoteMessage.data?.title || 'New Message',
+          body: remoteMessage.data?.body,
+          android: {
+            channelId: 'default',
+            smallIcon: 'ic_notification',
+            pressAction: {
+              id: 'default',
+              launchActivity: 'default'
+            }
+          },
+          data: remoteMessage.data
+        });
+        
+        // Handle navigation here
+      }
+    });
+
+    // Initialize
     setupFCM();
 
-    // Foreground messages
-    const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
-      console.log('FCM Message (foreground):', remoteMessage);
-      await notifee.displayNotification({
-        title: remoteMessage.notification?.title || 'Notification',
-        body: remoteMessage.notification?.body || 'You have a new message',
-        android: {
-          channelId: 'default',
-          smallIcon: 'ic_notification',
-          importance: AndroidImportance.HIGH,
-        },
-      });
-    });
-
-    // Background messages (handled automatically unless it's a data-only message)
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Message handled in the background:', remoteMessage);
-      // Only needed for data-only messages
-    });
-
-    // App opened from background via notification
-    const unsubscribeOnOpened = messaging().onNotificationOpenedApp(
-      remoteMessage => {
-        console.log('Notification opened from background:', remoteMessage);
-        // Navigate or do something
-      },
-    );
-
-    // App opened from quit (cold start) via notification
-    messaging()
-      .getInitialNotification()
-      .then(remoteMessage => {
-        if (remoteMessage) {
-          console.log('Notification opened from quit state:', remoteMessage);
-          // Navigate or do something
-        }
-      });
-
+    // Cleanup
     return () => {
       unsubscribeOnMessage();
       unsubscribeOnOpened();

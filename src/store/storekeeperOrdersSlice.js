@@ -9,7 +9,14 @@ const storekeeperOrdersSlice = createSlice({
   initialState,
   reducers: {
     setOrders: (state, action) => {
-      state.orders = action.payload;
+      // New logic handles both replacement and appending
+      if (action.payload.append) {
+        // Append new orders (for pagination)
+        state.orders = [...state.orders, ...(action.payload.orders || [])];
+      } else {
+        // Replace all orders (for refresh/initial load)
+        state.orders = action.payload.orders || [];
+      }
     },
     updateOrderStatus: (state, action) => {
       const { orderId, newStatus } = action.payload;

@@ -32,7 +32,7 @@ export const StoreProvider = ({ children }) => {
       if (store) {
         await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
         setStoreData(store);
-        console.log('✅ Store saved to AsyncStorage');
+        console.log('✅ Store saved to AsyncStorage',store);
       } else {
         await AsyncStorage.removeItem(STORE_KEY);
         setStoreData(null);
