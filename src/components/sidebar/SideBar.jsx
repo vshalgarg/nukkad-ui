@@ -69,10 +69,10 @@ const SideBar = ({ isVisible, onClose }) => {
   const baseMenuItems = [
     ...(userRole !== 'STOREKEEPER'
       ? [
-          { name: 'My Stores', icon: 'storefront' },
-          { name: 'Add Store', icon: 'add-circle-sharp' },
-          { name: 'Addresses', icon: 'location-sharp' },
-        ]
+        { name: 'My Stores', icon: 'storefront' },
+        { name: 'Add Store', icon: 'add-circle-sharp' },
+        { name: 'Addresses', icon: 'location-sharp' },
+      ]
       : []),
     { name: 'Notifications', icon: 'notifications' },
     { name: 'Settings', icon: 'settings-sharp' },
@@ -197,8 +197,10 @@ const SideBar = ({ isVisible, onClose }) => {
           )}
 
           <View style={styles.profileTextContainer}>
-            <Text style={styles.profileName}>{userRole === 'STOREKEEPER' ? storekeeperProfile?.name : name}</Text>
-            <Text style={styles.profileEmail}>
+            <Text style={styles.profileName} numberOfLines={1}
+              ellipsizeMode="tail">{userRole === 'STOREKEEPER' ? storekeeperProfile?.name : name}</Text>
+            <Text style={styles.profileEmail} numberOfLines={1}
+              ellipsizeMode="tail">
               {userRole === 'STOREKEEPER' ? storekeeperProfile?.storeName : email}
             </Text>
           </View>
@@ -275,7 +277,7 @@ const styles = StyleSheet.create({
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: 20,
     gap: 10,
     width: '100%',
@@ -286,10 +288,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   profileTextContainer: {
-    flex: 1,
-    width: '70%',
+    maxWidth: screenWidth * 0.55,
     flexShrink: 1,
-    flexWrap: 'wrap',
+
   },
   profileName: {
     fontSize: Fonts.sizes.base,

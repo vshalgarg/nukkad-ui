@@ -1,65 +1,139 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen.jsx';
-import MobileOtpScreen from '../screens/auth/MobileOtpScreen.jsx';
-import CustomerCreateProfile from '../screens/customer/CustomerCreateProfile.jsx';
-import AddStore from '../screens/common/AddStore.jsx';
-import CustomerDashboard from '../screens/customer/CustomerDashboard.jsx';
-import ProductPage from '../screens/customer/ProductPage.jsx';
-import ShoppingCart from '../screens/customer/ShoppingCart.jsx';
-import AddressForm from '../screens/common/AddressForm.jsx';
-import Address from '../screens/common/Address.jsx';
-import PlaceOrder from '../screens/customer/PlaceOrder.jsx';
-import StorekeeperCreateProfile from '../screens/storekeeper/StorekeeperCreateProfile.jsx';
-import StorekeeperDashboard from '../screens/storekeeper/StorekeeperDashboard.jsx';
-import ShowDetails from '../screens/storekeeper/ShowDetails.jsx';
-import StoreDetail from '../screens/storekeeper/StoreDetail.jsx';
-import PaymentOptions from '../screens/storekeeper/PaymentOptions.jsx';
-import HelpSupport from '../screens/common/HelpSupport.jsx';
-import MyStores from '../screens/common/MyStores.jsx';
-import Notification from '../screens/common/Notification.jsx';
-import Orders from '../screens/common/Orders.jsx';
-import ProfileSetting from '../screens/common/ProfileSetting.jsx';
-import RateStore from '../screens/common/RateStore.jsx';
-import ReferToCustomer from '../screens/common/ReferToCustomer.jsx';
-import DeleteAccount from '../screens/auth/DeleteAccount.jsx';
-import StorekeeperProfileSetting from "../screens/storekeeper/StorekeeperProfileSetting.js"
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="MobileOtpScreen" component={MobileOtpScreen} />
-      <Stack.Screen name="CustomerCreateProfile" component={CustomerCreateProfile} />
-      <Stack.Screen name="AddStore" component={AddStore} />
-      <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
-      <Stack.Screen name="ProductPage" component={ProductPage} />
-      <Stack.Screen name="ShoppingCart" component={ShoppingCart} />
-      <Stack.Screen name="AddressForm" component={AddressForm} />
-      <Stack.Screen name="Address" component={Address} />
-      <Stack.Screen name="PlaceOrder" component={PlaceOrder} />
+      <Stack.Screen
+        name="Home"
+        getComponent={() => require('../screens/HomeScreen.jsx').default}
+      />
+      <Stack.Screen
+        name="MobileOtpScreen"
+        getComponent={() =>
+          require('../screens/auth/MobileOtpScreen.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="CustomerCreateProfile"
+        getComponent={() =>
+          require('../screens/customer/CustomerCreateProfile.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="AddStore"
+        getComponent={() => require('../screens/customer/AddStore.jsx').default}
+      />
+      <Stack.Screen
+        name="CustomerDashboard"
+        getComponent={() =>
+          require('../screens/customer/CustomerDashboard.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="ProductPage"
+        getComponent={() =>
+          require('../screens/customer/ProductPage.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="ShoppingCart"
+        getComponent={() =>
+          require('../screens/customer/ShoppingCart.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="AddressForm"
+        getComponent={() =>
+          require('../screens/customer/AddressForm.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="Address"
+        getComponent={() => require('../screens/customer/Address.jsx').default}
+      />
+      <Stack.Screen
+        name="PlaceOrder"
+        getComponent={() =>
+          require('../screens/customer/PlaceOrder.jsx').default
+        }
+      />
       <Stack.Screen
         name="StorekeeperCreateProfile"
-        component={StorekeeperCreateProfile}
+        getComponent={() =>
+          require('../screens/storekeeper/StorekeeperCreateProfile.jsx').default
+        }
       />
       <Stack.Screen
         name="StorekeeperDashboard"
-        component={StorekeeperDashboard}
+        getComponent={() =>
+          require('../screens/storekeeper/StorekeeperDashboard.jsx').default
+        }
       />
-      <Stack.Screen name="ShowDetails" component={ShowDetails} />
-      <Stack.Screen name="ReferToCustomer" component={ReferToCustomer} />
-      <Stack.Screen name='StoreDetail' component={StoreDetail} />
-      <Stack.Screen name='PaymentOptions' component={PaymentOptions} />
-      <Stack.Screen name='HelpSupport' component={HelpSupport}/>
-      <Stack.Screen name= 'MyStores' component={MyStores}/>
-      <Stack.Screen name='Notification' component={Notification}/>
-      <Stack.Screen name='Orders' component={Orders}/>
-      <Stack.Screen name='ProfileSetting' component={ProfileSetting}/>
-      <Stack.Screen name='StorekeeperProfileSetting' component={StorekeeperProfileSetting}/>
-      <Stack.Screen name='RateStore' component={RateStore} />
-      <Stack.Screen name='DeleteAccount' component={DeleteAccount} />
+      <Stack.Screen
+        name="ShowDetails"
+        getComponent={() =>
+          require('../screens/storekeeper/ShowDetails.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="ReferToCustomer"
+        getComponent={() =>
+          require('../screens/common/ReferToCustomer.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="StoreDetail"
+        getComponent={() =>
+          require('../screens/storekeeper/StoreDetail.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="PaymentOptions"
+        getComponent={() =>
+          require('../screens/storekeeper/PaymentOptions.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="HelpSupport"
+        getComponent={() =>
+          require('../screens/common/HelpSupport.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="MyStores"
+        getComponent={() => require('../screens/customer/MyStores.jsx').default}
+      />
+      <Stack.Screen
+        name="Notification"
+        getComponent={() =>
+          require('../screens/common/Notification.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="Orders"
+        getComponent={() => require('../screens/common/Orders.jsx').default}
+      />
+      <Stack.Screen
+        name="ProfileSetting"
+        getComponent={() =>
+          require('../screens/customer/ProfileSetting.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="RateStore"
+        getComponent={() =>
+          require('../screens/customer/RateStore.jsx').default
+        }
+      />
+      <Stack.Screen
+        name="DeleteAccount"
+        getComponent={() =>
+          require('../screens/auth/DeleteAccount.jsx').default
+        }
+      />
     </Stack.Navigator>
   );
 }

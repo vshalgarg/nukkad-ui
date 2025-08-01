@@ -1,6 +1,8 @@
+
+
 import api from '../api';
 
-export const getOrders = async token => {
+export const getOrders = async (token, status,page,size) => {
   const endpoint = '/nukkad/api/orders/v1/order/orderByStoreKeeper';
   const fullUrl = api.defaults.baseURL
     ? `${api.defaults.baseURL}${endpoint}`
@@ -17,6 +19,11 @@ export const getOrders = async token => {
 
   try {
     const response = await api.get(endpoint, {
+      params: {
+        statusFilter: status,
+        page,
+        size
+      },
       headers,
     });
 

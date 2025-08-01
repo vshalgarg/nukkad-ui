@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 import { useStore } from '../../contexts/storeContext';
@@ -30,7 +29,6 @@ export default function MyStores() {
   const { token } = useAuth();
   const { saveStore, storeData } = useStore();
   const navigation = useNavigation();
-
   const [stores, setStores] = useState([]);
   const [selectedStoreTemp, setSelectedStoreTemp] = useState(null);
   const [loading, setLoading] = useState(true);
