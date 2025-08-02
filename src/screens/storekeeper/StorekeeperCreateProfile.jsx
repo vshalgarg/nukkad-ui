@@ -32,7 +32,6 @@ const StorekeeperCreateProfile = () => {
   const [storeName, setStoreName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [gstNum, setGstNum] = useState('');
-  const [gstNum, setGstNum] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [landmark, setLandmark] = useState('');

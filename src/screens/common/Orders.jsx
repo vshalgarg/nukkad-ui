@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../components/orders/FilterModal';
+import { FlashList } from '@shopify/flash-list';
 
 import BackButton from '../../components/BackButton';
 import OrderHistory from '../../components/orders/OrderHistory';
@@ -18,11 +19,7 @@ import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 
 import { useAuth } from '../../contexts/authContext';
-import {
-  getOrderHistory,
-  getFilteredOrderHistory,
-} from '../../services/common/OrderHistoryService';
-import strings from '../../constants/string';
+import { fetchOrderHistory } from '../../services/common/OrderHistoryService';
 
 const Orders = () => {
   const { token, role, loading: authLoading } = useAuth();
@@ -31,7 +28,6 @@ const Orders = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -39,29 +35,70 @@ const Orders = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [activePicker, setActivePicker] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isFilterApplied, setIsFilterApplied] = useState(false);
+  const [filterParams, setFilterParams] = useState({});
 
-  const fetchOrders = useCallback(async () => {
-    if (!token) return;
-    try {
-      const res = await getOrderHistory(token);
-      setOrders(Array.isArray(res) ? res : []);
-    } catch (err) {
-      console.error('❌ Failed to fetch orders:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [token]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const size = 10;
+
+  // const fetchOrders = useCallback(async () => {
+  //   if (!token) return;
+  //   try {
+  //     const res = await fetchOrderHistory(token);
+
+  //     setOrders(Array.isArray(res.orders) ? res.orders : []);
+  //   } catch (err) {
+  //     console.error('❌ Failed to fetch orders:', err);
+  //   } finally {
+  //     setLoading(false);
+  //     setRefreshing(false);
+  //   }
+  // }, [token]);
+
+  const fetchOrders = useCallback(
+    async (page = 0, filters = {}) => {
+      if (!token) return;
+
+      try {
+        const res = await fetchOrderHistory(token, {
+          page,
+          size,
+          ...filters,
+        });
+
+        const fetchedOrders = Array.isArray(res.orders) ? res.orders : [];
+
+        if (page === 0) {
+          setOrders(fetchedOrders);
+        } else {
+          setOrders(prev => [...prev, ...fetchedOrders]);
+        }
+
+        setHasMore(fetchedOrders.length === size);
+      } catch (err) {
+        console.error('❌ Failed to fetch orders:', err);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [token],
+  );
 
   useEffect(() => {
     if (!authLoading && token) {
-      fetchOrders();
+      setPage(0);
+      fetchOrders(0);
     }
-  }, [authLoading, token, role, fetchOrders]);
+  }, [authLoading, token, role]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchOrders();
+    setPage(0);
+    await fetchOrders(0, isFilterApplied ? filterParams : {});
   };
 
   const toggleExpand = id => {
@@ -80,8 +117,15 @@ const Orders = () => {
         maxPrice: maxPrice || 5000,
       };
 
-      const filtered = await getFilteredOrderHistory(token, params);
-      setOrders(Array.isArray(filtered) ? filtered : []);
+      const cleanedParams = Object.fromEntries(
+        Object.entries(params).filter(([_, v]) => v != null),
+      );
+
+      setFilterParams(cleanedParams);
+      setIsFilterApplied(true);
+      setPage(0);
+      await fetchOrders(0, cleanedParams);
+      setFilterModalVisible(false);
     } catch (err) {
       console.error('❌ Filtered Order Fetch Failed:', err);
       Alert.alert('Failed to apply filters');
@@ -103,7 +147,7 @@ const Orders = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title={strings.myOrders}/>
+      <BackButton title="My Orders" />
 
       <View style={localStyles.filterRow}>
         <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
@@ -137,15 +181,33 @@ const Orders = () => {
         setFilterModalVisible={setFilterModalVisible}
       />
 
-      <FlatList
+      <FlashList
         data={orders}
         keyExtractor={item => item.orderId?.toString()}
         showsVerticalScrollIndicator={false}
+        estimatedItemSize={200}
+        onEndReached={() => {
+          if (hasMore && !isLoadingMore) {
+            setIsLoadingMore(true);
+            setPage(prev => {
+              const next = prev + 1;
+              fetchOrders(next, isFilterApplied ? filterParams : {});
+              return next;
+            });
+          }
+        }}
+        onEndReachedThreshold={0.5} // when 50% near bottom
+        ListFooterComponent={
+          isLoadingMore ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : null
+        }
         refreshing={refreshing}
         onRefresh={handleRefresh}
+        extraData={expandedOrderId}
         ListEmptyComponent={
           <Text style={{ textAlign: 'center', marginTop: 50 }}>
-            {strings.noOrderFound}
+            No orders found.
           </Text>
         }
         renderItem={({ item }) => {
@@ -192,7 +254,7 @@ const Orders = () => {
                         fontWeight: '500',
                       }}
                     >
-                      {`"${item.storeKeeperNote.trim()}"`}
+                      {item.storeKeeperNote.trim()}
                     </Text>
                   </View>
                 )}

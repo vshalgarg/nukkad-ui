@@ -14,10 +14,11 @@ import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import DropDownPicker from 'react-native-dropdown-picker';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { getOrderHistory } from '../../services/common/OrderHistoryService';
+import {
+  fetchOrderHistory,
+} from '../../services/common/OrderHistoryService';
 import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
-
 
 const FilterModal = ({
   visible,
@@ -48,21 +49,25 @@ const FilterModal = ({
       year: 'numeric',
     });
   };
-  const {token}=useAuth();
+  const { token } = useAuth();
   const handleClearFilter = async () => {
-    const res = await getOrderHistory(token);
-    setOrders(Array.isArray(res) ? res : []);
-    setDateFrom(''), setDateTo('');
-    setMaxPrice('');
-    setMinPrice('');
-    setSelectedStatus('');
+    try {
+      setDateFrom('');
+      setDateTo('');
+      setMaxPrice('');
+      setMinPrice('');
+      setSelectedStatus('');
+    } catch (err) {
+      console.error('Failed to clear filter:', err);
+      Alert.alert('Error', 'Something went wrong while clearing filters.');
+    }
   };
   const [open, setOpen] = useState(false);
 
   const [statusItems, setStatusItems] = useState([
     { label: 'Pending', value: 'PENDING' },
     { label: 'In Progress', value: 'IN_PROGRESS' },
-    { label: 'Dispatched', value: 'DISPATCH' },
+    { label: 'Dispatched', value: 'DISPATCHED' },
     { label: 'Delivered', value: 'DELIVERED' },
     { label: 'Cancelled', value: 'CANCELLED' },
   ]);
@@ -212,7 +217,7 @@ const FilterModal = ({
                 <MultiSlider
                   values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
                   min={0}
-                  max={ 5000}
+                  max={5000}
                   sliderLength={screenWidth - 50}
                   customMarker={e => (
                     <CustomMarker currentValue={e.currentValue} />
@@ -302,7 +307,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   marker: {
-    backgroundColor: 'Colors.primary',
+    backgroundColor: Colors.primary,
     height: 20,
     width: 20,
     borderRadius: 10,

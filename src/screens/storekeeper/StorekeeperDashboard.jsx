@@ -29,8 +29,11 @@ import textStyles from '../../styles/textStyles';
 import { useAuth } from '../../contexts/authContext';
 import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
 import { formatTabLabel } from '../../utils/formatTabLabel';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl';
+
 
 const StorekeeperDashboard = () => {
+    useBackHandlerControl({ confirmBack: true });
   const [formState, setFormState] = useState(0);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [popupOrderId, setPopupOrderId] = useState(null);
@@ -43,7 +46,6 @@ const StorekeeperDashboard = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const size = 10;
-
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -68,14 +70,15 @@ const StorekeeperDashboard = () => {
 
       const orderData = await getOrders(token, status, page, size);
 
-      dispatch(setOrders({
-        orders: orderData.orders,
-        append
-      }));
+      dispatch(
+        setOrders({
+          orders: orderData.orders,
+          append,
+        }),
+      );
 
       // Determine if more pages exist
       setHasMore(orderData.orders.length > 0);
-
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to fetch orders');
     } finally {
@@ -84,6 +87,13 @@ const StorekeeperDashboard = () => {
     }
   };
 
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     const currentStatus = statusTabs[formState].statuses[0];
+  //     setCurrentPage(0);
+  //     loadOrders(currentStatus, 0, false);
+  //   }, [formState, token]),
+  // );
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       const currentStatus = statusTabs[formState].statuses[0];
@@ -99,7 +109,6 @@ const StorekeeperDashboard = () => {
     loadOrders(currentStatus, 0, false); // Pass status and page
   }, [formState, token]);
 
-
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];
     setCurrentPage(0);
@@ -113,9 +122,9 @@ const StorekeeperDashboard = () => {
     if (tabIndex !== -1) setFormState(tabIndex);
   }, [tab]);
 
-  const filteredOrders = (Array.isArray(orders) ? [...orders] : [])
-    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-
+  const filteredOrders = (Array.isArray(orders) ? [...orders] : []).sort(
+    (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
+  );
 
   const safePush = routeObj => {
     try {
@@ -229,9 +238,9 @@ const StorekeeperDashboard = () => {
         data={filteredOrders}
         estimatedItemSize={150}
         keyExtractor={item => item.orderId.toString()}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        // refreshControl={
+        //   <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        // }
         contentContainerStyle={[
           { paddingHorizontal: 20, paddingBottom: 30, marginTop: 20 },
           filteredOrders.length === 0 && {
@@ -256,7 +265,10 @@ const StorekeeperDashboard = () => {
               <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
               <Text style={innerStyle.orderDetailsHeading}>
                 Customer Name:
-                <Text style={innerStyle.orderDetails}> {order.customerName}</Text>
+                <Text style={innerStyle.orderDetails}>
+                  {' '}
+                  {order.customerName}
+                </Text>
               </Text>
               <Text style={innerStyle.orderDetailsHeading}>
                 Address:
@@ -267,7 +279,10 @@ const StorekeeperDashboard = () => {
               </Text>
               <Text style={innerStyle.orderDetailsHeading}>
                 Quantity:
-                <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
+                <Text style={innerStyle.orderDetails}>
+                  {' '}
+                  {order.items.length}
+                </Text>
               </Text>
               <Text
                 style={[
@@ -277,10 +292,10 @@ const StorekeeperDashboard = () => {
                       order.orderStatus === 'PENDING'
                         ? 'red'
                         : order.orderStatus === 'IN_PROGRESS'
-                          ? 'orange'
-                          : order.orderStatus === 'DELIVERED'
-                            ? 'green'
-                            : 'red',
+                        ? 'orange'
+                        : order.orderStatus === 'DELIVERED'
+                        ? 'green'
+                        : 'red',
                   },
                 ]}
               >
@@ -303,10 +318,7 @@ const StorekeeperDashboard = () => {
                     <Pressable
                       ref={ref => (dotRefs.current[order.orderId] = ref)}
                       onPress={() =>
-                        showPopup(
-                          order.orderId,
-                          dotRefs.current[order.orderId],
-                        )
+                        showPopup(order.orderId, dotRefs.current[order.orderId])
                       }
                     >
                       <Entypo
@@ -388,7 +400,7 @@ const innerStyle = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
-    marginBottom:20
+    marginBottom: 20,
   },
   statusButton: {
     paddingHorizontal: 20,
@@ -415,7 +427,7 @@ const innerStyle = StyleSheet.create({
     padding: 15,
     borderRadius: 20,
     marginBottom: 10,
-    marginHorizontal:12
+    marginHorizontal: 12,
   },
   showDetailsBtn: {
     paddingHorizontal: 20,

@@ -79,6 +79,12 @@ export default function AppNavigator() {
         }
       />
       <Stack.Screen
+        name="StorekeeperProfileSetting"
+        getComponent={() =>
+          require('../screens/storekeeper/StorekeeperProfileSetting.js').default
+        }
+      />
+      <Stack.Screen
         name="ReferToCustomer"
         getComponent={() =>
           require('../screens/common/ReferToCustomer.jsx').default
