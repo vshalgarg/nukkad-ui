@@ -84,7 +84,7 @@ const OrderItem = memo(
           )}
           {isEditable ? (
             <TextInput
-              placeholder="Set Price"
+              placeholder="Price"
               placeholderTextColor={Colors.secondaryText}
               style={innerStyle.input}
               keyboardType="numeric"
@@ -600,9 +600,9 @@ const innerStyle = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: 50,
+    borderRadius: 40,
     paddingHorizontal: 10,
-    textAlign: 'left',
+    textAlign: 'center',
     includeFontPadding: false,
     textAlignVertical: 'center',
   },

@@ -226,7 +226,6 @@ const AddressForm = () => {
             />
 
             <View style={formStyles.centerContainer}>
-              {/* Name */}
               <View>
                 <Text style={formStyles.label}>
                   {strings.name} <Text style={formStyles.mandatory}>*</Text>
@@ -235,7 +234,7 @@ const AddressForm = () => {
                   ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
-                  maxLength={35}
+                  maxLength={30} 
                   onTextChange={text => {
                     setName(text);
 
@@ -285,7 +284,7 @@ const AddressForm = () => {
                   placeholder="Enter Your Address Line 1"
                   ref={address1Ref}
                   value={address1}
-                  maxLength={50}
+                  maxLength={32}
                   autoCapitalize="sentences"
                   onTextChange={text => {
                     setAddress1(text);
@@ -303,7 +302,7 @@ const AddressForm = () => {
                 <CustomInput
                   placeholder="Enter Your Address Line 2"
                   value={address2}
-                  maxLength={50}
+                  maxLength={32}
                   autoCapitalize="sentences"
                   onTextChange={setAddress2}
                 />
@@ -318,7 +317,7 @@ const AddressForm = () => {
                   ref={landmarkRef}
                   placeholder="Enter Your Landmark"
                   value={landmark}
-                  maxLength={25}
+                  maxLength={20}
                   autoCapitalize="sentences"
                   onTextChange={text => {
                     setLandmark(text);
@@ -339,7 +338,7 @@ const AddressForm = () => {
                   ref={cityRef}
                   placeholder="Enter Your City"
                   value={city}
-                  maxLength={25}
+                  maxLength={20}
                   autoCapitalize="sentences"
                   onTextChange={text => {
                     setCity(text);
@@ -360,7 +359,7 @@ const AddressForm = () => {
                   ref={stateRef}
                   placeholder="Enter Your State"
                   value={state}
-                  maxLength={25}
+                  maxLength={20}
                   autoCapitalize="sentences"
                   onTextChange={text => {
                     setState(text);

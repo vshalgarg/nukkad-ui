@@ -324,7 +324,7 @@ const ProfileSetting = () => {
             onPress={saveProfile}
             loading={isSaving}
           />
-          {profile.role === 'customer' && (
+          {profile.role === 'CUSTOMER' && (
             <CustomButton
               title="Delete Account"
               onPress={handleDeleteAccount}

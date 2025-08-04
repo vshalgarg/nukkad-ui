@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Alert,
   Pressable,
@@ -14,7 +14,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { getOrders } from '../../services/storekeeper/getOrders';
 import SideBar from '../../components/sidebar/SideBar';
 import ConnectPopup from '../../components/ConnectPopUp';
@@ -31,9 +35,8 @@ import { updateOrderStatusById } from '../../services/storekeeper/orderStatusSer
 import { formatTabLabel } from '../../utils/formatTabLabel';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
-
 const StorekeeperDashboard = () => {
-    useBackHandlerControl({ confirmBack: true });
+  useBackHandlerControl({ confirmBack: true });
   const [formState, setFormState] = useState(0);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [popupOrderId, setPopupOrderId] = useState(null);
@@ -87,13 +90,13 @@ const StorekeeperDashboard = () => {
     }
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     const currentStatus = statusTabs[formState].statuses[0];
-  //     setCurrentPage(0);
-  //     loadOrders(currentStatus, 0, false);
-  //   }, [formState, token]),
-  // );
+  useFocusEffect(
+    useCallback(() => {
+      const currentStatus = statusTabs[formState].statuses[0];
+      setCurrentPage(0);
+      loadOrders(currentStatus, 0, false);
+    }, [formState, token]),
+  );
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       const currentStatus = statusTabs[formState].statuses[0];
@@ -197,7 +200,7 @@ const StorekeeperDashboard = () => {
   };
 
   return (
-    <View style={styles.pageContainer}>
+    <View style={[styles.pageContainer]}>
       <View style={innerStyle.topBar}>
         <TouchableOpacity onPress={() => setIsSideBarOpen(true)}>
           <MaterialIcons name="menu" size={26} color={Colors.secondary} />
@@ -235,23 +238,22 @@ const StorekeeperDashboard = () => {
       </View>
 
       <FlashList
+        style={{ flex: 1 }}
         data={filteredOrders}
         estimatedItemSize={150}
         keyExtractor={item => item.orderId.toString()}
-        // refreshControl={
-        //   <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        // }
-        contentContainerStyle={[
-          { paddingHorizontal: 20, paddingBottom: 30, marginTop: 20 },
-          filteredOrders.length === 0 && {
-            flex: 1,
-            justifyContent: 'center',
-          },
-        ]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        contentContainerStyle={{
+          paddingHorizontal: 2,
+          paddingBottom: 30,
+          flexGrow: 1,
+        }}
         ListEmptyComponent={() => (
-          <View style={innerStyle.emptyStateContainer}>
+          <View style={innerStyle.emptyWrapper}>
             <Text style={innerStyle.emptyStateText}>
-              No {formatTabLabel(statusTabs[formState].label)} orders found.
+              No {formatTabLabel(statusTabs[formState].label)} Orders Found.
             </Text>
           </View>
         )}
@@ -261,7 +263,7 @@ const StorekeeperDashboard = () => {
             style={innerStyle.orderCard}
             onPress={() => handleDetails(order)}
           >
-            <View>
+            <View style={innerStyle.leftSection}>
               <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
               <Text style={innerStyle.orderDetailsHeading}>
                 Customer Name:
@@ -303,12 +305,7 @@ const StorekeeperDashboard = () => {
               </Text>
             </View>
 
-            <View
-              style={{
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-              }}
-            >
+            <View style={innerStyle.rightSection}>
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
               >
@@ -407,17 +404,20 @@ const innerStyle = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 50,
   },
-  emptyStateContainer: {
+  emptyWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingTop:'60%',
+    // backgroundColor:"red"
   },
   emptyStateText: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
     color: Colors.secondaryText,
     textAlign: 'center',
+    textAlignVertical: 'center',
+    marginTop: 50,
   },
   orderCard: {
     flexDirection: 'row',
@@ -428,6 +428,14 @@ const innerStyle = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 10,
     marginHorizontal: 12,
+    marginTop: 1,
+  },
+  leftSection: {
+    width: '80%',
+  },
+  rightSection: {
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
   showDetailsBtn: {
     paddingHorizontal: 20,

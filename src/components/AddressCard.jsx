@@ -28,7 +28,7 @@ const AddressCard = ({
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
           {item.name && (
-            <Text style={styles.nameText} numberOfLines={1}>
+            <Text style={styles.nameText} numberOfLines={2}>
               {item.name}
             </Text>
           )}
@@ -41,7 +41,7 @@ const AddressCard = ({
             </Text>
           </View>
 
-          <Text style={styles.cityLine} numberOfLines={1}>
+          <Text style={styles.cityLine} numberOfLines={2}>
             {item.city}, {item.state} - {item.pincode}
           </Text>
         </View>
@@ -49,7 +49,9 @@ const AddressCard = ({
         <View style={styles.actionContainer}>
           {showChangeAddress && (
             <Pressable style={styles.changeAddressBtn} onPress={onSelect}>
-              <Text style={styles.changeAddressText}>{strings.changeAddress}</Text>
+              <Text style={styles.changeAddressText}>
+                {strings.changeAddress}
+              </Text>
             </Pressable>
           )}
 
@@ -77,14 +79,16 @@ const AddressCard = ({
                 )}
               </View>
 
-              {!item.isDefault && (
+              {!item.isDefault ? (
                 <Pressable
                   onPress={() => onMarkDefault?.(item.id)}
                   style={styles.defaultBtn}
                 >
-                  <Text style={styles.defaultBtnText}>{strings.markAsDefault}</Text>
+                  <Text style={styles.defaultBtnText}>
+                    {strings.markAsDefault}
+                  </Text>
                 </Pressable>
-              )}
+              ) : null}
             </View>
           )}
         </View>
@@ -103,19 +107,22 @@ const styles = StyleSheet.create({
     elevation: 2,
     padding: 14,
     position: 'relative',
-    height: 110,
+    minHeight: 110,
   },
   selectedCard: {
     borderColor: Colors.primary,
     borderWidth: 2,
+    padding: 13,
   },
   contentContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    width: '100%',
   },
   infoContainer: {
     flex: 1,
     paddingRight: 10,
+    height: '100%',
   },
   nameText: {
     fontSize: Fonts.sizes.base,
@@ -139,11 +146,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   actionContainer: {
-    justifyContent: 'center',
+    height: 'auto',
+    flexDirection: 'column',
     alignItems: 'flex-end',
+    justifyContent: 'space-around',
+    width: '36%',
   },
   btnContainer: {
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
   editDeleteRow: {
@@ -169,6 +179,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     marginTop: 10,
+    alignSelf: 'flex-start',
   },
   defaultBtnText: {
     color: Colors.primary,

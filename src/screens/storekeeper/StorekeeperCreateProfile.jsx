@@ -54,16 +54,17 @@ const StorekeeperCreateProfile = () => {
   const pincodeRef = useRef();
 
   const { token } = useAuth();
- 
-  const {  createStorekeeperProfile } = useStorekeeperProfile();
+
+  const { createStorekeeperProfile } = useStorekeeperProfile();
   const { safePush } = useSafeRouter();
 
   const handleContinue = useCallback(async () => {
-    setHasTriedSubmit(true);
+    // setHasTriedSubmit(true);
+    console.log('hadleContinue Pressed');
     if (pressLock) return;
     pressLock = true;
 
-    isSubmittingRef.current = true;
+    // isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     const formData = {
@@ -116,37 +117,39 @@ const StorekeeperCreateProfile = () => {
     }
 
     // ✅ Proceed with submission
-    const nameParts = name.trim().split(' ');
-    const updatedProfile = {
-      ...profile,
-      firstName: nameParts[0],
-      lastName: nameParts.slice(1).join(' '),
-      contactNumber,
-      storeName,
-      role: 'storekeeper',
-    };
+    // const nameParts = name.trim().split(' ');
+    // const updatedProfile = {
+    //   ...profile,
+    //   firstName: nameParts[0],
+    //   lastName: nameParts.slice(1).join(' '),
+    //   contactNumber,
+    //   storeName,
+    //   role: 'storekeeper',
+    // };
 
-    const newAddress = {
-      storeName,
-      contactNumber,
-      addressLine1,
-      addressLine2,
-      landmark,
-      city,
-      state,
-      pincode,
-    };
-
+    // const newAddress = {
+    //   storeName,
+    //   contactNumber,
+    //   addressLine1,
+    //   addressLine2,
+    //   landmark,
+    //   city,
+    //   pincode,
+    // };
+    console.log('isSubmitting', isSubmitting);
+    console.log('Zod result:', result);
     try {
+      console.log('try block called');
       await createStorekeeperProfile(formData, token);
       showToast('success', strings.registeredSuccessfully);
-      setTimeout(() => (pressLock = false), 1500);
+      // setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
     } catch (err) {
       console.error('❌ Storekeeper profile error:', err.message);
       showToast('error', strings.failedToCreateProfile);
-      pressLock = false;
+      state, (pressLock = false);
     } finally {
+      console.log('finally');
       setIsSubmitting(false);
       isSubmittingRef.current = false;
     }
@@ -160,11 +163,8 @@ const StorekeeperCreateProfile = () => {
     city,
     state,
     pincode,
-    profile,
-    saveStorekeeperAddress,
     contactNumber,
     images,
-    safePush,
     token,
   ]);
 
@@ -179,7 +179,7 @@ const StorekeeperCreateProfile = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 100}
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -195,7 +195,8 @@ const StorekeeperCreateProfile = () => {
           <View style={innerStyles.centerContainer}>
             <View style={[innerStyles.formContainer, { marginTop: 30 }]}>
               <Text style={innerStyles.label}>
-                {strings.storekeeperName} <Text style={innerStyles.mandatory}>*</Text>
+                {strings.storekeeperName}{' '}
+                <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={nameRef}
@@ -261,17 +262,17 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-               {strings.gst} <Text style={innerStyles.mandatory}>*</Text>
+                {strings.gst} <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={gstRef}
                 placeholder="Enter GSTIN Number"
                 value={gstNum}
                 autoCapitalize="characters"
-                onChange={text => setGstIn(text.toUpperCase())}
+                onChange={text => setGstNum(text)}
                 maxLength={15}
                 onTextChange={text => {
-                  const upper = text.toUpperCase();
+                  const upper = text;
                   setGstNum(upper);
                   if (hasTriedSubmit) {
                     setErrors(prev => ({
@@ -284,7 +285,8 @@ const StorekeeperCreateProfile = () => {
               />
 
               <Text style={innerStyles.label}>
-                {strings.addressLine1} <Text style={innerStyles.mandatory}>*</Text>
+                {strings.addressLine1}{' '}
+                <Text style={innerStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
                 ref={address1Ref}
@@ -409,7 +411,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomButton
                   title={'Continue'}
                   onPress={handleContinue}
-                  disabled={isSubmitting}
+                  // disabled={isSubmitting}
                 />
               </View>
             </View>

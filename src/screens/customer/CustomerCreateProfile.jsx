@@ -172,7 +172,7 @@ const CustomerCreateProfile = () => {
         dob: formatDateYYYYMMDD(payload.dob),
         role: 'customer',
         image: null,
-      };
+      }; 
 
       await createProfile(newProfile);
       // dispatch(setCartUser(profile.userId));
@@ -354,7 +354,7 @@ const CustomerCreateProfile = () => {
                       }));
                     }
                   }}
-                  maxLength={38}
+                  maxLength={20}
                   isError={errors.landmark}
                 />
 
@@ -375,7 +375,7 @@ const CustomerCreateProfile = () => {
                       }));
                     }
                   }}
-                  maxLength={38}
+                  maxLength={20}
                   isError={errors.city}
                 />
 
@@ -396,7 +396,7 @@ const CustomerCreateProfile = () => {
                       }));
                     }
                   }}
-                  maxLength={38}
+                  maxLength={20}
                   isError={errors.state}
                 />
 

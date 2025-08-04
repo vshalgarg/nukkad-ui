@@ -94,10 +94,9 @@ const ShoppingCart = () => {
     };
   });
 
-
   const totalCount = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
-   
+
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
 
@@ -120,18 +119,18 @@ const ShoppingCart = () => {
     setOrderInProgress(true);
 
     if (!selectedAddress) {
-      showToast('error', strings.missingAddress1,strings.missingAddress2);
+      showToast('error', strings.missingAddress1, strings.missingAddress2);
       setOrderInProgress(false);
       return;
     }
     if (!storeKeeperId) {
-      showToast('error', strings.missingStore1,strings.missingStore2);
+      showToast('error', strings.missingStore1, strings.missingStore2);
       setOrderInProgress(false);
       return;
     }
 
     if (cartItems.length === 0) {
-      showToast('error', strings.missingItems1,strings.missingItems2);
+      showToast('error', strings.missingItems1, strings.missingItems2);
       setOrderInProgress(false);
       return;
     }
@@ -142,7 +141,7 @@ const ShoppingCart = () => {
     });
 
     if (hasInvalidAmount) {
-      showToast('error',strings.failedToPlaceOrder,strings.invalidQty)
+      showToast('error', strings.failedToPlaceOrder, strings.invalidQty);
       setOrderInProgress(false);
       return;
     }
@@ -219,7 +218,9 @@ const ShoppingCart = () => {
 
       <FlatList
         data={cartItems}
-        keyExtractor={item => item.product.id?.toString()}
+        keyExtractor={(item, index) =>
+          item?.product?.id ? item.product.id.toString() : `fallback-${index}`
+        }
         renderItem={({ item }) => (
           <CartItem
             item={item}

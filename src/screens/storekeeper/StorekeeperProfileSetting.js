@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -19,6 +18,7 @@ import strings from '../../constants/string';
 import CustomButton from '../../components/CustomButton';
 import Colors from '../../styles/colors';
 import BackButton from '../../components/BackButton';
+import CustomInput from '../../components/CustomInput';
 
 const profileSchema = z.object({
   name: z
@@ -300,6 +300,18 @@ const StorekeeperProfileScreen = () => {
       });
     }
   };
+  const maxLengths = {
+    name: 30,
+    storeName: 30,
+    contactNumber: 10,
+    gstNum: 30,
+    addressLine1: 35,
+    addressLine2: 35,
+    landmark: 20,
+    city: 20,
+    state: 20,
+    pincode: 6,
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -307,6 +319,7 @@ const StorekeeperProfileScreen = () => {
         ref={scrollViewRef}
         style={styles.container}
         contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 120 }}
+        showsVerticalScrollIndicator={false}
       >
         <BackButton title={strings.profileSetting} />
         <View style={{ marginVertical: 25 }}>
@@ -383,9 +396,7 @@ const StorekeeperProfileScreen = () => {
       return (
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>
-          <View style={[styles.fullInput, { backgroundColor: '#f8f8f8' }]}>
-            <Text>{profile[key]}</Text>
-          </View>
+          <CustomInput value={profile[key]} editable={false} />
         </View>
       );
     }
@@ -395,12 +406,12 @@ const StorekeeperProfileScreen = () => {
         <Text style={styles.label}>{label}</Text>
         {isEditing ? (
           <>
-            <TextInput
+            <CustomInput
               ref={fieldRefs[key]}
-              style={[styles.fullInput, fieldErrors[key] && styles.errorInput]}
               value={profile[key]}
-              onChangeText={val => handleChange(key, val)}
+              onTextChange={val => handleChange(key, val)}
               placeholder={label}
+              maxLength={maxLengths[key]}
               onBlur={() => validateSingleField(key, profile[key])}
             />
             {fieldErrors[key] ? (
@@ -408,8 +419,8 @@ const StorekeeperProfileScreen = () => {
             ) : null}
           </>
         ) : (
-          <View style={[styles.fullInput, { backgroundColor: '#fff' }]}>
-            <Text>{profile[key]}</Text>
+          <View>
+            <CustomInput value={profile[key]} editable={false} />
           </View>
         )}
       </View>
@@ -441,19 +452,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  fullInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    backgroundColor: '#f8f8f8',
-  },
+
   fieldWrapper: {
     marginBottom: 24, // Increased spacing
   },
   inputContainer: {
     marginBottom: 16,
+    paddingHorizontal: 25,
   },
   label: {
     fontSize: 14,
@@ -531,7 +536,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
 });
 
 export default StorekeeperProfileScreen;
