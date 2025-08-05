@@ -68,8 +68,8 @@ const StorekeeperDashboard = () => {
       if (!token) return;
 
       // Set loading states
-      if (page === 0) setRefreshing(true);
-      else setLoadingMore(true);
+
+      setLoadingMore(true);
 
       const orderData = await getOrders(token, status, page, size);
 
@@ -85,8 +85,8 @@ const StorekeeperDashboard = () => {
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to fetch orders');
     } finally {
-      setRefreshing(false);
       setLoadingMore(false);
+      setRefreshing(false);
     }
   };
 
@@ -114,8 +114,15 @@ const StorekeeperDashboard = () => {
 
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];
+    setRefreshing(true); // ⬅️ start spinner manually
     setCurrentPage(0);
+
     await loadOrders(currentStatus, 0, false);
+
+    // ⏱️ Add this delay to make spinner visible longer
+    await new Promise(res => setTimeout(res, 700));
+
+    setRefreshing(false); // ⬅️ stop spinner manually
   };
 
   useEffect(() => {
@@ -408,7 +415,7 @@ const innerStyle = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop:'60%',
+    paddingTop: '60%',
     // backgroundColor:"red"
   },
   emptyStateText: {

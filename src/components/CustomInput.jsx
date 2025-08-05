@@ -6,7 +6,7 @@ import Fonts from '../styles/font.js';
 export default function CustomInput({
   isCountryCode,
   value = '',
-  fixedPrefix = '',
+  fixedPrefix ='',
   onTextChange,
   maxLength,
   keyboardType,

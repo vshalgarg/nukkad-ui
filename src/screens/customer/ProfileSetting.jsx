@@ -28,6 +28,10 @@ import Fonts from '../../styles/font';
 import { getCustomerProfile } from '../../services/customer/profileService';
 import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
+import DeleteAccount from '../../components/DeleteAccount';
+import { useAddress } from '../../contexts/addressContext';
+import { useStore } from '../../contexts/storeContext';
+import { useDispatch } from 'react-redux';
 
 const formatDate = date => {
   if (!date) return '';
@@ -41,6 +45,10 @@ const ProfileSetting = () => {
   const scrollRef = useRef();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const firstNameRef = useRef(null);
+  const { resetProfile } = useProfile();
+  const { resetAddress } = useAddress();
+  const { resetStore } = useStore();
+  const dispatch = useDispatch();
 
   const { safePush } = useSafeRouter();
   const { token, role } = useAuth();
@@ -61,13 +69,12 @@ const ProfileSetting = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
         const userProfile = await getCustomerProfile(token);
-
         const formattedProfile = {
           firstName: userProfile.firstName || '',
           lastName: userProfile.lastName || '',
@@ -75,6 +82,7 @@ const ProfileSetting = () => {
           image: userProfile.image || null,
           role: role || '',
           dob: userProfile.dob || '',
+          mobileNumber: userProfile.mobileNumber,
         };
 
         setProfile(formattedProfile);
@@ -163,8 +171,9 @@ const ProfileSetting = () => {
     else safePush('CustomerDashboard');
   };
 
-  const handleDeleteAccount = () => safePush('DeleteAccount');
-
+  const handleDeleteAccount = () => {
+    setShowDeleteModal(true);
+  };
   const cancelEdit = () => {
     setIsEditing(false);
     setProfile({
@@ -181,6 +190,7 @@ const ProfileSetting = () => {
       setDobDate(new Date(profileData.dob));
     }
   };
+  console.log('profileData');
 
   return (
     <ScrollView style={styles.pageContainer} ref={scrollRef}>
@@ -336,7 +346,14 @@ const ProfileSetting = () => {
           )}
         </View>
       )}
-
+      <DeleteAccount
+        visible={showDeleteModal}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+        }}
+        phoneNumber={profileData?.mobileNumber}
+      />
     </ScrollView>
   );
 };

@@ -367,13 +367,13 @@ const StorekeeperProfileScreen = () => {
                           style={styles.removeIcon}
                           onPress={() => handleRemoveImage(i)}
                         >
-                          <Icon name="x" size={16} color="#fff" />
+                          <Icon name="x" size={16} color={Colors.white} />
                         </TouchableOpacity>
                       )}
                     </View>
                   ) : (
                     <View style={[styles.image, styles.emptyImage]}>
-                      <Text style={{ color: '#888', fontSize: 20 }}>+</Text>
+                      <Text style={{ color: Colors.secondaryText, fontSize: 20 }}>+</Text>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -431,7 +431,7 @@ const StorekeeperProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
   },
   header: {
     fontSize: 22,
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.secondary,
     marginBottom: 4,
   },
   profileHeader: {
@@ -472,16 +472,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: 'center',
   },
-  fixedSaveButton: {
-    width: '100%',
-    backgroundColor: '#007bff',
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    zIndex: 11,
-  },
+
   saveButtonText: {
-    color: '#fff',
+    color: Colors.white,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -498,7 +491,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#ff4444',
+    backgroundColor: Colors.reject,
     borderRadius: 12,
     padding: 4,
     zIndex: 10,
@@ -511,16 +504,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorInput: {
-    borderColor: '#ff4444',
+    borderColor: Colors.reject,
   },
   errorText: {
-    color: '#ff4444',
+    color: Colors.reject,
     fontSize: 12,
     marginTop: 4,
   },
   sectionContainer: {
     marginBottom: 24,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.sectionBackground,
     borderRadius: 8,
     padding: 16,
   },
@@ -528,7 +521,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
+    color: Colors.secondary,
   },
   saveButtonContainer: {
     height: 70,
