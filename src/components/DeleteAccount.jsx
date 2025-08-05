@@ -16,7 +16,6 @@ import Fonts from '../styles/font';
 import { sendOtp, verifyOtp } from '../services/authApi';
 import { showToast } from '../utils/toastUtils';
 import CustomButton from '../components/CustomButton';
-import { deleteAccount } from '../services/common/deleteAccountService';
 import { useSafeRouter } from '../hooks/useSafeRouter';
 const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
   const [otp, setOtp] = useState('');
@@ -55,40 +54,7 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
   const handleDelete = async () => {
     Keyboard.dismiss();
 
-    // 🕐 Small delay to allow keyboard to fully close before continuing
-    setTimeout(async () => {
-      if (otp.length !== 4) {
-        Alert.alert('Invalid OTP', 'Please enter a valid 4-digit OTP.');
-        return;
-      }
-      try {
-        setLoading(true);
-        const data = await verifyOtp(phoneNumber, otp);
-
-        if (!data?.token) {
-          Alert.alert('Invalid OTP', 'The OTP you entered is incorrect.');
-          return;
-        }
-
-        await deleteAccount(data.token);
-        onConfirm();
-
-        try {
-          safePush('Home');
-        } catch (navError) {
-          console.error('Navigation error:', navError);
-          showToast('error', 'Navigation failed', 'Please restart the app');
-        }
-      } catch (error) {
-        console.error('Verification or deletion failed:', error);
-        Alert.alert(
-          'Error',
-          error?.message || 'Something went wrong. Try again.',
-        );
-      } finally {
-        setLoading(false);
-      }
-    }, 150); // ✅ This 150ms delay is the key
+    // todo :integrateApi
   };
 
   return (
