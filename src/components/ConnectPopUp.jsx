@@ -10,6 +10,7 @@ import {
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
+import strings from '../constants/string';
 
 const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
   if (!visible) return null;
@@ -25,7 +26,7 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
 
   const handleWhatsApp = () => {
     onClose?.();
-    const message = "Hello, I'm contacting you regarding your order.";
+    const message = `${strings.whatsAppMessage}`;
     Linking.openURL(
       `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`,
     ).catch(err => console.error('WhatsApp error:', err));
@@ -46,13 +47,13 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
       >
         <Pressable style={styles.popupItem} onPress={handleCall}>
           <View style={styles.row}>
-            <Text style={styles.popupText}>Call</Text>
+            <Text style={styles.popupText}>{strings.call}</Text>
             <FontAwesome5 name="phone" size={15} color={Colors.secondary} />
           </View>
         </Pressable>
         <Pressable style={styles.popupItem} onPress={handleWhatsApp}>
           <View style={styles.row}>
-            <Text style={styles.popupText}>WhatsApp</Text>
+            <Text style={styles.popupText}>{strings.whatsapp}</Text>
             <FontAwesome5 name="whatsapp" size={18} color={Colors.primary} />
           </View>
         </Pressable>

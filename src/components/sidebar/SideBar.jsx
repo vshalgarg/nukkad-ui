@@ -91,12 +91,12 @@ const SideBar = ({ isVisible, onClose }) => {
     userRole === 'CUSTOMER'
       ? { name: 'My Orders', icon: 'bag-add' }
       : { name: 'Order History', icon: 'time' };
-  const storekeeperExtraItems =
+  const STOREKEEPERExtraItems =
     userRole === 'STOREKEEPER'
       ? [{ name: 'Payment Options', icon: 'card' }]
       : [];
 
-  const menuItems = [roleBasedItem, ...storekeeperExtraItems, ...baseMenuItems];
+  const menuItems = [roleBasedItem, ...STOREKEEPERExtraItems, ...baseMenuItems];
 
   const getRouteForMenuItem = (menuName, userRole) => {
     const routes = {
@@ -110,7 +110,7 @@ const SideBar = ({ isVisible, onClose }) => {
       'Refer Store to Customer': 'ReferToCustomer',
       'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
-      'My Stores': 'MyStores'
+      'My Stores': 'MyStores',
     };
     if (menuName === 'My Orders' || menuName === 'Order History') {
       return 'Orders';
@@ -184,17 +184,18 @@ const SideBar = ({ isVisible, onClose }) => {
         ]}
       >
         <View style={styles.profileContainer}>
-          {imageUri ? (
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={{ overflow: 'hidden', borderRadius: 30 }}>
-              <ProfileImage height={60} width={60} />
-            </View>
-          )}
+          <View style={styles.details}>
+            {imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={{ overflow: 'hidden', borderRadius: 30 }}>
+                <ProfileImage height={60} width={60} />
+              </View>
+            )}
 
           <View style={styles.profileTextContainer}>
             <Text style={styles.profileName} numberOfLines={1}
@@ -282,6 +283,12 @@ const styles = StyleSheet.create({
     gap: 10,
     width: '100%',
   },
+  details: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width:"90%",
+    gap:10,
+  },
   profileImage: {
     width: 60,
     height: 60,
@@ -290,7 +297,6 @@ const styles = StyleSheet.create({
   profileTextContainer: {
     maxWidth: screenWidth * 0.55,
     flexShrink: 1,
-
   },
   profileName: {
     fontSize: Fonts.sizes.base,

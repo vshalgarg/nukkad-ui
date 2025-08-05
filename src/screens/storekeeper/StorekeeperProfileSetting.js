@@ -15,7 +15,11 @@ import Toast from 'react-native-toast-message';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { z } from 'zod';
 import { Keyboard } from 'react-native';
-import { LinearGradient } from 'react-native-linear-gradient';
+import strings from '../../constants/string';
+import CustomButton from '../../components/CustomButton';
+import Colors from '../../styles/colors';
+import BackButton from '../../components/BackButton';
+import CustomInput from '../../components/CustomInput';
 
 const profileSchema = z.object({
     name: z.string().min(1, "Name is required").max(30, "Name can't be more that 30 characters"),

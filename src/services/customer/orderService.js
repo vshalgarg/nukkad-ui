@@ -13,16 +13,19 @@ export const placeOrder = async (orderData, token) => {
     console.log('✅ Order Api response', res.data);
     return res.data;
   } catch (err) {
-    console.error('❌ Order Error Full:', {
+    const errorData = {
       message: err.message,
       status: err.response?.status,
-      headers: err.response?.headers,
       data: err.response?.data,
-    });
+      stack: err.stack,
+    };
+
+    console.error('❌ Order Error Fail:', errorData.data);
+
     throw new Error(
       err.response?.data?.error ||
         err.response?.data?.message ||
-        `Request failed with status ${err.response?.status}`,
+        'Unhandled exception while placing order',
     );
   }
 };

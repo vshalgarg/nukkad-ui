@@ -1,5 +1,5 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -13,7 +13,6 @@ import {
 
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
-import { useAddress } from '../../contexts/addressContext';
 import { useProfile } from '../../contexts/profileContext';
 import styles from '../../styles/globalStyles';
 import Colors from '../../styles/colors';
@@ -27,6 +26,8 @@ import { useDispatch } from 'react-redux';
 import Fonts from '../../styles/font';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 // import { setCartUser } from '../../store/cartSlice';
+import { validateCustomerProfile } from '../../schema/validation';
+import strings from '../../constants/string';
 
 let pressLock = false;
 
@@ -46,8 +47,16 @@ const CustomerCreateProfile = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const nameRef = useRef();
+  const emailRef = useRef();
+  const addressRef = useRef();
+  const landmarkRef = useRef();
+  const cityRef = useRef();
+  const stateRef = useRef();
+  const pincodeRef = useRef();
+
   const { token } = useAuth();
-  const { profile, createProfile } = useProfile();
+  const { createProfile } = useProfile();
 
   const { safePush } = useSafeRouter();
   const route = useRoute();
@@ -67,11 +76,6 @@ const CustomerCreateProfile = () => {
     if (params.mobile) setMobile(params.mobile);
   }, [params]);
 
-  const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isAlpha = text => /^[A-Za-z\s]{2,}$/.test(text);
-  const isValidAddress = text => /^[a-zA-Z0-9\s,\/-]*$/.test(text);
-  const isValidPincode = pin => /^\d{6}$/.test(pin);
-
   const formatDateYYYYMMDD = date => {
     if (!(date instanceof Date) || isNaN(date)) return null;
     const year = date.getFullYear();
@@ -82,7 +86,22 @@ const CustomerCreateProfile = () => {
 
   const handleDobChange = (event, selectedDate) => {
     setShowDatePicker(false);
-    if (selectedDate) setDob(selectedDate);
+
+    if (event.type === 'dismissed') return; // prevent setting date if dismissed
+
+    const currentDate = selectedDate || dob;
+    const today = new Date();
+
+    // Optional: Validate that DOB is not in the future and user is at least 13 years old
+    const age = today.getFullYear() - currentDate.getFullYear();
+    const isFutureDate = currentDate > today;
+
+    if (isFutureDate || age < 13) {
+      setErrors(prev => ({ ...prev, dob: true }));
+    } else {
+      setDob(currentDate);
+      setErrors(prev => ({ ...prev, dob: false }));
+    }
   };
 
   const handleContinue = async () => {
@@ -90,117 +109,83 @@ const CustomerCreateProfile = () => {
     pressLock = true;
     setIsSubmitting(true);
 
-    const newErrors = {};
-    let firstErrorMessage = '';
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      dob,
+      mobile,
+      addressLine1: addressLine1.trim(),
+      addressLine2: addressLine2.trim(),
+      landmark: landmark.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      pincode: pincode.trim(),
+    };
 
-    if (!name.trim()) {
-      newErrors.name = true;
-      firstErrorMessage ||= 'Please enter your name.';
-    } else if (!isAlpha(name)) {
-      newErrors.name = true;
-      firstErrorMessage ||= 'Name must contain only letters.';
-    }
+    const { isValid, fieldErrors, message } = validateCustomerProfile(payload);
 
-    if (!email.trim()) {
-      newErrors.email = true;
-      firstErrorMessage ||= 'Please enter your email.';
-    } else if (!isValidEmail(email)) {
-      newErrors.email = true;
-      firstErrorMessage ||= 'Invalid email format.';
-    }
+    setErrors(fieldErrors);
 
-    if (!dob) {
-      newErrors.dob = true;
-      firstErrorMessage ||= 'Please select your date of birth.';
-    }
+    if (!isValid) {
+      showToast('error', message);
 
-    if (!addressLine1.trim() || !isValidAddress(addressLine1)) {
-      newErrors.addressLine1 = true;
-      firstErrorMessage ||= 'Invalid Address Line 1.';
-    }
-
-    if (!landmark.trim() || landmark.length < 2) {
-      newErrors.landmark = true;
-      firstErrorMessage ||= 'Please enter a landmark.';
-    }
-
-    if (!city.trim() || !isAlpha(city)) {
-      newErrors.city = true;
-      firstErrorMessage ||= 'Invalid city name.';
-    }
-
-    if (!state.trim() || !isAlpha(state)) {
-      newErrors.state = true;
-      firstErrorMessage ||= 'Invalid state name.';
-    }
-
-    if (!pincode.trim() || !isValidPincode(pincode)) {
-      newErrors.pincode = true;
-      firstErrorMessage ||= 'Pincode must be 6 digits.';
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      if (firstErrorMessage) showToast('error', firstErrorMessage);
-      setIsSubmitting(false);
+      // Auto focus first invalid field
+      if (fieldErrors.name) nameRef.current?.focus();
+      else if (fieldErrors.email) emailRef.current?.focus();
+      else if (fieldErrors.addressLine1) addressRef.current?.focus();
+      else if (fieldErrors.landmark) landmarkRef.current?.focus();
+      else if (fieldErrors.city) cityRef.current?.focus();
+      else if (fieldErrors.state) stateRef.current?.focus();
+      else if (fieldErrors.pincode) pincodeRef.current?.focus();
       pressLock = false;
       return;
     }
 
-    const nameParts = name.trim().split(' ');
+    const nameParts = payload.name.split(' ');
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
 
-    const payload = {
-      name,
-      email,
-      mobile,
-      dob: formatDateYYYYMMDD(dob),
-      addressLine1,
-      addressLine2,
-      landmark,
-      city,
-      state,
-      pincode,
+    const formattedPayload = {
+      ...payload,
+      dob: formatDateYYYYMMDD(payload.dob),
     };
 
     const newAddress = {
       id: Date.now().toString(),
-      name,
-      addressLine1,
+      name: payload.name,
+      addressLine1: payload.addressLine1,
       addressLine2,
-      landmark,
-      city,
-      state,
-      pincode,
+      landmark: payload.landmark,
+      city: payload.city,
+      state: payload.state,
+      pincode: payload.pincode,
     };
 
     try {
-      await createCustomerProfile(payload, token);
+      await createCustomerProfile(formattedPayload, token);
 
       const newProfile = {
         firstName,
         lastName,
-        email,
+        email: payload.email,
         mobile,
-        dob: formatDateYYYYMMDD(dob),
+        dob: formatDateYYYYMMDD(payload.dob),
         role: 'customer',
         image: null,
-      };
+      }; 
 
       await createProfile(newProfile);
       // dispatch(setCartUser(profile.userId));
 
-      showToast('success', 'Registered Successfully');
+      showToast('success', strings.registeredSuccessfully);
       Keyboard.dismiss();
       setTimeout(() => {
         pressLock = false;
         safePush('AddStore', { hideBackButton: true });
       }, 100);
     } catch (err) {
-      console.error(err);
-      showToast('error', 'Profile creation failed.');
+      showToast('error', err.message);
+
       pressLock = false;
     } finally {
       setIsSubmitting(false);
@@ -211,7 +196,7 @@ const CustomerCreateProfile = () => {
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <View style={localStyles.createProfileStyling}>
         <Text style={[localStyles.header, textStyles.subheading]}>
-          My Profile
+          {strings.myProfile}
         </Text>
       </View>
 
@@ -230,21 +215,33 @@ const CustomerCreateProfile = () => {
             <View style={localStyles.centerContainer}>
               <View style={[localStyles.formContainer, { marginTop: 30 }]}>
                 <Text style={localStyles.label}>
-                  Name <Text style={localStyles.mandatory}>*</Text>
+                  {strings.name} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
                   maxLength={35}
-                  onTextChange={text =>
-                    setName(text.replace(/[^a-zA-Z\s]/g, ''))
-                  }
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                    setName(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        name:
+                          cleaned.trim().length >= 2 &&
+                          /^[A-Za-z\s]+$/.test(cleaned)
+                            ? false
+                            : true,
+                      }));
+                    }
+                  }}
                   autoCapitalize="words"
                   isError={errors.name}
                 />
 
                 <Text style={localStyles.label}>
-                  Contact Number <Text style={localStyles.mandatory}>*</Text>
+                  {strings.mobile} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   value={mobile}
@@ -256,20 +253,31 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Email <Text style={localStyles.mandatory}>*</Text>
+                  {strings.email} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={emailRef}
                   placeholder="Enter Your Email"
                   value={email}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  onTextChange={setEmail}
+                  onTextChange={text => {
+                    setEmail(text);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text.trim())
+                          ? false
+                          : true,
+                      }));
+                    }
+                  }}
                   maxLength={38}
                   isError={errors.email}
                 />
 
                 <Text style={localStyles.label}>
-                  Date of Birth <Text style={localStyles.mandatory}>*</Text>
+                  {strings.dob} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <Pressable onPress={() => setShowDatePicker(true)}>
                   <View
@@ -298,19 +306,28 @@ const CustomerCreateProfile = () => {
                 )}
 
                 <Text style={localStyles.label}>
-                  Address Line 1 <Text style={localStyles.mandatory}>*</Text>
+                  {strings.addressLine1}
+                  <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={addressRef}
                   value={addressLine1}
                   placeholder="Enter Your Address"
                   maxLength={38}
-                  onTextChange={text =>
-                    setAddressLine1(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
-                  }
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z0-9\s,\/-]/g, '');
+                    setAddressLine1(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        addressLine1: cleaned.trim().length > 0 ? false : true,
+                      }));
+                    }
+                  }}
                   isError={errors.addressLine1}
                 />
 
-                <Text style={localStyles.label}>Address Line 2</Text>
+                <Text style={localStyles.label}>{strings.addressLine2}</Text>
                 <CustomInput
                   value={addressLine2}
                   placeholder="Enter Address Line 2"
@@ -321,59 +338,94 @@ const CustomerCreateProfile = () => {
                 />
 
                 <Text style={localStyles.label}>
-                  Landmark <Text style={localStyles.mandatory}>*</Text>
+                  {strings.landmark}{' '}
+                  <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={landmarkRef}
                   value={landmark}
                   placeholder="Enter Landmark"
-                  onTextChange={setLandmark}
-                  maxLength={38}
+                  onTextChange={text => {
+                    setLandmark(text);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        landmark: text.trim().length >= 2 ? false : true,
+                      }));
+                    }
+                  }}
+                  maxLength={20}
                   isError={errors.landmark}
                 />
 
                 <Text style={localStyles.label}>
-                  City <Text style={localStyles.mandatory}>*</Text>
+                  {strings.city} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={cityRef}
                   placeholder="Enter City"
                   value={city}
-                  onTextChange={text =>
-                    setCity(text.replace(/[^a-zA-Z\s]/g, ''))
-                  }
-                  maxLength={38}
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                    setCity(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        city: cleaned.trim().length >= 2 ? false : true,
+                      }));
+                    }
+                  }}
+                  maxLength={20}
                   isError={errors.city}
                 />
 
                 <Text style={localStyles.label}>
-                  State <Text style={localStyles.mandatory}>*</Text>
+                  {strings.state} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={stateRef}
                   placeholder="Enter State"
                   value={state}
-                  onTextChange={text =>
-                    setState(text.replace(/[^a-zA-Z\s]/g, ''))
-                  }
-                  maxLength={38}
+                  onTextChange={text => {
+                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                    setState(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        state: cleaned.trim().length >= 2 ? false : true,
+                      }));
+                    }
+                  }}
+                  maxLength={20}
                   isError={errors.state}
                 />
 
                 <Text style={localStyles.label}>
-                  Pincode <Text style={localStyles.mandatory}>*</Text>
+                  {strings.pincode} <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  ref={pincodeRef}
                   value={pincode}
                   placeholder="Enter Pincode"
                   keyboardType="number-pad"
                   maxLength={6}
-                  onTextChange={setPincode}
+                  onTextChange={text => {
+                    const cleaned = text.replace(/\D/g, '');
+                    setPincode(cleaned);
+                    if (isSubmitting) {
+                      setErrors(prev => ({
+                        ...prev,
+                        pincode: /^\d{6}$/.test(cleaned) ? false : true,
+                      }));
+                    }
+                  }}
                   isError={errors.pincode}
                 />
 
                 <View style={localStyles.buttonWrapper}>
                   <CustomButton
-                    title={isSubmitting ? 'Please wait...' : 'Continue'}
+                    title={strings.continue}
                     onPress={handleContinue}
-                    disabled={isSubmitting}
                   />
                 </View>
               </View>

@@ -9,6 +9,7 @@ import {
   clearCartAPI,
 } from '../../services/customer/cartService';
 import { useAuth } from '../../contexts/authContext';
+import strings from '../../constants/string';
 
 const OrderHistory = ({
   order,
@@ -115,22 +116,22 @@ const OrderHistory = ({
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
       <View style={styles.rowBetween}>
         <View style={styles.columnBetweenDetail}>
-          <Text style={styles.name}>Order ID: {order.orderId}</Text>
+          <Text style={styles.name}>{strings.orderId} {order.orderId}</Text>
           {role === 'CUSTOMER' ? (
             <Text style={styles.name}>
-              Store: <Text style={styles.values}>{shopName}</Text>
+              {strings.store} <Text style={styles.values}>{shopName}</Text>
             </Text>
           ) : (
-            <Text style={styles.name}>Customer: {order.customerName}</Text>
+            <Text style={styles.name}>{strings.customer} {order.customerName}</Text>
           )}
           {(order.orderStatus === 'DELIVERED' ||
             order.orderStatus === 'DISPATCHED') && (
             <Text style={styles.name}>
-              Total Price: <Text style={styles.values}>₹{totalPrice}</Text>
+              {strings.totalPrice} <Text style={styles.values}>₹{totalPrice}</Text>
             </Text>
           )}
           <Text style={styles.name}>
-            Total Items: <Text style={styles.values}>{totalQuantity}</Text>
+            {strings.totalItems}<Text style={styles.values}>{totalQuantity}</Text>
           </Text>
         </View>
         <View style={styles.columnBetweenStatus}>
@@ -157,7 +158,7 @@ const OrderHistory = ({
 
           {role === 'CUSTOMER' && (
             <TouchableOpacity onPress={handleRepeatOrder}>
-              <Text style={styles.repeat}>Repeat Order</Text>
+              <Text style={styles.repeat}>{strings.repeatOrder}</Text>
             </TouchableOpacity>
           )}
         </View>

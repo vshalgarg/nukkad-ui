@@ -3,14 +3,12 @@ import { Pressable, StyleSheet, View, Text, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import textStyles from '../styles/textStyles';
-import Fonts from '../styles/font';
 import Colors from '../styles/colors';
 
 const screenWidth = Dimensions.get('window').width;
 
 const BackButton = ({
   title,
-  backgroundColor = Colors.backbuttonColor,
   onPress,
 }) => {
   const navigation = useNavigation();
@@ -55,12 +53,10 @@ const innerStyle = StyleSheet.create({
     zIndex: 10,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    // backgroundColor:"red"
   },
   title: {
     flex: 1,
     textAlign: 'center',
-    // backgroundColor:"red",
     marginLeft:-25,
     zIndex: 1,
   },

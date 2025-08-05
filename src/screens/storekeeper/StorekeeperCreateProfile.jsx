@@ -18,6 +18,9 @@ import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
 import Fonts from '../../styles/font';
 import { useAuth } from '../../contexts/authContext';
+import { createStorekeeperProfile } from '../../services/storekeeper/storekeeperProfileService';
+import { storekeeperProfileSchema } from '../../schema/validation';
+import strings from '../../constants/string';
 
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
@@ -35,92 +38,36 @@ const StorekeeperCreateProfile = () => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
+  const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
+
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
+  const nameRef = useRef();
+  const storeNameRef = useRef();
+  const contactNumberRef = useRef();
+  const gstRef = useRef();
+  const address1Ref = useRef();
+  const address2Ref = useRef();
+  const landmarkRef = useRef();
+  const cityRef = useRef();
+  const stateRef = useRef();
+  const pincodeRef = useRef();
 
   const { token } = useAuth();
- 
-  const {  createStorekeeperProfile } = useStorekeeperProfile();
+
+  const { createStorekeeperProfile } = useStorekeeperProfile();
   const { safePush } = useSafeRouter();
 
-  const sanitizeText = (text, regex, setter) => {
-    setter(text.replace(regex, ''));
-  };
-
-  const isAlpha = text => /^[A-Za-z\s]{2,}$/.test(text);
-  const isValidAddress = text => /^[a-zA-Z0-9\s,\/-]*$/.test(text);
-  const isValidPincode = pin => /^\d{6}$/.test(pin);
-
   const handleContinue = useCallback(async () => {
+    // setHasTriedSubmit(true);
+    console.log('hadleContinue Pressed');
     if (pressLock) return;
     pressLock = true;
 
-    isSubmittingRef.current = true;
+    // isSubmittingRef.current = true;
     setIsSubmitting(true);
 
-    const newErrors = {};
-    let firstErrorMessage = '';
-
-    if (!name.trim()) {
-      newErrors.name = true;
-      firstErrorMessage ||= 'Enter your name.';
-    } else if (!isAlpha(name)) {
-      newErrors.name = true;
-      firstErrorMessage ||= 'Invalid name.';
-    }
-
-    if (!storeName.trim()) {
-      newErrors.storeName = true;
-      firstErrorMessage ||= 'Enter store name.';
-    }
-
-    if (!contactNumber.trim()) {
-      newErrors.contactNumber = true;
-      firstErrorMessage ||= 'Enter contact number.';
-    }
-
-    if (!gstNum.trim()) {
-      newErrors.gstNum = true;
-      firstErrorMessage ||= 'Enter valid GSTIN number.';
-    }
-
-    if (!addressLine1.trim() || !isValidAddress(addressLine1)) {
-      newErrors.addressLine1 = true;
-      firstErrorMessage ||= 'Invalid address.';
-    }
-
-    if (!landmark.trim() || landmark.length < 2) {
-      newErrors.landmark = true;
-      firstErrorMessage ||= 'Enter landmark.';
-    }
-
-    if (!city.trim() || !isAlpha(city)) {
-      newErrors.city = true;
-      firstErrorMessage ||= 'Invalid city.';
-    }
-
-    if (!state.trim() || !isAlpha(state)) {
-      newErrors.state = true;
-      firstErrorMessage ||= 'Invalid state.';
-    }
-
-    if (!pincode.trim() || !isValidPincode(pincode)) {
-      newErrors.pincode = true;
-      firstErrorMessage ||= 'Invalid pincode.';
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      if (firstErrorMessage) showToast('error', firstErrorMessage);
-      setIsSubmitting(false);
-      isSubmittingRef.current = false;
-      pressLock = false;
-      return;
-    }
-
-
-    const payload = {
+    const formData = {
       name,
       storeName,
       contactNumber,
@@ -134,24 +81,81 @@ const StorekeeperCreateProfile = () => {
       images,
     };
 
+    const result = storekeeperProfileSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors = {};
+      let message = '';
+
+      for (const err of result.error.errors) {
+        const field = err.path[0];
+        if (field) fieldErrors[field] = true;
+        if (!message) message = err.message;
+      }
+
+      setErrors(fieldErrors);
+      if (message) {
+        showToast('error', message);
+        console.log('Zod validation errors:', result.error.format());
+      }
+
+      // Auto-focus on the first invalid input
+      if (fieldErrors.name) nameRef.current?.focus();
+      else if (fieldErrors.storeName) storeNameRef.current?.focus();
+      else if (fieldErrors.contactNumber) contactNumberRef.current?.focus();
+      else if (fieldErrors.gstNum) gstRef.current?.focus();
+      else if (fieldErrors.addressLine1) address1Ref.current?.focus();
+      else if (fieldErrors.landmark) landmarkRef.current?.focus();
+      else if (fieldErrors.city) cityRef.current?.focus();
+      else if (fieldErrors.state) stateRef.current?.focus();
+      else if (fieldErrors.pincode) pincodeRef.current?.focus();
+
+      setIsSubmitting(false);
+      isSubmittingRef.current = false;
+      pressLock = false;
+      return;
+    }
+
+    // ✅ Proceed with submission
+    // const nameParts = name.trim().split(' ');
+    // const updatedProfile = {
+    //   ...profile,
+    //   firstName: nameParts[0],
+    //   lastName: nameParts.slice(1).join(' '),
+    //   contactNumber,
+    //   storeName,
+    //   role: 'storekeeper',
+    // };
+
+    // const newAddress = {
+    //   storeName,
+    //   contactNumber,
+    //   addressLine1,
+    //   addressLine2,
+    //   landmark,
+    //   city,
+    //   pincode,
+    // };
+    console.log('isSubmitting', isSubmitting);
+    console.log('Zod result:', result);
     try {
-      
-      await createStorekeeperProfile(payload, token);
-      showToast('success', 'Registered Successfully');
-      setTimeout(() => (pressLock = false), 1500); 
+      console.log('try block called');
+      await createStorekeeperProfile(formData, token);
+      showToast('success', strings.registeredSuccessfully);
+      // setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
     } catch (err) {
       console.error('❌ Storekeeper profile error:', err.message);
-      showToast('error', 'Profile update failed.');
-      pressLock = false;
+      showToast('error', strings.failedToCreateProfile);
+      state, (pressLock = false);
     } finally {
+      console.log('finally');
       setIsSubmitting(false);
       isSubmittingRef.current = false;
     }
   }, [
     name,
     storeName,
-    contactNumber,
     gstNum,
     addressLine1,
     addressLine2,
@@ -159,7 +163,8 @@ const StorekeeperCreateProfile = () => {
     city,
     state,
     pincode,
-    safePush,
+    contactNumber,
+    images,
     token,
   ]);
 
@@ -167,14 +172,14 @@ const StorekeeperCreateProfile = () => {
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <View style={innerStyles.createProfileStyling}>
         <Text style={[innerStyles.header, textStyles.subheading]}>
-          My Profile
+          {strings.myProfile}
         </Text>
       </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 100}
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -189,116 +194,224 @@ const StorekeeperCreateProfile = () => {
         >
           <View style={innerStyles.centerContainer}>
             <View style={[innerStyles.formContainer, { marginTop: 30 }]}>
-              <LabelledInput
-                label="Storekeeper Name"
-                value={name}
-                required
+              <Text style={innerStyles.label}>
+                {strings.storekeeperName}{' '}
+                <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={nameRef}
                 placeholder="Enter Your Name"
-                onChange={text => sanitizeText(text, /[^a-zA-Z\s]/g, setName)}
+                value={name}
                 maxLength={30}
+                autoCapitalize="words"
+                onTextChange={text => {
+                  const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                  setName(cleaned);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      name: /^[A-Za-z\s]{2,}$/.test(cleaned.trim())
+                        ? false
+                        : true,
+                    }));
+                  }
+                }}
                 isError={errors.name}
-                autoFocus
-              />
-              <LabelledInput
-                label="Store Name"
-                value={storeName}
-                required
-                placeholder="Enter Store Name"
-                onChange={setStoreName}
-                maxLength={30}
-                isError={errors.storeName}
-                autoFocus
-              />
-              <LabelledInput
-                label="Contact Number"
-                value={contactNumber}
-                placeholder="Enter Contact Number"
-                onChange={setContactNumber}
-                keyboardType="phone-pad"
-                maxLength={10}
-                isError={errors.contactNumber}
-                required
-                autoFocus
-              />
-              <LabelledInput
-                label="GSTIN"
-                value={gstNum}
-                required
-                placeholder="Enter GSTIN Number"
-                autoCapitalize="characters"
-                onChange={text => setGstNum(text.toUpperCase())}
-                maxLength={15}
-                isError={errors.gstNum}
-                autoFocus
-              />
-              <LabelledInput
-                label="Address Line 1"
-                value={addressLine1}
-                required
-                placeholder="Enter Address"
-                onChange={text =>
-                  sanitizeText(text, /[^a-zA-Z0-9\s,\/-]/g, setAddressLine1)
-                }
-                maxLength={40}
-                isError={errors.addressLine1}
-                autoFocus
-              />
-              <LabelledInput
-                label="Address Line 2"
-                value={addressLine2}
-                placeholder="Enter Address Line 2"
-                onChange={text =>
-                  sanitizeText(text, /[^a-zA-Z0-9\s,\/-]/g, setAddressLine2)
-                }
-                maxLength={40}
-                autoFocus
-              />
-              <LabelledInput
-                label="Landmark"
-                value={landmark}
-                required
-                placeholder="Enter Landmark"
-                onChange={setLandmark}
-                maxLength={40}
-                isError={errors.landmark}
-              />
-              <LabelledInput
-                label="City"
-                value={city}
-                required
-                placeholder="Enter City"
-                onChange={text => sanitizeText(text, /[^a-zA-Z\s]/g, setCity)}
-                maxLength={40}
-                isError={errors.city}
-              />
-              <LabelledInput
-                label="State"
-                value={state}
-                required
-                placeholder="Enter State"
-                onChange={text => sanitizeText(text, /[^a-zA-Z\s]/g, setState)}
-                maxLength={40}
-                isError={errors.state}
-              />
-              <LabelledInput
-                label="Pincode"
-                value={pincode}
-                required
-                placeholder="Enter Pincode"
-                keyboardType="number-pad"
-                onChange={setPincode}
-                maxLength={6}
-                isError={errors.pincode}
               />
 
-              <Text style={innerStyles.label}>Upload Store Picture</Text>
+              <Text style={innerStyles.label}>
+                {strings.storeName} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={storeNameRef}
+                placeholder="Enter Store Name"
+                value={storeName}
+                maxLength={30}
+                onTextChange={text => {
+                  setStoreName(text);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      storeName: text.trim().length > 0 ? false : true,
+                    }));
+                  }
+                }}
+                isError={errors.storeName}
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.mobile} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={contactNumberRef}
+                placeholder="Enter Contact Number"
+                value={contactNumber}
+                keyboardType="phone-pad"
+                maxLength={10}
+                onTextChange={text => {
+                  const cleaned = text.replace(/\D/g, '');
+                  setContactNumber(cleaned);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      contactNumber: cleaned.length === 10 ? false : true,
+                    }));
+                  }
+                }}
+                isError={errors.contactNumber}
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.gst} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={gstRef}
+                placeholder="Enter GSTIN Number"
+                value={gstNum}
+                autoCapitalize="characters"
+                onChange={text => setGstNum(text)}
+                maxLength={15}
+                onTextChange={text => {
+                  const upper = text;
+                  setGstNum(upper);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      gstNum: upper.length === 15 ? false : true,
+                    }));
+                  }
+                }}
+                isError={errors.gstNum}
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.addressLine1}{' '}
+                <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={address1Ref}
+                placeholder="Enter Address"
+                value={addressLine1}
+                maxLength={40}
+                onTextChange={text => {
+                  const cleaned = text.replace(/[^a-zA-Z0-9\s,\/-]/g, '');
+                  setAddressLine1(cleaned);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      addressLine1: cleaned.trim().length > 0 ? false : true,
+                    }));
+                  }
+                }}
+                isError={errors.addressLine1}
+              />
+
+              <Text style={innerStyles.label}>{strings.addressLine2}</Text>
+              <CustomInput
+                ref={address2Ref}
+                placeholder="Enter Address Line 2"
+                value={addressLine2}
+                maxLength={40}
+                onTextChange={text =>
+                  setAddressLine2(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
+                }
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.landmark} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={landmarkRef}
+                placeholder="Enter Landmark"
+                value={landmark}
+                maxLength={40}
+                onTextChange={text => {
+                  setLandmark(text);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      landmark: text.trim().length >= 2 ? false : true,
+                    }));
+                  }
+                }}
+                isError={errors.landmark}
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.city} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={cityRef}
+                placeholder="Enter City"
+                value={city}
+                maxLength={40}
+                onTextChange={text => {
+                  const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                  setCity(cleaned);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      city: /^[A-Za-z\s]{2,}$/.test(cleaned.trim())
+                        ? false
+                        : true,
+                    }));
+                  }
+                }}
+                isError={errors.city}
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.state} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={stateRef}
+                placeholder="Enter State"
+                value={state}
+                maxLength={40}
+                onTextChange={text => {
+                  const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
+                  setState(cleaned);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      state: /^[A-Za-z\s]{2,}$/.test(cleaned.trim())
+                        ? false
+                        : true,
+                    }));
+                  }
+                }}
+                isError={errors.state}
+              />
+
+              <Text style={innerStyles.label}>
+                {strings.pincode} <Text style={innerStyles.mandatory}>*</Text>
+              </Text>
+              <CustomInput
+                ref={pincodeRef}
+                placeholder="Enter Pincode"
+                value={pincode}
+                keyboardType="number-pad"
+                maxLength={6}
+                onTextChange={text => {
+                  const cleaned = text.replace(/\D/g, '');
+                  setPincode(cleaned);
+                  if (hasTriedSubmit) {
+                    setErrors(prev => ({
+                      ...prev,
+                      pincode: /^\d{6}$/.test(cleaned) ? false : true,
+                    }));
+                  }
+                }}
+                isError={errors.pincode}
+              />
+              <Text style={innerStyles.label}>{strings.uploadStoreImage}</Text>
               <StoreImageUploader images={images} setImages={setImages} />
 
               <View style={innerStyles.buttonWrapper}>
                 <CustomButton
                   title={'Continue'}
                   onPress={handleContinue}
-                  disabled={isSubmitting}
+                  // disabled={isSubmitting}
                 />
               </View>
             </View>
@@ -308,27 +421,6 @@ const StorekeeperCreateProfile = () => {
     </View>
   );
 };
-
-const LabelledInput = ({
-  label,
-  value,
-  onChange,
-  required = false,
-  isError = false,
-  ...props
-}) => (
-  <View>
-    <Text style={innerStyles.label}>
-      {label} {required && <Text style={innerStyles.mandatory}>*</Text>}
-    </Text>
-    <CustomInput
-      value={value}
-      onTextChange={onChange}
-      isError={isError}
-      {...props}
-    />
-  </View>
-);
 
 const innerStyles = StyleSheet.create({
   createProfileStyling: {

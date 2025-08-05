@@ -14,9 +14,11 @@ import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import DropDownPicker from 'react-native-dropdown-picker';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { getOrderHistory } from '../../services/common/OrderHistoryService';
+import {
+  fetchOrderHistory,
+} from '../../services/common/OrderHistoryService';
 import { useAuth } from '../../contexts/authContext';
-
+import strings from '../../constants/string';
 
 const FilterModal = ({
   visible,
@@ -47,22 +49,25 @@ const FilterModal = ({
       year: 'numeric',
     });
   };
-  const {token}=useAuth();
+  const { token } = useAuth();
   const handleClearFilter = async () => {
-    console.log('clear pressed');
-    const res = await getOrderHistory(token);
-    setOrders(Array.isArray(res) ? res : []);
-    setDateFrom(''), setDateTo('');
-    setMaxPrice('');
-    setMinPrice('');
-    setSelectedStatus('');
+    try {
+      setDateFrom('');
+      setDateTo('');
+      setMaxPrice('');
+      setMinPrice('');
+      setSelectedStatus('');
+    } catch (err) {
+      console.error('Failed to clear filter:', err);
+      Alert.alert('Error', 'Something went wrong while clearing filters.');
+    }
   };
   const [open, setOpen] = useState(false);
 
   const [statusItems, setStatusItems] = useState([
     { label: 'Pending', value: 'PENDING' },
     { label: 'In Progress', value: 'IN_PROGRESS' },
-    { label: 'Dispatched', value: 'DISPATCH' },
+    { label: 'Dispatched', value: 'DISPATCHED' },
     { label: 'Delivered', value: 'DELIVERED' },
     { label: 'Cancelled', value: 'CANCELLED' },
   ]);
@@ -151,10 +156,10 @@ const FilterModal = ({
                 alignItems: 'center',
               }}
             >
-              <Text style={styles.title}>Filter Orders</Text>
+              <Text style={styles.title}>{strings.filterOrders}</Text>
               {applyFilter && (
                 <TouchableOpacity onPress={handleClearFilter}>
-                  <Text style={styles.subtitle}>Clear</Text>
+                  <Text style={styles.subtitle}>{strings.clear}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -207,12 +212,12 @@ const FilterModal = ({
             {selectedStatus === 'DISPATCHED' ||
             selectedStatus === 'DELIVERED' ? (
               <>
-                <Text style={styles.sectionTitle}>Price Range</Text>
+                <Text style={styles.sectionTitle}>{strings.priceRange}</Text>
 
                 <MultiSlider
                   values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
                   min={0}
-                  max={ 5000}
+                  max={5000}
                   sliderLength={screenWidth - 50}
                   customMarker={e => (
                     <CustomMarker currentValue={e.currentValue} />
@@ -222,9 +227,9 @@ const FilterModal = ({
                     setMinPrice(min.toString());
                     setMaxPrice(max.toString());
                   }}
-                  selectedStyle={{ backgroundColor: '#4CAF50' }}
+                  selectedStyle={{ backgroundColor: Colors.primary }}
                   markerStyle={{
-                    backgroundColor: '#4CAF50',
+                    backgroundColor: Colors.primary,
                     height: 20,
                     width: 20,
                   }}
@@ -236,10 +241,10 @@ const FilterModal = ({
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{strings.cancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalBtn} onPress={applyFilter}>
-                <Text style={styles.buttonText}>Apply</Text>
+                <Text style={styles.buttonText}>{strings.apply}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -302,7 +307,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   marker: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.primary,
     height: 20,
     width: 20,
     borderRadius: 10,

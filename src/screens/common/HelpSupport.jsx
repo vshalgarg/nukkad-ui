@@ -14,6 +14,7 @@ import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
+import strings from '../../constants/string';
 
 const HelpSupport = () => {
   const supportEmail = 'support@example.com';
@@ -43,10 +44,8 @@ const HelpSupport = () => {
     <View style={styles.pageContainer}>
       <BackButton title="Help and Support" />
       <View style={innerStyles.container}>
-        <Text style={innerStyles.title}>We're Here to Help You</Text>
-        <Text style={innerStyles.subtitle}>
-          Feel free to reach out through any of the methods below:
-        </Text>
+        <Text style={innerStyles.title}>{strings.help}</Text>
+        <Text style={innerStyles.subtitle}>{strings.feelFree}</Text>
 
         <View style={innerStyles.cardContainer}>
           <TouchableOpacity style={innerStyles.card} onPress={openDialer}>
@@ -56,7 +55,7 @@ const HelpSupport = () => {
               <Ionicons name="call" size={24} color="#00796B" />
             </View>
             <View>
-              <Text style={innerStyles.cardTitle}>Call Us</Text>
+              <Text style={innerStyles.cardTitle}>{strings.callUs}</Text>
               <Text style={innerStyles.cardInfo}>{supportPhone}</Text>
             </View>
           </TouchableOpacity>
@@ -68,7 +67,7 @@ const HelpSupport = () => {
               <Ionicons name="mail" size={24} color="#EF6C00" />
             </View>
             <View>
-              <Text style={innerStyles.cardTitle}>Email</Text>
+              <Text style={innerStyles.cardTitle}>{strings.emailUs}</Text>
               <Text style={innerStyles.cardInfo}>{supportEmail}</Text>
             </View>
           </TouchableOpacity>
@@ -81,7 +80,7 @@ const HelpSupport = () => {
             </View>
             <View>
               <Text style={innerStyles.cardTitle}>WhatsApp</Text>
-              <Text style={innerStyles.cardInfo}>Chat with us on WhatsApp</Text>
+              <Text style={innerStyles.cardInfo}>{strings.chatUs}</Text>
             </View>
           </TouchableOpacity>
         </View>

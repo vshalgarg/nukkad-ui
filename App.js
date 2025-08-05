@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, Platform } from 'react-native';
+import { SafeAreaView, StatusBar, Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,6 +15,27 @@ import { AddressProvider } from './src/contexts/addressContext';
 import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressContext';
 import { StorekeeperProfileProvider } from "./src/contexts/storeKeeperProfileContext"
 import { toastConfig } from './src/utils/toastConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// 1. Headless task handler for kill mode (MUST be at top level)
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  await notifee.displayNotification({
+    title: remoteMessage.data?.title || 'New Message',
+    body: remoteMessage.data?.body,
+    android: {
+      channelId: 'default',
+      smallIcon: 'ic_notification',
+      color: '#FF0000',
+      pressAction: {
+        id: 'default',
+        launchActivity: 'default',
+      },
+      sound: 'default'
+    },
+    data: remoteMessage.data
+  });
+  return Promise.resolve();
+});
 
 // 1. Headless task handler for kill mode (MUST be at top level)
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -56,6 +77,7 @@ export default function App() {
 
         // Get and log FCM token
         const token = await messaging().getToken();
+        await AsyncStorage.setItem("FcmToken",token)
         console.log('FCM Token:', token);
         // Send token to your backend here
         
@@ -140,11 +162,15 @@ export default function App() {
               <AddressProvider>
                 <StoreProvider>
                   <StorekeeperAddressProvider>
-                    <SafeAreaView style={{ flex: 1 }}>
+                    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+                      <StatusBar
+                        backgroundColor="white"
+                        barStyle="dark-content"
+                      />
                       <NavigationContainer>
                         <AppNavigator />
                       </NavigationContainer>
-                      <Toast config={toastConfig} topOffset={2} />
+                      <Toast config={toastConfig} topOffset={1} />
                     </SafeAreaView>
                   </StorekeeperAddressProvider>
                 </StoreProvider>

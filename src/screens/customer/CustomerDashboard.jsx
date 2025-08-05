@@ -24,12 +24,25 @@ import { useAuth } from '../../contexts/authContext.js';
 import { getCustomerProfile } from '../../services/customer/profileService.js';
 import { useProfile } from '../../contexts/profileContext.js';
 import { showToast } from '../../utils/toastUtils.js';
+import strings from '../../constants/string.js';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
   const route = useRoute();
   const { toast } = route.params || {};
   const { createProfile } = useProfile();
+  useEffect(() => {
+    console.log(toast)
+    if (toast) {
+      try {
+        const parsedToast = JSON.parse(toast);
+        showToast(parsedToast.type, parsedToast.title);
+      } catch (e) {
+        console.warn('⚠️ Failed to parse toast:', e.message);
+      }
+    }
+  }, []);
+
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
   const [categories, setCategories] = useState([]);
@@ -70,7 +83,7 @@ const CustomerDashboard = () => {
 
       const savedStoreString = await AsyncStorage.getItem('@selected_store');
       const savedStore = savedStoreString ? JSON.parse(savedStoreString) : null;
-
+      console.log("savedStore")
       if (stores.length === 1) {
         saveStore(stores[0]);
       } else if (
@@ -78,7 +91,6 @@ const CustomerDashboard = () => {
         stores.some(s => s.storeId === savedStore.storeId)
       ) {
         saveStore(savedStore);
-      } else {
       }
     } catch (err) {
       console.warn('⚠️ Failed to fetch store/profile:', err.message);
@@ -182,7 +194,7 @@ const CustomerDashboard = () => {
           renderItem={renderItem}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 20 }}>
-              <Text>No categories found</Text>
+              <Text>{strings.noCategoriesFound}</Text>
             </View>
           }
           contentContainerStyle={{ paddingBottom: 40 }}

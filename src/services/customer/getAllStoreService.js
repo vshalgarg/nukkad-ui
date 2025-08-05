@@ -1,5 +1,5 @@
 // services/customer/stores.js
-import api from "../api";
+import api from '../api';
 
 export const getMyStores = async token => {
   try {
@@ -8,14 +8,14 @@ export const getMyStores = async token => {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log('✅ getMyStores API response:', response.data); 
+    console.log('✅ getMyStores API response:', response.data);
     return response.data;
   } catch (err) {
     console.error(
       '❌ getMyStores API error:',
       err.response?.data || err.message,
     );
-    throw err;
+    throw new Error(err.response?.data?.message || 'Failed to fetch stores');
   }
 };
 
@@ -36,6 +36,6 @@ export const deleteStore = async (storeId, token) => {
       '❌ deleteStore API error:',
       err.response?.data || err.message,
     );
-    throw err;
+    throw new Error(err.response?.data?.message || 'Failed to delete store');
   }
 };

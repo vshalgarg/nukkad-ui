@@ -29,6 +29,7 @@ import { useSafeRouter } from '../../hooks/useSafeRouter';
 import { addCustomerStore } from '../../services/customer/addStoreService.js';
 import textStyles from '../../styles/textStyles.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
+import strings from '../../constants/string.js';
 
 const STORAGE_KEY = '@scanned_stores';
 
@@ -104,7 +105,7 @@ export default function AddStore() {
       }
 
       if (!storeQrId) {
-        showToast('error', 'Invalid QR Code', 'Missing or invalid storeQrId');
+        showToast('error', strings.invalidQr, strings.invalidQr2);
         return;
       }
 
@@ -119,7 +120,7 @@ export default function AddStore() {
 
       const toastPayload = {
         type: 'success',
-        message: store.message,
+        message: store.message || 'Store Added Successfully',
       };
 
       saveStore(store);
@@ -132,7 +133,7 @@ export default function AddStore() {
       console.error('❌ QR Scan Error:', err);
       const message =
         err?.response?.data?.message || err.message || 'Invalid QR';
-      showToast('error', 'Failed to Add Store', message);
+      showToast('error', strings.failedToAddStore, message);
     } finally {
       isScanningRef.current = false;
     }
@@ -153,7 +154,7 @@ export default function AddStore() {
 
       const toastPayload = {
         type: 'success',
-        title: 'OTP Verified',
+        title: strings.addedStoreSuccessfully,
         message: store.message,
       };
 
@@ -165,7 +166,7 @@ export default function AddStore() {
     } catch (err) {
       const message =
         err?.response?.data?.message || err.message || 'Store addition failed';
-      showToast('error', 'Failed to Add Store', message);
+      showToast('error', strings.failedToAddStore, message);
     }
   };
   const handleSkip = () => {
@@ -187,7 +188,7 @@ export default function AddStore() {
             },
           ]}
         >
-          Add Store
+          {strings.addStore}
         </Text>
       </View>
 
@@ -197,7 +198,7 @@ export default function AddStore() {
       >
         <ScrollView keyboardShouldPersistTaps="handled">
           <View style={innerStyle.container}>
-            <Text style={innerStyle.text}>Scan QR to Add Store</Text>
+            <Text style={innerStyle.text}>{strings.addStoreViaQR}</Text>
 
             {showScanner && (
               <View style={innerStyle.cameraBox}>
@@ -209,13 +210,17 @@ export default function AddStore() {
 
             <View style={innerStyle.manual}>
               <View style={innerStyle.StoreIdContainer}>
-                <Text style={innerStyle.label}>Add Store Manually By Id</Text>
+                <Text style={innerStyle.label}>
+                  {strings.addStoreViaNumber}
+                </Text>
                 <CustomInput
                   style={innerStyle.inputArea}
                   placeholder="Add Store Id"
                   value={storeId}
                   onTextChange={setStoreID}
                   fixedPrefix="STR"
+                  keyboardType="phone-pad"
+                  maxLength={14}
                 />
               </View>
             </View>
@@ -224,8 +229,8 @@ export default function AddStore() {
       </KeyboardAvoidingView>
 
       <View style={innerStyle.btnContainer}>
-        <CustomButton title="Add Store" onPress={handleAddStore} />
-        <CustomButton title="Skip" onPress={handleSkip} />
+        <CustomButton title={strings.addStore} onPress={handleAddStore} />
+        <CustomButton title={strings.skip} onPress={handleSkip} />
       </View>
     </View>
   );

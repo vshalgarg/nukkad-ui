@@ -23,7 +23,7 @@ export const createCustomerProfile = async profileData => {
     });
 
     throw new Error(
-      error.response?.data?.message || 'Failed to create profile',
+      error.message || 'Failed to create profile',
     );
   }
 };

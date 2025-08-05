@@ -1,4 +1,5 @@
-import api from "./api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './api';
 // Send OTP
 export const sendOtp = async (mobileNumber, role = null) => {
   const payload = { mobileNumber };
@@ -7,7 +8,10 @@ export const sendOtp = async (mobileNumber, role = null) => {
   console.log('📤 Sending OTP request with payload:', payload);
 
   try {
-    const response = await api.post('/nukkad/api/otp/v1/otp/send/login', payload);
+    const response = await api.post(
+      '/nukkad/api/otp/v1/otp/send/login',
+      payload,
+    );
 
     console.log('✅ Send OTP API Success:', {
       status: response.status,
@@ -17,7 +21,7 @@ export const sendOtp = async (mobileNumber, role = null) => {
     return response.data;
   } catch (error) {
     console.error('❌ Send OTP API Error:', {
-      message: error.message, 
+      message: error.message,
       status: error.response?.status,
       data: error.response?.data,
       request: payload,
@@ -29,12 +33,15 @@ export const sendOtp = async (mobileNumber, role = null) => {
 
 // Verify OTP
 export const verifyOtp = async (mobileNumber, otp) => {
-  const payload = { mobileNumber, otp };
-
+  const FcmToken = await AsyncStorage.getItem('FcmToken');
+  const payload = { mobileNumber, otp, deviceToken: FcmToken };
   console.log('📤 Verifying OTP with payload:', payload);
 
   try {
-    const response = await api.post('/nukkad/api/otp/v1/otp/verify/login', payload);
+    const response = await api.post(
+      '/nukkad/api/otp/v1/otp/verify/login',
+      payload,
+    );
 
     console.log('✅ Verify OTP API Success:', {
       status: response.status,

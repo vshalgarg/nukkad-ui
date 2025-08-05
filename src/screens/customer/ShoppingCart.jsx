@@ -29,6 +29,7 @@ import { showToast } from '../../utils/toastUtils';
 import { clearCart, setCartItems } from '../../store/cartSlice';
 import { placeOrder } from '../../services/customer/orderService';
 import { useStore } from '../../contexts/storeContext';
+import strings from '../../constants/string';
 
 const ShoppingCart = () => {
   const { address, selectedAddressId, setMode, setAddressData } = useAddress();
@@ -71,7 +72,7 @@ const ShoppingCart = () => {
       setCartItems(formattedItems);
       dispatch(setCartItems(formattedItems));
     } catch (err) {
-      showToast('error', 'Failed to load cart items');
+      showToast('error', strings.failedToLoadItems);
     } finally {
       setLoading(false); // Stop loader
     }
@@ -89,21 +90,15 @@ const ShoppingCart = () => {
       productId: item.product.id,
       name: item.product.name,
       amount,
-      selectedUnit:item.product.selectedUnit
+      selectedUnit: item.product.selectedUnit,
     };
-
   });
-
-  console.log('itemAmounts', itemAmounts);
 
   const totalCount = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
-    console.log('total', total);
-    console.log('item.product.amount', item.product.amount);
 
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
-  console.log('totalCount', totalCount);
 
   const handleAddAddress = async () => {
     setMode('add');
@@ -120,17 +115,22 @@ const ShoppingCart = () => {
   };
 
   const handleCompleteOrder = async () => {
-    if (orderInProgress) return; // prevent double tap
+    if (orderInProgress) return;
     setOrderInProgress(true);
 
     if (!selectedAddress) {
-      showToast('error', 'Add address before checkout');
+      showToast('error', strings.missingAddress1, strings.missingAddress2);
+      setOrderInProgress(false);
+      return;
+    }
+    if (!storeKeeperId) {
+      showToast('error', strings.missingStore1, strings.missingStore2);
       setOrderInProgress(false);
       return;
     }
 
     if (cartItems.length === 0) {
-      showToast('error', 'Add items before checkout');
+      showToast('error', strings.missingItems1, strings.missingItems2);
       setOrderInProgress(false);
       return;
     }
@@ -141,7 +141,7 @@ const ShoppingCart = () => {
     });
 
     if (hasInvalidAmount) {
-      alert('Some items have zero or invalid quantity. Please correct them.');
+      showToast('error', strings.failedToPlaceOrder, strings.invalidQty);
       setOrderInProgress(false);
       return;
     }
@@ -158,8 +158,6 @@ const ShoppingCart = () => {
 
     try {
       const res = await placeOrder(payload, token);
-
-      // ✅ Navigate
       safePush('PlaceOrder');
       setTimeout(() => {
         dispatch(clearCart());
@@ -193,16 +191,18 @@ const ShoppingCart = () => {
   if (cartItems.length === 0) {
     return (
       <View style={styles.pageContainer}>
-        <BackButton title="Shopping Cart" />
+        <BackButton title={strings.shoppingCart} />
         <View style={innerStyle.emptyContainer}>
           <Text style={{ fontSize: 30, fontWeight: '800', marginBottom: 20 }}>
-            Your cart is empty 🛒
+            {strings.emptyCart}
           </Text>
           <TouchableOpacity
             onPress={handleAddItems}
             style={innerStyle.browseBtn}
           >
-            <Text style={innerStyle.browseBtnText}>Browse Grocery</Text>
+            <Text style={innerStyle.browseBtnText}>
+              {strings.browseGrocery}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -213,14 +213,14 @@ const ShoppingCart = () => {
     <View style={[{ flex: 1 }, styles.pageContainer]}>
       <BackButton
         style={innerStyle.backButton}
-        title={`Shopping Cart (${totalCount} ${
-          totalCount > 1 ? 'items' : 'item'
-        })`}
+        title={strings.cartTitle(totalCount)}
       />
 
       <FlatList
         data={cartItems}
-        keyExtractor={item => item.product.id?.toString()}
+        keyExtractor={(item, index) =>
+          item?.product?.id ? item.product.id.toString() : `fallback-${index}`
+        }
         renderItem={({ item }) => (
           <CartItem
             item={item}
@@ -231,7 +231,7 @@ const ShoppingCart = () => {
         contentContainerStyle={{ padding: Fonts.sizes.base }}
         ListHeaderComponent={
           <>
-            <Text style={innerStyle.heading}>Delivery Address</Text>
+            <Text style={innerStyle.heading}>{strings.deliveryAddress}</Text>
             {selectedAddress ? (
               <AddressCard
                 item={selectedAddress}
@@ -250,23 +250,23 @@ const ShoppingCart = () => {
                   size={24}
                   color={Colors.secondary}
                 />
-                <Text style={innerStyle.buttonText}>Add Address</Text>
+                <Text style={innerStyle.buttonText}>{strings.addAddress}</Text>
               </Pressable>
             )}
 
             <Text style={[innerStyle.heading, { marginTop: 20 }]}>
-              Selected Items ({totalCount})
+              {strings.selectedItems} ({totalCount})
             </Text>
           </>
         }
         ListFooterComponent={
           <>
             <Pressable onPress={handleAddItems}>
-              <Text style={innerStyle.addItems}>+ Add more Items</Text>
+              <Text style={innerStyle.addItems}>{strings.addMoreItems}</Text>
             </Pressable>
             <View style={{ marginTop: 30, alignItems: 'center' }}>
               <CustomButton
-                title={`Proceed`}
+                title={strings.proceed}
                 onPress={handleCompleteOrder}
                 disabled={!selectedAddress}
               />

@@ -36,7 +36,7 @@ export const createStorekeeperProfile = async (profileData, token) => {
       string: JSON.stringify({
         name: profileData.name,
         storeName: profileData.storeName,
-         contactNumber: profileData.contactNumber,
+        contactNumber: profileData.contactNumber,
         gstNum: profileData.gstNum,
         addressLine1: profileData.addressLine1,
         addressLine2: profileData.addressLine2,
@@ -87,7 +87,6 @@ export const createStorekeeperProfile = async (profileData, token) => {
   }
 };
 
-
 export const UpdateStorekeeperProfile = async (profileData, token) => {
   try {
     const formData = new FormData();
@@ -98,7 +97,7 @@ export const UpdateStorekeeperProfile = async (profileData, token) => {
         name: profileData.name,
         storeName: profileData.storeName,
         contactNumber: profileData.contactNumber,
-        storeQrId:profileData.storeQrId,
+        storeQrId: profileData.storeQrId,
         gstNum: profileData.gstNum,
         addressLine1: profileData.addressLine1,
         addressLine2: profileData.addressLine2,
@@ -111,18 +110,18 @@ export const UpdateStorekeeperProfile = async (profileData, token) => {
 
     formData.append('data', jsonBlob); // ✅ send as file, not string
 
-  //   // ✅ 2. Append image files
-  //   profileData.images?.forEach((img, index) => {
-  //     if (img?.uri) {
-  //       formData.append('images', {
-  //         uri: img.uri,
-  //         name: img.fileName || `image_${index}.jpg`,
-  //         type: img.type || 'image/jpeg',
-  //       });
-  //     }
-  //   });
-   console.log(formData)
-  
+    //   // ✅ 2. Append image files
+    //   profileData.images?.forEach((img, index) => {
+    //     if (img?.uri) {
+    //       formData.append('images', {
+    //         uri: img.uri,
+    //         name: img.fileName || `image_${index}.jpg`,
+    //         type: img.type || 'image/jpeg',
+    //       });
+    //     }
+    //   });
+    console.log(formData);
+
     const response = await api.put(
       '/nukkad/api/storekeeper/v1/profile/update',
       formData,
