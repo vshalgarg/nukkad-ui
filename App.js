@@ -15,6 +15,7 @@ import { AddressProvider } from './src/contexts/addressContext';
 import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressContext';
 import { StorekeeperProfileProvider } from "./src/contexts/storeKeeperProfileContext"
 import { toastConfig } from './src/utils/toastConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 1. Headless task handler for kill mode (MUST be at top level)
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -56,6 +57,7 @@ export default function App() {
 
         // Get and log FCM token
         const token = await messaging().getToken();
+        await AsyncStorage.setItem("FcmToken",token)
         console.log('FCM Token:', token);
         // Send token to your backend here
         

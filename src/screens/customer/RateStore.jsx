@@ -26,6 +26,7 @@ import { useAuth } from '../../contexts/authContext';
 import TickIcon from '../../../assets/images/review.svg';
 import { useStore } from '../../contexts/storeContext';
 import strings from '../../constants/string';
+import textStyles from '../../styles/textStyles';
 
 const RateStore = () => {
   const [rating, setRating] = useState(0);
@@ -39,6 +40,7 @@ const RateStore = () => {
   const { token } = useAuth();
   const { storeData } = useStore();
 
+  const storeName = storeData?.storeName || 'Select Store First';
   const handleSubmitReview = async () => {
     if (rating === 0 || feedback.trim() === '') {
       showToast('error', strings.provideRatingAndFeedback);
@@ -49,17 +51,12 @@ const RateStore = () => {
     // ❗️Check if store info is available
     const storeKeeperId = storeData?.storekeeperId || storeData?.id;
     if (!storeKeeperId) {
-      showToast(
-        'error',
-        strings.noStoresFound,
-        strings.noStoresFound2,
-      );
+      showToast('error', strings.noStoresFound, strings.noStoresFound2);
 
       return;
     }
 
     try {
-
       await rateStore(
         {
           storeKeeperId,
@@ -73,8 +70,7 @@ const RateStore = () => {
       feedbackRef.current?.blur();
       setShowThankYou(true);
     } catch (error) {
-     showToast('error', strings.failedToSubmitRating, error.message);
-
+      showToast('error', strings.failedToSubmitRating, error.message);
     }
   };
 
@@ -92,6 +88,14 @@ const RateStore = () => {
           backgroundColor={Colors.backbuttonColor}
         />
         <View style={styles.container}>
+          <Text
+            style={[
+              textStyles.heading,
+              { textAlign: 'center', marginVertical: 25 },
+            ]}
+          >
+            Store: {storeName}
+          </Text>
           <View style={styles.starsContainer}>
             {[1, 2, 3, 4, 5].map(value => (
               <TouchableOpacity
@@ -117,10 +121,15 @@ const RateStore = () => {
             onChangeText={setFeedback}
           />
 
-          <Text style={styles.wordCount}>{feedback.length} {strings.characters}</Text>
+          <Text style={styles.wordCount}>
+            {feedback.length} {strings.characters}
+          </Text>
 
           <View style={styles.btnContainer}>
-            <CustomButton title={strings.submitReview} onPress={handleSubmitReview} />
+            <CustomButton
+              title={strings.submitReview}
+              onPress={handleSubmitReview}
+            />
           </View>
         </View>
 

@@ -134,12 +134,6 @@ export default function AppNavigator() {
           require('../screens/customer/RateStore.jsx').default
         }
       />
-      <Stack.Screen
-        name="DeleteAccount"
-        getComponent={() =>
-          require('../screens/auth/DeleteAccount.jsx').default
-        }
-      />
     </Stack.Navigator>
   );
 }

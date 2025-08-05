@@ -10,6 +10,8 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -142,6 +144,7 @@ const ProfileSetting = () => {
   };
 
   const saveProfile = async () => {
+    Keyboard.dismiss();
     if (!profile) return;
     setIsSaving(true);
 
@@ -172,6 +175,7 @@ const ProfileSetting = () => {
   };
 
   const handleDeleteAccount = () => {
+    Keyboard.dismiss();
     setShowDeleteModal(true);
   };
   const cancelEdit = () => {
@@ -193,168 +197,177 @@ const ProfileSetting = () => {
   console.log('profileData');
 
   return (
-    <ScrollView style={styles.pageContainer} ref={scrollRef}>
-      <BackButton title={strings.profileSetting} onPress={handlePress} />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView
+        style={styles.pageContainer}
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <BackButton title={strings.profileSetting} onPress={handlePress} />
 
-      <View style={innerStyle.container}>
-        <View style={innerStyle.profileImageSection}>
-          {loading ? (
-            <ActivityIndicator size="large" color={Colors.primary} />
-          ) : (
-            <TouchableOpacity onPress={isEditing ? pickImage : null}>
-              {profile.image ? (
-                <Animated.Image
-                  source={{ uri: profile.image }}
-                  style={[innerStyle.image, { opacity: fadeAnim }]}
-                  onLoad={handleImageLoad}
-                />
-              ) : (
-                <View style={[innerStyle.image]}>
-                  <ProfileImage height={150} width={150} />
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
+        <View style={innerStyle.container}>
+          <View style={innerStyle.profileImageSection}>
+            {loading ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : (
+              <TouchableOpacity onPress={isEditing ? pickImage : null}>
+                {profile.image ? (
+                  <Animated.Image
+                    source={{ uri: profile.image }}
+                    style={[innerStyle.image, { opacity: fadeAnim }]}
+                    onLoad={handleImageLoad}
+                  />
+                ) : (
+                  <View style={[innerStyle.image]}>
+                    <ProfileImage height={150} width={150} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
 
-          {isEditing && (
-            <TouchableOpacity
-              onPress={pickImage}
-              style={innerStyle.cameraIconContainer}
-            >
-              <CameraIcon style={innerStyle.cameraIcon} />
-            </TouchableOpacity>
-          )}
-        </View>
+            {isEditing && (
+              <TouchableOpacity
+                onPress={pickImage}
+                style={innerStyle.cameraIconContainer}
+              >
+                <CameraIcon style={innerStyle.cameraIcon} />
+              </TouchableOpacity>
+            )}
+          </View>
 
-        <View style={innerStyle.editButtonWrapper}>
-          {!isEditing ? (
-            <Pressable
-              onPress={() => {
-                setIsEditing(true);
-                scrollRef.current?.scrollTo({ y: 0, animated: true });
-                setTimeout(() => {
-                  firstNameRef.current?.focus();
-                }, 100);
-              }}
-            >
-              <FontAwesome name="edit" size={28} color="black" />
-            </Pressable>
-          ) : (
-            <Pressable onPress={cancelEdit}>
-              <Text style={innerStyle.cancelText}>{strings.cancel}</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-
-      <View style={innerStyle.profileDetails}>
-        <View style={innerStyle.row}>
-          <Text style={innerStyle.halfLabel}>{strings.firstName}</Text>
-          <Text style={innerStyle.halfLabel}>{strings.lastName}</Text>
-        </View>
-        <View style={innerStyle.row}>
-          {isEditing ? (
-            <>
-              <TextInput
-                ref={firstNameRef}
-                style={innerStyle.halfInput}
-                value={profile.firstName}
-                onChangeText={val => handleChange('firstName', val)}
-              />
-              <TextInput
-                style={innerStyle.halfInput}
-                value={profile.lastName}
-                onChangeText={val => handleChange('lastName', val)}
-              />
-            </>
-          ) : (
-            <>
-              <Text style={innerStyle.halfInput}>{profile.firstName}</Text>
-              <Text style={innerStyle.halfInput}>{profile.lastName}</Text>
-            </>
-          )}
-        </View>
-
-        <View style={innerStyle.email}>
-          <Text style={innerStyle.fullLabel}>{strings.email}</Text>
-          {isEditing ? (
-            <TextInput
-              style={innerStyle.fullInput}
-              value={profile.email}
-              keyboardType="email-address"
-              maxLength={50}
-              autoCapitalize="none"
-              onChangeText={val => handleChange('email', val)}
-            />
-          ) : (
-            <Text style={innerStyle.fullInput}>{profile.email}</Text>
-          )}
-        </View>
-
-        <View>
-          <Text style={innerStyle.fullLabel}>{strings.dob}</Text>
-          {isEditing ? (
-            <>
-              <Pressable onPress={() => setShowPicker(true)}>
-                <TextInput
-                  style={innerStyle.mobileInput}
-                  value={DOB}
-                  editable={false}
-                />
+          <View style={innerStyle.editButtonWrapper}>
+            {!isEditing ? (
+              <Pressable
+                onPress={() => {
+                  setIsEditing(true);
+                  scrollRef.current?.scrollTo({ y: 0, animated: true });
+                  setTimeout(() => {
+                    firstNameRef.current?.focus();
+                  }, 100);
+                }}
+              >
+                <FontAwesome name="edit" size={28} color="black" />
               </Pressable>
-              {showPicker && (
-                <DateTimePicker
-                  value={dobDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  maximumDate={
-                    new Date(
-                      new Date().setFullYear(new Date().getFullYear() - 10),
-                    )
-                  }
-                  minimumDate={
-                    new Date(
-                      new Date().setFullYear(new Date().getFullYear() - 75),
-                    )
-                  }
-                />
-              )}
-            </>
-          ) : (
-            <Text style={innerStyle.mobileInput}>{DOB}</Text>
-          )}
+            ) : (
+              <Pressable onPress={cancelEdit}>
+                <Text style={innerStyle.cancelText}>{strings.cancel}</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
 
-      {isEditing && (
-        <View style={innerStyle.buttonContainer}>
-          <CustomButton
-            title="Save Changes"
-            onPress={saveProfile}
-            loading={isSaving}
-          />
-          {profile.role === 'CUSTOMER' && (
-            <CustomButton
-              title="Delete Account"
-              onPress={handleDeleteAccount}
-              style={{
-                backgroundColor: Colors.reject,
-                borderColor: Colors.reject,
-              }}
-            />
-          )}
+        <View style={innerStyle.profileDetails}>
+          <View style={innerStyle.row}>
+            <Text style={innerStyle.halfLabel}>{strings.firstName}</Text>
+            <Text style={innerStyle.halfLabel}>{strings.lastName}</Text>
+          </View>
+          <View style={innerStyle.row}>
+            {isEditing ? (
+              <>
+                <TextInput
+                  ref={firstNameRef}
+                  style={innerStyle.halfInput}
+                  value={profile.firstName}
+                  onChangeText={val => handleChange('firstName', val)}
+                  maxLength={15}
+                />
+                <TextInput
+                  style={innerStyle.halfInput}
+                  value={profile.lastName}
+                  onChangeText={val => handleChange('lastName', val)}
+                  maxLength={15}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={innerStyle.halfInput}>{profile.firstName}</Text>
+                <Text style={innerStyle.halfInput}>{profile.lastName}</Text>
+              </>
+            )}
+          </View>
+
+          <View style={innerStyle.email}>
+            <Text style={innerStyle.fullLabel}>{strings.email}</Text>
+            {isEditing ? (
+              <TextInput
+                style={innerStyle.fullInput}
+                value={profile.email}
+                keyboardType="email-address"
+                maxLength={30}
+                autoCapitalize="none"
+                onChangeText={val => handleChange('email', val)}
+              />
+            ) : (
+              <Text style={innerStyle.fullInput}>{profile.email}</Text>
+            )}
+          </View>
+
+          <View>
+            <Text style={innerStyle.fullLabel}>{strings.dob}</Text>
+            {isEditing ? (
+              <>
+                <Pressable onPress={() => setShowPicker(true)}>
+                  <TextInput
+                    style={innerStyle.mobileInput}
+                    value={DOB}
+                    editable={false}
+                  />
+                </Pressable>
+                {showPicker && (
+                  <DateTimePicker
+                    value={dobDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={handleDateChange}
+                    maximumDate={
+                      new Date(
+                        new Date().setFullYear(new Date().getFullYear() - 10),
+                      )
+                    }
+                    minimumDate={
+                      new Date(
+                        new Date().setFullYear(new Date().getFullYear() - 75),
+                      )
+                    }
+                  />
+                )}
+              </>
+            ) : (
+              <Text style={innerStyle.mobileInput}>{DOB}</Text>
+            )}
+          </View>
         </View>
-      )}
-      <DeleteAccount
-        visible={showDeleteModal}
-        onCancel={() => setShowDeleteModal(false)}
-        onConfirm={() => {
-          setShowDeleteModal(false);
-        }}
-        phoneNumber={profileData?.mobileNumber}
-      />
-    </ScrollView>
+
+        {isEditing && (
+          <View style={innerStyle.buttonContainer}>
+            <CustomButton
+              title="Save Changes"
+              onPress={saveProfile}
+              loading={isSaving}
+            />
+            {profile.role === 'CUSTOMER' && (
+              <CustomButton
+                title="Delete Account"
+                onPress={handleDeleteAccount}
+                style={{
+                  backgroundColor: Colors.reject,
+                  borderColor: Colors.reject,
+                }}
+              />
+            )}
+          </View>
+        )}
+        <DeleteAccount
+          visible={showDeleteModal}
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={() => {
+            setShowDeleteModal(false);
+          }}
+          phoneNumber={profileData?.mobileNumber}
+        />
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 

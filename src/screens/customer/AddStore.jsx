@@ -120,7 +120,7 @@ export default function AddStore() {
 
       const toastPayload = {
         type: 'success',
-        message: store.message,
+        message: store.message || 'Store Added Successfully',
       };
 
       saveStore(store);
@@ -210,7 +210,9 @@ export default function AddStore() {
 
             <View style={innerStyle.manual}>
               <View style={innerStyle.StoreIdContainer}>
-                <Text style={innerStyle.label}>{strings.addStoreViaNumber}</Text>
+                <Text style={innerStyle.label}>
+                  {strings.addStoreViaNumber}
+                </Text>
                 <CustomInput
                   style={innerStyle.inputArea}
                   placeholder="Add Store Id"

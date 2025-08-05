@@ -111,6 +111,7 @@ const MobileOtpScreen = () => {
       showToast('error', `${strings.invalidOtp}`, `${strings.tryAgain}`);
       return;
     }
+   
 
     try {
       const res = await verifyOtp(mobile, otp);
