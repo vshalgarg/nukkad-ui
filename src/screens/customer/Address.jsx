@@ -13,7 +13,7 @@ import {
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AddressCard from '../../components/AddressCard';
@@ -89,47 +89,55 @@ const Address = () => {
       ],
     );
   };
+  const selectedaddress = async () => {
+    const storedSelectedId = await AsyncStorage.getItem('selectedAddressId');
+    console.log(storedSelectedId);
+  };
 
-  useFocusEffect(
-    useCallback(() => {
-      const syncSelectedAddress = async () => {
-        try {
-          const storedSelectedId = await AsyncStorage.getItem(
-            'selectedAddressId',
-          );
 
-          if (
-            storedSelectedId &&
-            address.some(a => String(a.id) === storedSelectedId)
-          ) {
-            setSelectedAddressId(storedSelectedId);
-          } else {
-            const defaultAddr = address.find(a => a.isDefault);
-            const fallback = defaultAddr || address[0];
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     if (address.length === 0) return; // 💡 Wait for address to be loaded
 
-            if (fallback) {
-              setSelectedAddressId(String(fallback.id));
-              await AsyncStorage.setItem(
-                'selectedAddressId',
-                String(fallback.id),
-              );
-            } else {
-              setSelectedAddressId(null);
-              await AsyncStorage.removeItem('selectedAddressId');
-            }
-          }
+  //     const syncSelectedAddress = async () => {
+  //       try {
+  //         const storedSelectedId = await AsyncStorage.getItem(
+  //           'selectedAddressId',
+  //         );
+  //         console.log('storedSelectedId', storedSelectedId);
 
-          if (route.params?.fromCart) {
-            navigation.setParams({ fromCart: undefined });
-          }
-        } catch (err) {
-          console.warn('⚠️ Failed to load selected address:', err.message);
-        }
-      };
+  //         if (
+  //           storedSelectedId &&
+  //           address.some(a => String(a.id) === storedSelectedId)
+  //         ) {
+  //           setSelectedAddressId(storedSelectedId);
+  //         } else {
+  //           const defaultAddr = address.find(a => a.isDefault);
+  //           const fallback = defaultAddr || address[0];
 
-      syncSelectedAddress();
-    }, [address]),
-  );
+  //           if (fallback) {
+  //             setSelectedAddressId(String(fallback.id));
+  //             await AsyncStorage.setItem(
+  //               'selectedAddressId',
+  //               String(fallback.id),
+  //             );
+  //           } else {
+  //             setSelectedAddressId(null);
+  //             await AsyncStorage.removeItem('selectedAddressId');
+  //           }
+  //         }
+
+  //         if (route.params?.fromCart) {
+  //           navigation.setParams({ fromCart: undefined });
+  //         }
+  //       } catch (err) {
+  //         console.warn('⚠️ Failed to load selected address:', err.message);
+  //       }
+  //     };
+
+  //     syncSelectedAddress();
+  //   }, [address]),
+  // );
 
   const handleMarkAsDefault = async item => {
     try {
@@ -168,7 +176,10 @@ const Address = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
             <View style={innerStyle.emptyContainer}>
-              <Text style={innerStyle.emptyText}> {strings.noAddressFound} </Text>
+              <Text style={innerStyle.emptyText}>
+                {' '}
+                {strings.noAddressFound}{' '}
+              </Text>
               <Pressable
                 style={innerStyle.addButton}
                 onPress={handleAddAddress}
@@ -178,7 +189,9 @@ const Address = () => {
                   size={24}
                   color={Colors.white}
                 />
-                <Text style={innerStyle.addButtonText}>{strings.addAddress}</Text>
+                <Text style={innerStyle.addButtonText}>
+                  {strings.addAddress}
+                </Text>
               </Pressable>
             </View>
           )}
@@ -205,7 +218,7 @@ const innerStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-    position:"relative"
+    position: 'relative',
   },
   btnContainer: {
     position: 'absolute',

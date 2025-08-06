@@ -43,24 +43,30 @@ export const AddressProvider = ({ children }) => {
   // Update AsyncStorage when selected changes
   useEffect(() => {
     if (selectedAddressId)
-      AsyncStorage.setItem('selectedAddressId', String(selectedAddressId));
+      AsyncStorage.setItem('selectedAddressId', selectedAddressId);
   }, [selectedAddressId]);
 
   // 🔥 ADD NEW ADDRESS
   const addAddress = async data => {
-    await addNewAddress(data); // ✅ Save to backend
-    await syncAddressesFromServer(); // ✅ Re-sync all addresses
-    setSelectedAddressId(data.id);
-    await AsyncStorage.setItem('selectedAddressId', String(data.id));
+    const res = await addNewAddress(data); // ✅ Save to backend
+    console.log('data', data);
+    console.log('dataId', res.id);
+    setSelectedAddressId(res.id);
+    await syncAddressesFromServer();
+    await AsyncStorage.setItem('selectedAddressId', String(res.id));
+    const selectedAddress = await AsyncStorage.getItem('selectedAddressId');
+    console.log(selectedAddress)
+    console.log(typeof selectedAddress);
+    
   };
 
   // 🔥 UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {
-    console.log("updated data",updated)
-    await updateExistingAddress(updated.id, updated); // ✅ Update backend
-    await syncAddressesFromServer(); // ✅ Re-fetch list
-    setSelectedAddressId(data.id);
-    await AsyncStorage.setItem('selectedAddressId', String(data.id));
+    console.log('updated data', updated);
+    const res = await updateExistingAddress(updated.id, updated); // ✅ Update backend
+    setSelectedAddressId(res.id);
+    await AsyncStorage.setItem('selectedAddressId', String(res.id));
+    await syncAddressesFromServer();
   };
 
   // 🔥 DELETE ADDRESS

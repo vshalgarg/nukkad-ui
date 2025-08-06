@@ -49,8 +49,10 @@ const ShoppingCart = () => {
   const { storeData } = useStore();
   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
+  console.log(address);
+  console.log("selected addressId",typeof selectedAddressId,selectedAddressId);
   const selectedAddress =
-    address.find(item => item.id.toString() === selectedAddressId) ||
+    address.find(item => item.id.toString() === String(selectedAddressId)) ||
     address.find(item => item.isDefault);
 
   const fetchCartItems = async () => {

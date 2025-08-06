@@ -137,7 +137,7 @@ const ProfileSetting = () => {
 
   const handleDateChange = (_, selectedDate) => {
     setShowPicker(false);
-    if (selectedDate) {
+    if (selectedDate) { 
       setDobDate(selectedDate);
       setDOB(formatDate(selectedDate));
     }

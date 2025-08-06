@@ -180,6 +180,9 @@ const StorekeeperDashboard = () => {
           const payload = { orderStatus: 'CANCELLED' };
           await updateOrderStatusById(orderId, payload, token);
           dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
+          const currentStatus = statusTabs[formState].statuses[0];
+          setCurrentPage(0);
+          loadOrders(currentStatus, 0, false);
         },
       },
     ]);
@@ -194,6 +197,9 @@ const StorekeeperDashboard = () => {
           const payload = { orderStatus: 'DELIVERED' };
           await updateOrderStatusById(orderId, payload, token);
           dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
+          const currentStatus = statusTabs[formState].statuses[0];
+          setCurrentPage(0);
+          loadOrders(currentStatus, 0, false);
         },
       },
     ]);
