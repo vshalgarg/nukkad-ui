@@ -70,7 +70,8 @@ export default function CustomInput({
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: 12,
+    width: "100%",
+    marginBottom: 8,
   },
   countryCodeContainer: {
     position: 'absolute',
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 15,
     backgroundColor: Colors.white,
-    width: 300,
+    width: "100%",
   },
   fixedPrefix: {
     fontSize: Fonts.sizes.base,

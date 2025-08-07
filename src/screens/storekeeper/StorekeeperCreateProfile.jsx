@@ -39,9 +39,9 @@ const StorekeeperCreateProfile = () => {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
-
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
+  
   const nameRef = useRef();
   const storeNameRef = useRef();
   const contactNumberRef = useRef();
@@ -439,7 +439,7 @@ const innerStyles = StyleSheet.create({
     width: '100%',
   },
   formContainer: {
-    maxWidth: 500,
+    maxWidth: '80%',
   },
   label: {
     marginTop: 5,

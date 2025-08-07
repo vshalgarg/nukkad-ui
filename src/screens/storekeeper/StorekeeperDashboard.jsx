@@ -439,7 +439,7 @@ const innerStyle = StyleSheet.create({
     marginTop: 1,
   },
   leftSection: {
-    width: '80%',
+    width: '75%',
   },
   rightSection: {
     justifyContent: 'space-between',
