@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Share from 'react-native-share';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfileImage from '../../../assets/images/ProfileImage.svg';
@@ -30,6 +31,7 @@ import { persistor } from '../../store/store.js';
 import { setLoggingOut } from '../../utils/logoutState.js';
 import { useAuth } from '../../contexts/authContext.js';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext.js';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -57,6 +59,26 @@ const SideBar = ({ isVisible, onClose }) => {
     }).start();
   }, [isVisible]);
 
+  const sharePlayStoreLink = async () => {
+    try {
+      const playStoreLink =
+        'https://play.google.com/store/apps/details?id=com.your.app'; // REPLACE WITH YOUR ACTUAL APP ID
+
+      await Share.share({
+        title: 'Check out this store app!',
+        message: `I found this great store app. Download it now: ${playStoreLink}`,
+        social: Share.Social.WHATSAPP,
+      });
+    } catch (error) {
+      console.log('Error sharing:', error);
+      // Fallback to regular share dialog
+      Share.open({
+        title: 'Share App',
+        message:
+          'Check out this app: https://play.google.com/store/apps/details?id=com.your.app',
+      });
+    }
+  };
   const openLink = async url => {
     try {
       console.log('Trying to open:', url);
@@ -65,7 +87,6 @@ const SideBar = ({ isVisible, onClose }) => {
       console.warn('Failed to open URL:', url, error);
     }
   };
-
   const baseMenuItems = [
     ...(userRole !== 'STOREKEEPER'
       ? [
@@ -74,10 +95,10 @@ const SideBar = ({ isVisible, onClose }) => {
           { name: 'Addresses', icon: 'location-sharp' },
         ]
       : []),
-    { name: 'Notifications', icon: 'notifications' },
-    { name: 'Settings', icon: 'settings-sharp' },
+    // { name: 'Notifications', icon: 'notifications' },
+    // { name: 'Settings', icon: 'settings-sharp' },
     { name: 'Refer a Store', icon: 'share-social-sharp' },
-    { name: 'Refer Store to Customer', icon: 'person' },
+    { name: 'Refer Store to Customer', icon: 'share-social-sharp' },
     { name: 'Help and Support', icon: 'help-circle' },
     { name: 'Privacy Policy', icon: 'shield-half' },
     { name: 'Terms & Conditions', icon: 'document' },
@@ -104,8 +125,8 @@ const SideBar = ({ isVisible, onClose }) => {
         'Add Store': 'AddStore',
         Addresses: 'Address',
       }),
-      Notifications: 'Notification',
-      Settings: 'settings',
+      // Notifications: 'Notification',
+      // Settings: 'settings',
       // 'Help and Support': 'Help',
       'Refer Store to Customer': 'ReferToCustomer',
       'Rate Store': 'RateStore',
@@ -123,11 +144,14 @@ const SideBar = ({ isVisible, onClose }) => {
     'Help and Support': 'https://support.google.com',
     'Privacy Policy': 'https://policies.google.com/privacy',
     'Terms & Conditions': 'https://policies.google.com/terms',
-    'Refer a Store': 'https://www.google.com/',
   };
 
   const handleOptionClick = async menuName => {
     onClose();
+    if (menuName === 'Refer a Store') {
+      await sharePlayStoreLink();
+      return;
+    }
 
     if (externalLinks[menuName]) {
       await openLink(externalLinks[menuName]);
@@ -266,16 +290,16 @@ const SideBar = ({ isVisible, onClose }) => {
 
 export default SideBar;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   sidebar: {
     position: 'absolute',
     top: 0,
     left: 0,
     height: '100%',
-    width: Dimensions.get('window').width * 0.8,
+    width: screenWidth * 0.8,
     backgroundColor: Colors.white,
-    paddingTop: 60,
-    paddingHorizontal: 20,
+    paddingTop: '30@vs',
+    paddingHorizontal: '20@s',
     zIndex: 1000,
     elevation: 5,
   },
@@ -292,20 +316,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 10,
+    marginBottom: '20@vs',
+    gap: '10@s',
     width: '100%',
   },
   details: {
     flexDirection: 'row',
     alignItems: 'center',
-    width:"90%",
-    gap:10,
+    width: '90%',
+    gap: '5@s',
   },
   profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: '60@s',
+    height: '60@s',
+    borderRadius: '30@s',
   },
   profileTextContainer: {
     maxWidth: screenWidth * 0.55,
@@ -325,13 +349,13 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: '10@vs',
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderColor,
   },
   menuIconLeft: {
-    width: 26,
-    marginRight: 12,
+    width: '26@s',
+    marginRight: '10@s',
   },
   menuText: {
     flex: 1,

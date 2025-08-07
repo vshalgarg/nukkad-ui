@@ -2,6 +2,7 @@ import { Pressable, Text, StyleSheet } from 'react-native';
 import globalStyles from '../styles/globalStyles';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
+import { ScaledSheet } from 'react-native-size-matters';
 
 export default function Button({ title, onPress, style, textStyle,disabled=false }) {
   return (
@@ -26,23 +27,26 @@ export default function Button({ title, onPress, style, textStyle,disabled=false
 }
 
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   button: {
     backgroundColor: Colors.primary,
     borderRadius: 9999,
     borderWidth: 1,
     borderColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: '12@vs',
+    paddingHorizontal: '10@s',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
+    flexDirection: 'row',
   },
   buttonText: {
     color: Colors.white,
     fontWeight: '600',
-    fontSize: Fonts.sizes.base,
+    fontSize: Fonts.sizes.sm,
     textAlign: 'center',
     textAlignVertical: 'center',
+    flexShrink: 1, 
   },
   disabledButton: {
     backgroundColor: Colors.disabledText,

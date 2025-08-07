@@ -23,6 +23,7 @@ import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const Address = () => {
   const {
@@ -93,7 +94,6 @@ const Address = () => {
     const storedSelectedId = await AsyncStorage.getItem('selectedAddressId');
     console.log(storedSelectedId);
   };
-
 
   // useFocusEffect(
   //   useCallback(() => {
@@ -214,7 +214,7 @@ const Address = () => {
   );
 };
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
@@ -225,35 +225,35 @@ const innerStyle = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 12,
+    padding: '12@s',
     alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
-    paddingHorizontal: 20,
+    marginTop: '10@vs',
+    paddingHorizontal: '20@s',
   },
   emptyText: {
-    fontSize: Fonts.sizes.base,
+    fontSize: Fonts.sizes.base, // assuming already scaled
     color: Colors.secondaryText,
-    marginBottom: 20,
+    marginBottom: '20@vs',
     textAlign: 'center',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 50,
+    paddingHorizontal: '20@s',
+    paddingVertical: '10@vs',
+    borderRadius: '50@s',
   },
   addButtonText: {
     color: Colors.white,
-    fontSize: Fonts.sizes.base,
+    fontSize: Fonts.sizes.base, // assuming already scaled
     fontWeight: '500',
-    marginLeft: 8,
+    marginLeft: '8@s',
   },
 });
 

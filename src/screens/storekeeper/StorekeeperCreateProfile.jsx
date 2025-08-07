@@ -8,6 +8,8 @@ import {
   View,
 } from 'react-native';
 
+import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
+
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import StoreImageUploader from '../../components/StoreImageUploader';
@@ -53,12 +55,34 @@ const StorekeeperCreateProfile = () => {
   const cityRef = useRef();
   const stateRef = useRef();
   const pincodeRef = useRef();
-
+  const scrollViewRef = useRef();
   const { token } = useAuth();
 
   const { createStorekeeperProfile } = useStorekeeperProfile();
   const { safePush } = useSafeRouter();
 
+  const scrollToInput = ref => {
+    if (ref?.current && scrollViewRef?.current) {
+      const inputHandle = findNodeHandle(ref.current);
+      const scrollHandle = findNodeHandle(scrollViewRef.current);
+
+      if (inputHandle && scrollHandle) {
+        InteractionManager.runAfterInteractions(() => {
+          UIManager.measureLayout(
+            inputHandle,
+            scrollHandle,
+            error => {
+              console.log('measureLayout error:', error);
+            },
+            (x, y) => {
+              scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
+              ref.current.focus?.(); // safer optional chaining
+            },
+          );
+        });
+      }
+    }
+  };
   const handleContinue = useCallback(async () => {
     // setHasTriedSubmit(true);
     console.log('hadleContinue Pressed');
@@ -101,15 +125,15 @@ const StorekeeperCreateProfile = () => {
       }
 
       // Auto-focus on the first invalid input
-      if (fieldErrors.name) nameRef.current?.focus();
-      else if (fieldErrors.storeName) storeNameRef.current?.focus();
-      else if (fieldErrors.contactNumber) contactNumberRef.current?.focus();
-      else if (fieldErrors.gstNum) gstRef.current?.focus();
-      else if (fieldErrors.addressLine1) address1Ref.current?.focus();
-      else if (fieldErrors.landmark) landmarkRef.current?.focus();
-      else if (fieldErrors.city) cityRef.current?.focus();
-      else if (fieldErrors.state) stateRef.current?.focus();
-      else if (fieldErrors.pincode) pincodeRef.current?.focus();
+      if (fieldErrors.name) scrollToInput(nameRef);
+      else if (fieldErrors.storeName) scrollToInput(storeNameRef);
+      else if (fieldErrors.contactNumber) scrollToInput(contactNumberRef);
+      else if (fieldErrors.gstNum) scrollToInput(gstRef);
+      else if (fieldErrors.addressLine1) scrollToInput(address1Ref);
+      else if (fieldErrors.landmark) scrollToInput(landmarkRef);
+      else if (fieldErrors.city) scrollToInput(cityRef);
+      else if (fieldErrors.state) scrollToInput(stateRef);
+      else if (fieldErrors.pincode) scrollToInput(pincodeRef);
 
       setIsSubmitting(false);
       isSubmittingRef.current = false;
@@ -183,6 +207,7 @@ const StorekeeperCreateProfile = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 100}
       >
         <ScrollView
+          ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,

@@ -1,3 +1,4 @@
+import React, { forwardRef } from 'react';
 import { Text, TextInput, View, Dimensions } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import Flag from '../../assets/images/flag.svg';
@@ -6,22 +7,25 @@ import Fonts from '../styles/font.js';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-export default function CustomInput({
-  isCountryCode,
-  value = '',
-  fixedPrefix = '',
-  onTextChange,
-  maxLength,
-  keyboardType,
-  autoCapitalize,
-  style,
-  autoCorrect,
-  placeholder,
-  isError = false,
-  editable = true,
-  autoFocus,
-  ...props
-}) {
+const CustomInput = forwardRef(function CustomInput(
+  {
+    isCountryCode,
+    value = '',
+    fixedPrefix = '',
+    onTextChange,
+    maxLength,
+    keyboardType,
+    autoCapitalize,
+    style,
+    autoCorrect,
+    placeholder,
+    isError = false,
+    editable = true,
+    autoFocus,
+    ...props
+  },
+  ref,
+) {
   const inputOnly = value.startsWith(fixedPrefix)
     ? value.slice(fixedPrefix.length)
     : '';
@@ -51,6 +55,7 @@ export default function CustomInput({
         <Text style={styles.fixedPrefix}>{fixedPrefix}</Text>
 
         <TextInput
+          ref={ref}
           {...props}
           value={inputOnly}
           onChangeText={handleChangeText}
@@ -68,7 +73,8 @@ export default function CustomInput({
       </View>
     </View>
   );
-}
+});
+export default CustomInput;
 
 const styles = ScaledSheet.create({
   wrapper: {
@@ -104,7 +110,7 @@ const styles = ScaledSheet.create({
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
     color: Colors.secondary,
-    marginRight: '1@ms',
+    marginRight: '5@ms',
   },
   input: {
     flex: 1,

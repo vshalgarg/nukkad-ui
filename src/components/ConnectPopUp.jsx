@@ -11,6 +11,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import strings from '../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
   if (!visible) return null;
@@ -63,8 +64,7 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
 };
 
 export default ConnectPopup;
-
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   absoluteFill: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 999,
@@ -75,18 +75,18 @@ const styles = StyleSheet.create({
   },
   popupMenu: {
     position: 'absolute',
-    top: 60,
-    right: 10,
+    top: '60@ms',
+    right: '5@ms',
     backgroundColor: Colors.white,
-    borderRadius: 8,
+    borderRadius: '8@ms',
     borderColor: Colors.borderColor,
     borderWidth: 1,
     elevation: 5,
-    width: 150,
+    width: '140@ms',
   },
   popupItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: '16@ms',
+    paddingVertical: '8@ms',
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderColor,
   },

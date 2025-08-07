@@ -30,6 +30,7 @@ import { addCustomerStore } from '../../services/customer/addStoreService.js';
 import textStyles from '../../styles/textStyles.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import strings from '../../constants/string.js';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const STORAGE_KEY = '@scanned_stores';
 
@@ -239,26 +240,26 @@ export default function AddStore() {
 const { height } = Dimensions.get('window');
 const boxHeight = height / 3;
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingBottom: height * 0.15,
+    gap: '10@s', 
+    paddingBottom: `${height * 0.15}@vs`,
   },
   text: {
     fontWeight: '600',
     fontSize: Fonts.sizes.base,
-    marginBottom: 10,
+    marginBottom: '10@vs',
   },
   cameraBox: {
     height: boxHeight,
     width: boxHeight,
     borderWidth: 4,
     borderColor: Colors.primary,
-    borderRadius: 12,
+    borderRadius: '12@s',
     marginBottom: '5%',
     overflow: 'hidden',
     zIndex: 1,
@@ -277,15 +278,15 @@ const innerStyle = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+ 
   label: {
     textAlign: 'center',
     fontSize: Fonts.sizes.base,
-    marginBottom: 15,
+    marginBottom: '15@vs',
   },
-
   btnContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: '20@vs',
   },
 });

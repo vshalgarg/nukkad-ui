@@ -10,6 +10,7 @@ import {
 } from '../../services/customer/cartService';
 import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const OrderHistory = ({
   order,
@@ -114,56 +115,53 @@ const OrderHistory = ({
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
-      <View style={styles.rowBetween}>
-        <View style={styles.columnBetweenDetail}>
-          <Text style={styles.name}>{strings.orderId} {order.orderId}</Text>
-          {role === 'CUSTOMER' ? (
-            <Text style={styles.name}>
-              {strings.store} <Text style={styles.values}>{shopName}</Text>
-            </Text>
-          ) : (
-            <Text style={styles.name}>{strings.customer} {order.customerName}</Text>
-          )}
-          {(order.orderStatus === 'DELIVERED' ||
-            order.orderStatus === 'DISPATCHED') && (
-            <Text style={styles.name}>
-              {strings.totalPrice} <Text style={styles.values}>₹{totalPrice}</Text>
-            </Text>
-          )}
-          <Text style={styles.name}>
-            {strings.totalItems}<Text style={styles.values}>{totalQuantity}</Text>
-          </Text>
-        </View>
-        <View style={styles.columnBetweenStatus}>
-          <Text style={styles.date}>{formattedDate}</Text>
-          <View style={styles.columnBetween}>
-            <View
+      <View style={styles.row}>
+        <Text style={styles.label} numberOfLines={1} ellipsizeMode="tail">
+          {`${strings.orderId}: #${order.orderId}`}
+        </Text>
+        <Text style={styles.date}>{formattedDate}</Text>
+      </View>
+
+      {/* Row 2 */}
+      <View style={styles.row}>
+        <Text style={styles.label} numberOfLines={2} ellipsizeMode="tail">
+          {role === 'CUSTOMER'
+            ? `${strings.store} ${shopName}`
+            : `${strings.customer} ${order.customerName}`}
+        </Text>
+        <View style={styles.statusBadgeWrapper}>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusBg(order.orderStatus) },
+            ]}
+          >
+            <Text
               style={[
-                styles.statusBadge,
-                { backgroundColor: getStatusBg(order.orderStatus) },
+                styles.statusText,
+                { color: getStatusTextColor(order.orderStatus) },
               ]}
             >
-              <Text
-                style={{
-                  color: getStatusTextColor(order.orderStatus),
-                  fontWeight: '600',
-                  fontSize: Fonts.sizes.sm,
-                  textAlign: 'center',
-                }}
-              >
-                {order.orderStatus}
-              </Text>
-            </View>
+              {order.orderStatus}
+            </Text>
           </View>
-
-          {role === 'CUSTOMER' && (
-            <TouchableOpacity onPress={handleRepeatOrder}>
-              <Text style={styles.repeat}>{strings.repeatOrder}</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
+      {/* Row 3 */}
+      <View style={styles.row}>
+        <Text style={styles.label}>
+          {strings.totalItems}{' '}
+          <Text style={styles.values}>{totalQuantity}</Text>
+        </Text>
+        {role === 'CUSTOMER' && (
+          <TouchableOpacity onPress={handleRepeatOrder}>
+            <Text style={styles.repeat}>{strings.repeatOrder}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Expanded View */}
       {isExpanded && <View style={styles.expanded}>{expandedView}</View>}
     </TouchableOpacity>
   );
@@ -171,73 +169,67 @@ const OrderHistory = ({
 
 export default OrderHistory;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    marginHorizontal: 16,
+    borderRadius: '12@s',
+    padding: '10@s',
+    marginBottom: '16@vs',
+    marginHorizontal: '16@s',
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
   },
-  rowBetween: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '6@s',
+    marginBottom: '6@vs',
   },
-  columnBetweenDetail: {
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-  },
-  columnBetweenStatus: {
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems:"flex-end"
-  },
-  orderId: {
-    fontWeight: 'bold',
-    fontSize: 15,
+  label: {
+    fontSize: Fonts.sizes.sm,
     color: Colors.secondary,
+    fontWeight: '500',
+    flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
   },
   date: {
-    fontSize: 14,
+    fontSize: Fonts.sizes.sm,
     color: Colors.primary,
-  },
-  name: {
-    marginBottom: 8,
-    fontWeight: '500',
-    fontSize: Fonts.sizes.md,
-
-    color: Colors.secondary,
+    flexShrink: 0,
   },
   values: {
-    fontSize: Fonts.sizes.md,
+    fontSize: Fonts.sizes.sm,
     color: Colors.text,
   },
   repeat: {
     fontWeight: '600',
-    fontSize: Fonts.sizes.md,
-
+    fontSize: Fonts.sizes.sm,
     color: Colors.primary,
+    textAlign: 'right',
+  },
+  statusBadgeWrapper: {
+    flexShrink: 0,
+    alignItems: 'flex-end',
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingHorizontal: '6@s',
+    paddingVertical: '3@vs',
+    borderRadius: '20@s',
+    minWidth: '60@s',
   },
   statusText: {
-    textAlign: 'center',
-    color: '#fff',
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: Fonts.sizes.xs,
+    textAlign: 'center',
   },
   expanded: {
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: '1@vs',
+    paddingTop: '10@vs',
   },
 });

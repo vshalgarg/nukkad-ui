@@ -222,11 +222,14 @@ const StorekeeperDashboard = () => {
         <Text style={[innerStyle.heading, textStyles.subheading]}>
           My Orders
         </Text>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => safePush({ pathname: 'Notification' })}
         >
           <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <View>
+
+        </View>
       </View>
 
       <SideBar

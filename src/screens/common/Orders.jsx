@@ -20,6 +20,7 @@ import styles from '../../styles/globalStyles';
 
 import { useAuth } from '../../contexts/authContext';
 import { fetchOrderHistory } from '../../services/common/OrderHistoryService';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const Orders = () => {
   const { token, role, loading: authLoading } = useAuth();
@@ -277,27 +278,27 @@ const Orders = () => {
 
 export default Orders;
 
-const localStyles = StyleSheet.create({
+const localStyles = ScaledSheet.create({
   filterRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    marginVertical: 12,
+    paddingHorizontal: '16@s',
+    marginVertical: '12@vs',
   },
   expandedView: {
     borderTopWidth: 1,
     borderTopColor: Colors.borderColor,
-    paddingTop: 10,
+    paddingTop: '10@vs',
   },
   noteColumn: {
-    marginTop: 10,
+    marginTop: '10@vs',
   },
   noteTitle: {
     fontWeight: 'bold',
   },
   itemsTitle: {
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: '8@vs',
   },
   itemRow: {
     flexDirection: 'row',
@@ -305,7 +306,7 @@ const localStyles = StyleSheet.create({
   },
   rowAlign: {
     flexDirection: 'row',
-    marginVertical: 10,
+    marginVertical: '10@vs',
     justifyContent: 'flex-start',
   },
   itemName: {

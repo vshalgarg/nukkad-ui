@@ -19,7 +19,11 @@ import CustomButton from '../../components/CustomButton';
 import Colors from '../../styles/colors';
 import BackButton from '../../components/BackButton';
 import CustomInput from '../../components/CustomInput';
+import { ScaledSheet } from 'react-native-size-matters';
+import Fonts from '../../styles/font';
+import { Dimensions } from 'react-native';
 
+const { width } = Dimensions.get('screen');
 const profileSchema = z.object({
   name: z
     .string()
@@ -314,23 +318,23 @@ const StorekeeperProfileScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: Colors.white }}>
+      <BackButton title={strings.profileSetting} />
+      <View style={{ marginVertical: 20 }}>
+        <TouchableOpacity
+          style={styles.editIcon}
+          onPress={() => setIsEditing(!isEditing)}
+        >
+          <Icon name="edit" size={20} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 120 }}
+        contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 0 }}
         showsVerticalScrollIndicator={false}
       >
-        <BackButton title={strings.profileSetting} />
-        <View style={{ marginVertical: 25 }}>
-          <TouchableOpacity
-            style={styles.editIcon}
-            onPress={() => setIsEditing(!isEditing)}
-          >
-            <Icon name="edit" size={20} />
-          </TouchableOpacity>
-        </View>
-
         {fieldGroups.map((group, index) => (
           <View key={index} style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>{group.title}</Text>
@@ -343,13 +347,7 @@ const StorekeeperProfileScreen = () => {
         ))}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-            }}
-          >
+          <View style={styles.imageContainer}>
             {[0, 1, 2, 3].map(i => {
               const image = profile.imageUrls[i];
               return (
@@ -373,7 +371,11 @@ const StorekeeperProfileScreen = () => {
                     </View>
                   ) : (
                     <View style={[styles.image, styles.emptyImage]}>
-                      <Text style={{ color: Colors.secondaryText, fontSize: 20 }}>+</Text>
+                      <Text
+                        style={{ color: Colors.secondaryText, fontSize: 20 }}
+                      >
+                        +
+                      </Text>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -428,60 +430,57 @@ const StorekeeperProfileScreen = () => {
   }
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: '16@s',
     backgroundColor: Colors.white,
   },
   header: {
-    fontSize: 22,
+    fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
     alignSelf: 'center',
-    marginBottom: 70,
+    marginBottom: '70@vs',
   },
   editIcon: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    padding: 10,
-    borderRadius: 30,
+    padding: '10@s',
+    borderRadius: '30@s',
   },
   row: {
     flexDirection: 'row',
-    gap: 10,
+    gap: '10@s',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: '16@vs',
   },
-
   fieldWrapper: {
-    marginBottom: 24, // Increased spacing
+    marginBottom: '24@vs',
   },
   inputContainer: {
-    marginBottom: 16,
-    paddingHorizontal: 25,
+    marginBottom: '8@vs',
   },
   label: {
-    fontSize: 14,
+    fontSize: '14@s',
     fontWeight: '600',
     color: Colors.secondary,
-    marginBottom: 4,
+    marginBottom: '4@vs',
   },
   profileHeader: {
-    fontSize: 22,
+    fontSize: '22@s',
     fontWeight: 'bold',
-    marginBottom: 24,
+    marginBottom: '24@vs',
     textAlign: 'center',
   },
-
   saveButtonText: {
     color: Colors.white,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: '16@s',
   },
   image: {
-    width: 65,
-    height: 65,
-    borderRadius: 10,
+    width: '65@s',
+    height: '65@s',
+    borderRadius: '10@s',
     resizeMode: 'cover',
     overflow: 'hidden',
     alignItems: 'center',
@@ -489,15 +488,14 @@ const styles = StyleSheet.create({
   },
   removeIcon: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: '-8@vs',
+    right: '-8@s',
     backgroundColor: Colors.reject,
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: '12@s',
+    padding: '4@s',
     zIndex: 10,
     elevation: 3,
   },
-
   emptyImage: {
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
@@ -508,26 +506,32 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: Colors.reject,
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: '12@s',
   },
   sectionContainer: {
-    marginBottom: 24,
+    marginBottom: '24@vs',
     backgroundColor: Colors.sectionBackground,
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: '8@s',
+    padding: '16@s',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: '16@vs',
     color: Colors.secondary,
   },
   saveButtonContainer: {
-    height: 70,
+    height: '70@vs',
     backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  imageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 0.02 * width,
   },
 });
 

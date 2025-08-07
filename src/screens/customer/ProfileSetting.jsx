@@ -34,6 +34,7 @@ import DeleteAccount from '../../components/DeleteAccount';
 import { useAddress } from '../../contexts/addressContext';
 import { useStore } from '../../contexts/storeContext';
 import { useDispatch } from 'react-redux';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const formatDate = date => {
   if (!date) return '';
@@ -137,7 +138,7 @@ const ProfileSetting = () => {
 
   const handleDateChange = (_, selectedDate) => {
     setShowPicker(false);
-    if (selectedDate) { 
+    if (selectedDate) {
       setDobDate(selectedDate);
       setDOB(formatDate(selectedDate));
     }
@@ -309,7 +310,7 @@ const ProfileSetting = () => {
               <>
                 <Pressable onPress={() => setShowPicker(true)}>
                   <TextInput
-                    style={innerStyle.mobileInput}
+                    style={innerStyle.dob}
                     value={DOB}
                     editable={false}
                   />
@@ -334,7 +335,7 @@ const ProfileSetting = () => {
                 )}
               </>
             ) : (
-              <Text style={innerStyle.mobileInput}>{DOB}</Text>
+              <Text style={innerStyle.dob}>{DOB}</Text>
             )}
           </View>
         </View>
@@ -373,12 +374,12 @@ const ProfileSetting = () => {
 
 export default ProfileSetting;
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 30,
-    marginBottom: 40,
+    marginTop: '30@vs',
+    marginBottom: '40@vs',
   },
   profileImageSection: {
     position: 'relative',
@@ -386,17 +387,23 @@ const innerStyle = StyleSheet.create({
     justifyContent: 'center',
   },
   image: {
-    width: 130,
-    height: 130,
-    borderRadius: 75,
+    width: '120@s',
+    height: '120@s',
+    borderRadius: '65@s',
     resizeMode: 'contain',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cameraIconContainer: { position: 'absolute', bottom: 0, right: 0 },
-  cameraIcon: { height: 42, width: 42 },
-
+  cameraIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  cameraIcon: {
+    height: '42@s',
+    width: '42@s',
+  },
   editButtonWrapper: {
     marginTop: 10,
     alignSelf: 'flex-end',
@@ -413,56 +420,58 @@ const innerStyle = StyleSheet.create({
     fontWeight: '600',
   },
 
-  profileDetails: { width: '100%', marginTop: 10 },
+  profileDetails: {
+    width: '100%',
+    marginTop: '10@vs',
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: '13@s',
   },
   halfInput: {
     flex: 1,
-    marginBottom: 10,
+    marginBottom: '10@vs',
     borderBottomWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: '12@s',
+    padding: '10@s',
     fontSize: Fonts.sizes.base,
-    marginHorizontal: 5,
+    // marginHorizontal: '5@s',
   },
   fullInput: {
-    marginBottom: 16,
-    marginHorizontal: 20,
+    marginBottom: '16@vs',
+    marginHorizontal: '12@s',
     borderBottomWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: '12@s',
+    padding: '12@s',
     fontSize: Fonts.sizes.base,
   },
   halfLabel: {
     flex: 1,
-    marginHorizontal: 10,
-    marginTop: 10,
+    marginHorizontal: '10@s',
+    marginTop: '10@vs',
     fontSize: Fonts.sizes.sm,
     color: Colors.secondary,
   },
   fullLabel: {
-    marginHorizontal: 30,
-    marginTop: 10,
+    marginHorizontal: '25@s',
+    marginTop: '10@vs',
     fontSize: Fonts.sizes.sm,
     color: Colors.secondary,
   },
-  mobileInput: {
-    marginTop: 8,
-    marginBottom: 20,
-    marginHorizontal: 20,
+  dob: {
+    marginBottom: '16@vs',
+    marginHorizontal: '12@s',
     borderBottomWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: '12@s',
+    padding: '12@s',
     fontSize: Fonts.sizes.base,
   },
   buttonContainer: {
     justifyContent: 'space-around',
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 30,
-    paddingHorizontal: 20,
+    marginVertical: '30@vs',
+    paddingHorizontal: '20@s',
   },
 });

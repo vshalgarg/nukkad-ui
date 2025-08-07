@@ -20,6 +20,9 @@ import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import { useRef } from 'react';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
+
+import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
 
 const AddressForm = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -61,7 +64,30 @@ const AddressForm = () => {
   const cityRef = useRef(null);
   const stateRef = useRef(null);
   const pincodeRef = useRef(null);
+  const scrollViewRef = useRef();
 
+  const scrollToInput = ref => {
+    if (ref?.current && scrollViewRef?.current) {
+      const inputHandle = findNodeHandle(ref.current);
+      const scrollHandle = findNodeHandle(scrollViewRef.current);
+
+      if (inputHandle && scrollHandle) {
+        InteractionManager.runAfterInteractions(() => {
+          UIManager.measureLayout(
+            inputHandle,
+            scrollHandle,
+            error => {
+              console.log('measureLayout error:', error);
+            },
+            (x, y) => {
+              scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
+              ref.current.focus?.(); // safer optional chaining
+            },
+          );
+        });
+      }
+    }
+  };
   useEffect(() => {
     if (mode === 'edit' && addressData) {
       setName(addressData.name || '');
@@ -172,7 +198,8 @@ const AddressForm = () => {
 
     if (Object.keys(newErrors).length > 0) {
       if (firstErrorMessage) showToast('error', firstErrorMessage);
-      if (firstInvalidRef?.current) firstInvalidRef.current.focus();
+      if (firstInvalidRef?.current) scrollToInput(firstInvalidRef);
+
       return;
     }
 
@@ -210,6 +237,7 @@ const AddressForm = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
+            ref={scrollViewRef}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={formStyles.scrollContent}
@@ -406,25 +434,25 @@ const AddressForm = () => {
 
 export default AddressForm;
 
-const formStyles = StyleSheet.create({
+const formStyles = ScaledSheet.create({
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: '20@vs',
     justifyContent: 'flex-start',
     backgroundColor: Colors.white,
   },
   centerContainer: {
     flex: 1,
-    marginTop: 30,
-    paddingHorizontal: 20,
+    marginTop: '15@vs',
+    paddingHorizontal: '20@s',
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
   label: {
     alignSelf: 'flex-start',
-    marginTop: 10,
-    marginBottom: 5,
-    fontSize: Fonts.sizes.base,
+    marginTop: '5@vs',
+    marginBottom: '5@vs',
+    fontSize: Fonts.sizes.base, // Assuming this is already scaled
     fontWeight: '500',
     color: Colors.secondary,
   },
@@ -432,9 +460,9 @@ const formStyles = StyleSheet.create({
     color: Colors.reject,
   },
   buttonContainer: {
-    marginTop: 40,
+    marginTop: '40@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: '30@vs',
   },
 });

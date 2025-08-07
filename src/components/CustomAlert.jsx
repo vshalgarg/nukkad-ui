@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Colors from '../styles/colors';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const CustomAlert = ({
   visible,
@@ -38,7 +39,7 @@ const CustomAlert = ({
 
 export default CustomAlert;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -48,46 +49,46 @@ const styles = StyleSheet.create({
   container: {
     width: '80%',
     backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: '12@s',
+    padding: '20@s',
     elevation: 5,
   },
   title: {
-    fontSize: 18,
+    fontSize: '18@s',
     fontWeight: '700',
     color: Colors.secondary,
-    marginBottom: 8,
+    marginBottom: '8@s',
   },
   message: {
-    fontSize: 16,
+    fontSize: '16@s',
     color: Colors.secondary,
-    marginBottom: 16,
+    marginBottom: '16@s',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: '12@s',
   },
   cancelBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: '8@s',
+    paddingHorizontal: '16@s',
     backgroundColor: Colors.borderColor,
-    borderRadius: 6,
+    borderRadius: '6@s',
   },
   confirmBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: '8@s',
+    paddingHorizontal: '16@s',
     backgroundColor: Colors.primary,
-    borderRadius: 6,
+    borderRadius: '6@s',
   },
   cancelText: {
     color: Colors.secondary,
-    fontSize: 14,
+    fontSize: '14@s',
     fontWeight: '500',
   },
   confirmText: {
     color: Colors.white,
-    fontSize: 14,
+    fontSize: '14@s',
     fontWeight: '600',
   },
 });

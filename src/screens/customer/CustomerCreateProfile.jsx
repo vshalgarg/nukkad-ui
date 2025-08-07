@@ -10,6 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
 
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
@@ -55,6 +56,7 @@ const CustomerCreateProfile = () => {
   const cityRef = useRef();
   const stateRef = useRef();
   const pincodeRef = useRef();
+  const scrollViewRef = useRef();
 
   const { token } = useAuth();
   const { createProfile } = useProfile();
@@ -77,6 +79,28 @@ const CustomerCreateProfile = () => {
     if (params.mobile) setMobile(params.mobile);
   }, [params]);
 
+  const scrollToInput = ref => {
+    if (ref?.current && scrollViewRef?.current) {
+      const inputHandle = findNodeHandle(ref.current);
+      const scrollHandle = findNodeHandle(scrollViewRef.current);
+
+      if (inputHandle && scrollHandle) {
+        InteractionManager.runAfterInteractions(() => {
+          UIManager.measureLayout(
+            inputHandle,
+            scrollHandle,
+            error => {
+              console.log('measureLayout error:', error);
+            },
+            (x, y) => {
+              scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
+              ref.current.focus?.(); // safer optional chaining
+            },
+          );
+        });
+      }
+    }
+  };
   const formatDateYYYYMMDD = date => {
     if (!(date instanceof Date) || isNaN(date)) return null;
     const year = date.getFullYear();
@@ -130,14 +154,14 @@ const CustomerCreateProfile = () => {
     if (!isValid) {
       showToast('error', message);
 
-      // Auto focus first invalid field
-      if (fieldErrors.name) nameRef.current?.focus();
-      else if (fieldErrors.email) emailRef.current?.focus();
-      else if (fieldErrors.addressLine1) addressRef.current?.focus();
-      else if (fieldErrors.landmark) landmarkRef.current?.focus();
-      else if (fieldErrors.city) cityRef.current?.focus();
-      else if (fieldErrors.state) stateRef.current?.focus();
-      else if (fieldErrors.pincode) pincodeRef.current?.focus();
+      if (fieldErrors.name) scrollToInput(nameRef);
+      else if (fieldErrors.email) scrollToInput(emailRef);
+      else if (fieldErrors.addressLine1) scrollToInput(addressRef);
+      else if (fieldErrors.landmark) scrollToInput(landmarkRef);
+      else if (fieldErrors.city) scrollToInput(cityRef);
+      else if (fieldErrors.state) scrollToInput(stateRef);
+      else if (fieldErrors.pincode) scrollToInput(pincodeRef);
+
       pressLock = false;
       return;
     }
@@ -211,6 +235,7 @@ const CustomerCreateProfile = () => {
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
           removeClippedSubviews={true}
           showsVerticalScrollIndicator={false}
+          ref={scrollViewRef}
         >
           <View style={styles.pageContainer}>
             <View style={localStyles.centerContainer}>

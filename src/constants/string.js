@@ -20,6 +20,7 @@ const strings = {
   myProfile: 'My Profile',
   name: 'Name',
   mobile: 'Contact Number',
+  address: 'Address: ',
   addressLine1: 'Address Line 1',
   addressLine2: 'Address Line 2',
   landmark: 'Landmark',
@@ -109,7 +110,7 @@ const strings = {
   orderDetails: 'Order Details',
   orderHistory: 'Order History',
   store: 'Store :',
-  customer: 'Customer :',
+  customer: 'Customer:',
   repeatOrder: 'Repeat Order',
 
   paymentOptions: 'Payment Options',
@@ -137,7 +138,8 @@ const strings = {
   otpSent: 'OTP Sent',
   invalidOtp: 'Invalid OTP',
   invalidMobile: 'Please enter your mobile number',
-  validMobileNumber: 'Mobile number must be exactly 10 digits Mobile number must be exactly 10 digits',
+  validMobileNumber:
+    'Mobile number must be exactly 10 digits Mobile number must be exactly 10 digits',
   invalidQr: 'Invalid QR Code',
   invalidQr2: 'Please scan a valid QR code',
   failedToAddStore: 'Failed to add store',

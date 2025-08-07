@@ -19,6 +19,7 @@ import {
 } from '../../services/common/OrderHistoryService';
 import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const FilterModal = ({
   visible,
@@ -126,8 +127,6 @@ const FilterModal = ({
     }
 
     setFilterModalVisible(false);
-
-    // ✅ Call the parent filter function
     if (typeof onApplyFilter === 'function') {
       onApplyFilter();
     }
@@ -270,7 +269,7 @@ const FilterModal = ({
 
 export default FilterModal;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -278,54 +277,54 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
+    borderTopLeftRadius: '20@s',
+    borderTopRightRadius: '20@s',
+    padding: '20@s',
     elevation: 10,
   },
   title: {
     fontSize: Fonts.sizes.lg,
     fontWeight: '600',
     color: Colors.secondary,
-    marginBottom: 16,
+    marginBottom: '16@vs',
   },
   subtitle: {
-    fontSize: Fonts.sizes.md,
+    fontSize: Fonts.sizes.sm,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: '16@vs',
     color: Colors.secondary,
   },
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -20,
+    marginTop: '-20@vs',
   },
   labelText: {
-    marginBottom: 4,
-    fontSize: 12,
+    marginBottom: '4@vs',
+    fontSize: '12@s',
     fontWeight: '500',
     color: '#333',
   },
   marker: {
     backgroundColor: Colors.primary,
-    height: 20,
-    width: 20,
-    borderRadius: 10,
+    height: '20@s',
+    width: '20@s',
+    borderRadius: '10@s',
   },
   dateSelect: {
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 12,
+    padding: '14@s',
+    borderRadius: '10@s',
+    marginBottom: '12@vs',
   },
   dateLabel: {
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
   },
   sectionTitle: {
-    marginTop: 16,
-    marginBottom: 10,
+    marginTop: '16@vs',
+    marginBottom: '10@vs',
     fontWeight: 'bold',
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
@@ -333,16 +332,16 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: '8@s',
   },
   statusBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
+    paddingVertical: '8@vs',
+    paddingHorizontal: '14@s',
+    borderRadius: '8@s',
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: '8@s',
+    marginBottom: '8@vs',
   },
   statusText: {
     color: Colors.secondary,
@@ -351,37 +350,36 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: '10@vs',
   },
   priceInput: {
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: 8,
-    padding: 8,
-    width: 80,
+    borderRadius: '8@s',
+    padding: '8@s',
+    width: '80@s',
     textAlign: 'center',
     backgroundColor: '#fff',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: '20@vs',
   },
   modalBtn: {
     flex: 1,
     backgroundColor: Colors.primary,
-    padding: 12,
-    borderRadius: 10,
+    padding: '12@s',
+    borderRadius: '10@s',
     alignItems: 'center',
-    marginLeft: 10,
+    marginLeft: '10@s',
   },
   cancelBtn: {
     flex: 1,
     backgroundColor: Colors.secondaryText,
-    padding: 12,
-    borderRadius: 10,
+    padding: '12@s',
+    borderRadius: '10@s',
     alignItems: 'center',
-    marginRight: 10,
   },
   buttonText: {
     color: Colors.white,

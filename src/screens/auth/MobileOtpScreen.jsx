@@ -28,6 +28,7 @@ import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext'
 import { getCartItemsAPI } from '../../services/customer/cartService';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import { Keyboard } from 'react-native';
 
 const MobileOtpScreen = () => {
   useBackHandlerControl({ blockBack: true });
@@ -63,6 +64,7 @@ const MobileOtpScreen = () => {
   }, [timer, sendOtpClicked]);
 
   const sendOtpRequest = async (isResend = false) => {
+    Keyboard.dismiss();
     try {
       const role = userType === 'I AM CUSTOMER' ? 'CUSTOMER' : 'STOREKEEPER';
       const res = await sendOtp(mobile, isResend ? null : role);

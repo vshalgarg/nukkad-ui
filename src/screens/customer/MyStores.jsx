@@ -24,6 +24,7 @@ import {
 import { useAuth } from '../../contexts/authContext';
 import { useNavigation } from '@react-navigation/native';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
@@ -134,11 +135,22 @@ export default function MyStores() {
       >
         <View style={innerStyle.radioContainer}>
           <View style={innerStyle.dataColumn}>
-            <Text style={innerStyle.shopName}>{item.storeName}</Text>
-            <Text style={innerStyle.address}>
+            <Text
+              style={innerStyle.shopName}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {item.storeName}
+            </Text>
+            <Text
+              style={innerStyle.address}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
               {`${item.addressLine1}, ${item.city}`}
             </Text>
           </View>
+
           {!isSelected && (
             <View style={innerStyle.iconColumn}>
               <Pressable onPress={() => handleDelete(item)}>
@@ -157,7 +169,7 @@ export default function MyStores() {
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title={strings.myStores}/>
+      <BackButton title={strings.myStores} />
       <View style={innerStyle.container}>
         {loading ? (
           <View style={innerStyle.loadingContainer}>
@@ -210,10 +222,10 @@ export default function MyStores() {
   );
 }
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   container: {
     flex: 1,
-    padding: 15,
+    padding: '15@s',
     backgroundColor: Colors.white,
   },
   loadingContainer: {
@@ -224,31 +236,31 @@ const innerStyle = StyleSheet.create({
   noStores: {
     fontSize: Fonts.sizes.lg,
     color: Colors.secondaryText,
-    marginTop: 20,
+    marginTop: '20@vs',
     textAlign: 'center',
   },
   addStoreContainer: {
     alignItems: 'center',
-    padding: 5,
-    marginVertical: 20,
+    padding: '5@s',
+    marginVertical: '20@vs',
   },
   button: {
     flexDirection: 'row',
     backgroundColor: Colors.primary,
-    padding: 8,
-    paddingHorizontal: 15,
-    borderRadius: 50,
+    padding: '8@s',
+    paddingHorizontal: '15@s',
+    borderRadius: '50@s',
     alignItems: 'center',
   },
   buttonText: {
     fontSize: Fonts.sizes.base,
-    marginLeft: 5,
+    marginLeft: '5@s',
     color: 'white',
   },
   card: {
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
+    marginTop: '16@vs',
+    padding: '16@s',
+    borderRadius: '12@s',
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.borderColor,
@@ -265,36 +277,41 @@ const innerStyle = StyleSheet.create({
     borderColor: Colors.primary,
   },
   radioContainer: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 70,
+    width: '100%',
   },
+
   dataColumn: {
-    height: '100%',
-    justifyContent: 'space-around',
+    flex: 1,
+    marginRight: '10@s',
   },
+
   iconColumn: {
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     alignItems: 'flex-end',
-    height: '100%',
   },
+
   shopName: {
-    fontSize: Fonts.sizes.lg,
+    fontSize: Fonts.sizes.base,
     fontWeight: 'bold',
     color: Colors.secondary,
-    marginBottom: 4,
+    marginBottom: '4@vs',
+    flexShrink: 1,
   },
+
   address: {
     fontSize: Fonts.sizes.sm,
     color: Colors.secondaryText,
+    flexShrink: 1,
   },
+
   btnContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: '20@vs',
+    marginBottom: '20@vs',
   },
 });

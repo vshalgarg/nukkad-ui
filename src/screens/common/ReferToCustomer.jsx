@@ -8,7 +8,6 @@ import {
   Dimensions,
 } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import ViewShot from 'react-native-view-shot';
@@ -17,6 +16,7 @@ import styles from '../../styles/globalStyles';
 import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ScaledSheet } from 'react-native-size-matters';
 
 
 const ReferToCustomer = () => {
@@ -137,42 +137,36 @@ export default ReferToCustomer;
 
 const { height: screenHeight } = Dimensions.get('window');
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   topContainer: {
-    paddingRight: 20,
+    paddingRight: '20@s',
   },
   container: {
-    // justifyContent: 'center',
-    gap: 15,
+    gap: '15@s',
     alignItems: 'center',
-    padding: 20,
+    padding: '20@s',
     backgroundColor: Colors.white,
     height: screenHeight * 0.75,
-    marginTop: 16,
+    marginTop: '16@vs',
   },
   shareIconContainer: {
     alignSelf: 'flex-end',
-    // backgroundColor: Colors.borderColor,
-    // padding: 10,
-    // borderRadius: 50,
-    // elevation: 2,
-    marginTop: 30
+    marginTop: '10@vs',
   },
   imageContainer: {
-    padding: 5,
-    borderRadius: 2,
+    padding: '5@s',
+    borderRadius: '2@s',
     elevation: 8,
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    marginVertical: 30,
+    marginVertical: '30@vs',
   },
   heading: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
     textAlign: 'left',
-    // marginBottom: 30,
-    marginTop: 30,
+    marginTop: '30@vs',
   },
   qrSection: {
     alignItems: 'center',
@@ -189,6 +183,6 @@ const innerStyle = StyleSheet.create({
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
     color: Colors.primary,
-    marginLeft: 4,
+    marginLeft: '4@s',
   },
 });
