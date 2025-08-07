@@ -4,13 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import textStyles from '../styles/textStyles';
 import Colors from '../styles/colors';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const screenWidth = Dimensions.get('window').width;
 
-const BackButton = ({
-  title,
-  onPress,
-}) => {
+const BackButton = ({ title, onPress }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -40,16 +38,16 @@ const BackButton = ({
 
 export default BackButton;
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50,
+    height: '50@s',
     position: 'relative',
     zIndex: 100,
   },
   backIconWrapper: {
-    marginLeft: '1%',
+    marginLeft: '1%', // Since this is percentage-based, no scaling is applied
     zIndex: 10,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
@@ -57,7 +55,7 @@ const innerStyle = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    marginLeft:-25,
+    marginLeft: '-25@s',
     zIndex: 1,
   },
 });

@@ -21,6 +21,7 @@ import { useAuth } from '../../contexts/authContext';
 import { createStorekeeperProfile } from '../../services/storekeeper/storekeeperProfileService';
 import { storekeeperProfileSchema } from '../../schema/validation';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
@@ -422,9 +423,9 @@ const StorekeeperCreateProfile = () => {
   );
 };
 
-const innerStyles = StyleSheet.create({
+const innerStyles = ScaledSheet.create({
   createProfileStyling: {
-    height: 63,
+    height: '63@ms',
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -432,6 +433,7 @@ const innerStyles = StyleSheet.create({
   header: {
     fontWeight: '600',
     color: Colors.white,
+    fontSize: Fonts.sizes.lg, // or use '18@ms' if not using Fonts
   },
   centerContainer: {
     flex: 1,
@@ -439,11 +441,11 @@ const innerStyles = StyleSheet.create({
     width: '100%',
   },
   formContainer: {
-    maxWidth: 500,
+    maxWidth: '500@ms0.3', // smaller scaling factor to prevent extreme width
   },
   label: {
-    marginTop: 5,
-    marginBottom: 5,
+    marginTop: '5@ms',
+    marginBottom: '5@ms',
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
     color: Colors.secondary,
@@ -452,11 +454,10 @@ const innerStyles = StyleSheet.create({
     color: Colors.reject,
   },
   buttonWrapper: {
-    marginTop: 30,
+    marginTop: '30@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: '40@ms',
   },
 });
-
 export default StorekeeperCreateProfile;

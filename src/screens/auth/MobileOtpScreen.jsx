@@ -24,9 +24,10 @@ import { useAuth } from '../../contexts/authContext';
 import { setCartItems, setCartUser } from '../../store/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
-import {useStorekeeperProfile} from '../../contexts/storeKeeperProfileContext'
+import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
 import { getCartItemsAPI } from '../../services/customer/cartService';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const MobileOtpScreen = () => {
   useBackHandlerControl({ blockBack: true });
@@ -41,7 +42,7 @@ const MobileOtpScreen = () => {
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
   const userType = useSelector(state => state.user.userType);
-  const {fetchStorekeeperProfile} = useStorekeeperProfile()
+  const { fetchStorekeeperProfile } = useStorekeeperProfile();
   useEffect(() => {
     setSendOtpClicked(false);
     setCanResend(false);
@@ -111,7 +112,6 @@ const MobileOtpScreen = () => {
       showToast('error', `${strings.invalidOtp}`, `${strings.tryAgain}`);
       return;
     }
-   
 
     try {
       const res = await verifyOtp(mobile, otp);
@@ -160,7 +160,7 @@ const MobileOtpScreen = () => {
         }
       } else {
         if (returningUser) {
-          fetchStorekeeperProfile()
+          fetchStorekeeperProfile();
           safePush('StorekeeperDashboard', {
             toast: JSON.stringify(toastPayload),
           });
@@ -300,32 +300,32 @@ const MobileOtpScreen = () => {
 
 export default MobileOtpScreen;
 
-const localStyles = StyleSheet.create({
+const localStyles = ScaledSheet.create({
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingHorizontal: '20@ms',
+    paddingTop: '10@vs',
   },
   logo: {
-    marginBottom: 32,
+    marginBottom: '32@vs',
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 40,
+    paddingHorizontal: '20@ms',
+    paddingTop: '40@vs',
+    paddingBottom: '40@vs',
     backgroundColor: Colors.white,
   },
   sendOtpText: {
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
     alignSelf: 'flex-end',
-    marginTop: 5,
-    marginBottom: 20,
-    marginRight: 10,
+    marginTop: '2@vs',
+    marginBottom: '10@vs',
+    marginRight: '10@ms',
   },
   sendOtpEnabled: {
     color: Colors.primary,
@@ -339,19 +339,19 @@ const localStyles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.secondaryText,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: '12@vs',
   },
   resendContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: '5@vs',
+    marginBottom: '8@vs',
   },
   resendText: {
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
-    marginLeft: 4,
+    marginLeft: '4@ms',
   },
   resendEnabled: {
     color: Colors.primary,
@@ -364,23 +364,22 @@ const localStyles = StyleSheet.create({
     color: Colors.disabled,
     opacity: 0.6,
   },
-
   policyContainer: {
-    marginTop: 40,
-    paddingHorizontal: 10,
+    marginTop: '20@vs',
+    paddingHorizontal: '10@ms',
   },
   policyText: {
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: '22@vs',
   },
   underline: {
     textDecorationLine: 'underline',
     color: Colors.secondary,
   },
   loginBtn: {
-    marginTop: 40,
+    marginTop: '40@vs',
     width: '100%',
     alignItems: 'center',
   },

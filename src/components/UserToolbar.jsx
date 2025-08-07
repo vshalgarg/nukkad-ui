@@ -19,6 +19,7 @@ import { useStore } from '../contexts/storeContext';
 import SideBar from './sidebar/SideBar';
 import Fonts from '../styles/font';
 import Colors from '../styles/colors';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const UserToolbar = ({
   hideCart = false,
@@ -92,11 +93,11 @@ const UserToolbar = ({
             </Pressable>
           )}
 
-          {!hideNotification && (
+          {/* {!hideNotification && (
             <Pressable onPress={handleNotification}>
               <Feather name="bell" size={24} color={Colors.secondary} />
             </Pressable>
-          )}
+          )} */}
         </View>
       </View>
 
@@ -110,13 +111,13 @@ const UserToolbar = ({
 
 export default UserToolbar;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '10@ms',
   },
   leftSection: {
     flexDirection: 'row',
@@ -126,13 +127,13 @@ const styles = StyleSheet.create({
   location: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 15,
+    marginLeft: '15@ms',
     justifyContent: 'center',
   },
   storeName: {
     fontSize: Fonts.sizes.base,
-    fontWeight: '600',
-    marginLeft: 5,
+    fontWeight: Fonts.weights.bold,
+    marginLeft: '5@ms',
   },
   rightSection: {
     flexDirection: 'row',
@@ -141,19 +142,19 @@ const styles = StyleSheet.create({
     width: '20%',
   },
   iconWrapper: {
-    marginHorizontal: 10,
+    marginHorizontal: '10@ms',
   },
   cartBadge: {
     position: 'absolute',
-    top: -6,
-    right: -10,
+    top: '-6@ms',
+    right: '-10@ms',
     backgroundColor: Colors.reject,
-    borderRadius: 12,
-    minWidth: 22,
-    height: 22,
+    borderRadius: '12@ms',
+    minWidth: '22@ms',
+    height: '22@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: '4@ms',
   },
   cartBadgeText: {
     color: Colors.white,

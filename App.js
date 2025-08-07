@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, StatusBar, Platform } from 'react-native';
+import {StatusBar, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -13,7 +15,7 @@ import { ProfileProvider } from './src/contexts/profileContext';
 import { StoreProvider } from './src/contexts/storeContext';
 import { AddressProvider } from './src/contexts/addressContext';
 import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressContext';
-import { StorekeeperProfileProvider } from "./src/contexts/storeKeeperProfileContext"
+import { StorekeeperProfileProvider } from './src/contexts/storeKeeperProfileContext';
 import { toastConfig } from './src/utils/toastConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,9 +32,9 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
         id: 'default',
         launchActivity: 'default',
       },
-      sound: 'default'
+      sound: 'default',
     },
-    data: remoteMessage.data
+    data: remoteMessage.data,
   });
   return Promise.resolve();
 });
@@ -43,7 +45,7 @@ export default function App() {
       try {
         // Request permissions
         await notifee.requestPermission();
-        
+
         // Create notification channel (Android only)
         if (Platform.OS === 'android') {
           await notifee.createChannel({
@@ -57,10 +59,9 @@ export default function App() {
 
         // Get and log FCM token
         const token = await messaging().getToken();
-        await AsyncStorage.setItem("FcmToken",token)
+        await AsyncStorage.setItem('FcmToken', token);
         console.log('FCM Token:', token);
         // Send token to your backend here
-        
       } catch (error) {
         console.error('FCM Setup Error:', error);
       }
@@ -69,8 +70,11 @@ export default function App() {
     // 2. Foreground message handler (unchanged)
     const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
       try {
-        console.log('Foreground FCM Message:', JSON.stringify(remoteMessage, null, 2));
-        
+        console.log(
+          'Foreground FCM Message:',
+          JSON.stringify(remoteMessage, null, 2),
+        );
+
         await notifee.displayNotification({
           id: String(Math.random()),
           title: remoteMessage.data?.title || 'New Message',
@@ -86,7 +90,7 @@ export default function App() {
             },
             sound: 'default',
           },
-          data: remoteMessage.data
+          data: remoteMessage.data,
         });
       } catch (error) {
         console.error('Foreground Notification Error:', error);
@@ -94,34 +98,41 @@ export default function App() {
     });
 
     // 3. Background message handler (unchanged)
-    const unsubscribeOnOpened = messaging().onNotificationOpenedApp(remoteMessage => {
-      console.log('Notification opened from background:', remoteMessage);
-      // Handle navigation here if needed
-    });
+    const unsubscribeOnOpened = messaging().onNotificationOpenedApp(
+      remoteMessage => {
+        console.log('Notification opened from background:', remoteMessage);
+        // Handle navigation here if needed
+      },
+    );
 
     // 4. Enhanced quit state handler
-    messaging().getInitialNotification().then(async remoteMessage => {
-      if (remoteMessage) {
-        console.log('App opened from quit state via notification:', remoteMessage);
-        
-        // Recreate notification
-        await notifee.displayNotification({
-          title: remoteMessage.data?.title || 'New Message',
-          body: remoteMessage.data?.body,
-          android: {
-            channelId: 'default',
-            smallIcon: 'ic_notification',
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default'
-            }
-          },
-          data: remoteMessage.data
-        });
-        
-        // Handle navigation here
-      }
-    });
+    messaging()
+      .getInitialNotification()
+      .then(async remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'App opened from quit state via notification:',
+            remoteMessage,
+          );
+
+          // Recreate notification
+          await notifee.displayNotification({
+            title: remoteMessage.data?.title || 'New Message',
+            body: remoteMessage.data?.body,
+            android: {
+              channelId: 'default',
+              smallIcon: 'ic_notification',
+              pressAction: {
+                id: 'default',
+                launchActivity: 'default',
+              },
+            },
+            data: remoteMessage.data,
+          });
+
+          // Handle navigation here
+        }
+      });
 
     // Initialize
     setupFCM();

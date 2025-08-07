@@ -169,7 +169,7 @@ const Address = () => {
           )}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingBottom: 100, // ← was 20, increase this!
+            paddingBottom: 100,
             flexGrow: 1,
             justifyContent: address.length === 0 ? 'center' : 'flex-start',
           }}

@@ -1,12 +1,14 @@
+import { moderateScale } from 'react-native-size-matters';
+
 const Fonts = {
   sizes: {
-    xxs: 9,
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
-    xxl: 24,
+    xxs: moderateScale(9),
+    xs: moderateScale(12),
+    sm: moderateScale(14),
+    base: moderateScale(16),
+    lg: moderateScale(18),
+    xl: moderateScale(20),
+    xxl: moderateScale(24),
   },
   weights: {
     light: '300',

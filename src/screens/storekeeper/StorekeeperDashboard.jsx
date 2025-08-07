@@ -34,6 +34,7 @@ import { useAuth } from '../../contexts/authContext';
 import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
 import { formatTabLabel } from '../../utils/formatTabLabel';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const StorekeeperDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
@@ -281,7 +282,7 @@ const StorekeeperDashboard = () => {
               <Text style={innerStyle.orderDetailsHeading}>
                 Customer Name:
                 <Text style={innerStyle.orderDetails}>
-                  {' '}
+                  {console.log(order)}
                   {order.customerName}
                 </Text>
               </Text>
@@ -394,9 +395,9 @@ const StorekeeperDashboard = () => {
 
 export default StorekeeperDashboard;
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   topBar: {
-    padding: 10,
+    padding: '10@ms',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -406,23 +407,22 @@ const innerStyle = StyleSheet.create({
     fontWeight: '700',
   },
   orderStatus: {
-    paddingHorizontal: 5,
+    paddingHorizontal: '5@ms',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: '20@vs',
+    marginBottom: '20@vs',
   },
   statusButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 50,
+    paddingHorizontal: '20@ms',
+    paddingVertical: '8@vs',
+    borderRadius: '50@ms',
   },
   emptyWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: '60%',
-    // backgroundColor:"red"
   },
   emptyStateText: {
     fontSize: Fonts.sizes.base,
@@ -430,55 +430,54 @@ const innerStyle = StyleSheet.create({
     color: Colors.secondaryText,
     textAlign: 'center',
     textAlignVertical: 'center',
-    marginTop: 50,
+    marginTop: '50@vs',
   },
   orderCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     elevation: 3,
     backgroundColor: Colors.white,
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 10,
-    marginHorizontal: 12,
-    marginTop: 1,
+    padding: '10@ms',
+    borderRadius: '20@ms',
+    marginBottom: '10@vs',
+    marginHorizontal: '12@ms',
+    marginTop: '1@vs',
   },
   leftSection: {
-    width: '80%',
+    width: '75%',
   },
   rightSection: {
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
   showDetailsBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 50,
+    paddingHorizontal: '20@ms',
+    paddingVertical: '10@vs',
+    borderRadius: '50@ms',
     backgroundColor: Colors.reject,
   },
   orderText: {
     fontWeight: 'bold',
     fontSize: Fonts.sizes.base,
-    lineHeight: 30,
   },
   orderDetails: {
     color: Colors.secondary,
     fontWeight: '500',
   },
   orderDetailsHeading: {
-    lineHeight: 30,
+    lineHeight: '25@vs',
     color: Colors.secondaryText,
   },
   updatedStatus: {
-    lineHeight: 30,
+    lineHeight: '20@vs',
     fontWeight: '600',
   },
   popupMenu: {
     position: 'absolute',
-    top: 20, // adjust to be just below the dot icon
+    top: '20@vs',
     right: 0,
     backgroundColor: Colors.white,
-    borderRadius: 8,
+    borderRadius: '8@ms',
     borderColor: Colors.borderColor,
     borderWidth: 1,
     elevation: 5,
@@ -486,8 +485,8 @@ const innerStyle = StyleSheet.create({
     width: '150%',
   },
   popupItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: '16@ms',
+    paddingVertical: '8@vs',
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderColor,
   },

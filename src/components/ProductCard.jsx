@@ -18,6 +18,7 @@ import Colors from '../styles/colors';
 import { useAuth } from '../contexts/authContext';
 import { addToCartAPI, updateCartAPI } from '../services/customer/cartService';
 import { showToast } from '../utils/toastUtils';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const { width } = Dimensions.get('window');
 
@@ -197,22 +198,22 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
-    padding: width < 360 ? 8 : 10,
+    padding: width < 360 ? '8@s' : '10@s',
     backgroundColor: Colors.white,
-    borderRadius: 10,
+    borderRadius: '10@s',
     elevation: 3,
     alignItems: 'center',
-    width: width > 768 ? '30%' : '45%',
-    height: width < 360 ? 210 : 230,
-    marginBottom: 20,
+    width: width > 768 ? '30%' : '48%',
+    height: width < 360 ? '210@vs' : '230@vs',
+    marginBottom: '20@vs',
     justifyContent: 'space-around',
   },
   imageContainer: {
-    width: width < 360 ? 90 : 130,
-    height: width < 360 ? 70 : 90,
-    borderRadius: 8,
+    width: width < 360 ? '90@s' : '130@s',
+    height: width < 360 ? '70@vs' : '90@vs',
+    borderRadius: '8@s',
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -232,8 +233,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 5,
-    gap: 5,
+    padding: '5@s',
+    gap: '5@s',
     width: '100%',
   },
   dropdownContainer: {
@@ -241,8 +242,8 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderColor: Colors.borderColor,
-    borderRadius: 10,
-    minHeight: 35,
+    borderRadius: '10@s',
+    minHeight: '35@vs',
   },
   dropdownBox: {
     borderColor: Colors.borderColor,
@@ -259,18 +260,18 @@ const styles = StyleSheet.create({
   textInput: {
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: Platform.OS === 'android' ? 4 : 6,
+    borderRadius: '10@s',
+    paddingHorizontal: '10@s',
+    paddingVertical: Platform.OS === 'android' ? '4@vs' : '6@vs',
     width: '50%',
-    height: 35,
+    height: '35@vs',
     fontSize: Fonts.sizes.sm,
   },
   button: {
-    marginTop: 5,
+    marginTop: '5@vs',
     width: '100%',
-    paddingVertical: 8,
-    borderRadius: 50,
+    paddingVertical: '8@vs',
+    borderRadius: '50@s',
     alignItems: 'center',
     borderWidth: 1,
   },
@@ -285,5 +286,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+
 
 export default ProductCard;

@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
 import CategoryGridLayout from '../../components/category/CategoriesGridLayout.jsx';
 import ProductSlider from '../../components/ProductSlider.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
