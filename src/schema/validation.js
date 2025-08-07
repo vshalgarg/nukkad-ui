@@ -53,10 +53,7 @@ export const storekeeperProfileSchema = z.object({
     .min(2, 'State must contain at least 2 characters')
     .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
   pincode: z.string().regex(/^\d{6}$/, 'Pincode must be exactly 6 digits'),
-  images: z
-    .array(z.object({ uri: z.string() }))
-    .max(3, 'You can upload up to 3 images')
-    .optional(),
+
 });
 
 const addressSchema = z.object({
@@ -144,6 +141,6 @@ export const validateAddressData = data => {
   return {
     isValid: false,
     fieldErrors,
-    message: messages[0], // You can still show just the first error message in toast
+    message: messages[0], 
   };
 };

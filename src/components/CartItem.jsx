@@ -24,6 +24,7 @@ import {
   deleteCartItemAPI,
 } from '../services/customer/cartService';
 import { useAuth } from '../contexts/authContext';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const CartItem = ({
   item,
@@ -169,58 +170,58 @@ const CartItem = ({
 
 export default CartItem;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   cartItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
+    padding: '12@ms',
+    borderRadius: '8@ms',
+    marginBottom: '10@ms',
     borderWidth: 1,
     borderColor: Colors.borderColor,
   },
   image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: '80@ms',
+    height: '80@ms',
+    borderRadius: '8@ms',
     resizeMode: 'cover',
   },
   itemInfoContainer: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: '10@ms',
     justifyContent: 'space-around',
   },
   name: {
     fontSize: Fonts.sizes.base,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: Fonts.weights.bold,
+    marginBottom: '4@ms',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: '8@ms',
   },
   input: {
-    width: 50,
-    height: 40,
+    width: '45@ms',
+    height: '38@ms',
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: 6,
-    paddingHorizontal: 8,
+    borderRadius: '6@ms',
+    paddingHorizontal: '8@ms',
     textAlign: 'center',
     fontWeight: '800',
   },
   unitSelector: {
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderRadius: '8@ms',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '8@ms',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: 80,
-    height: 42,
+    width: '70@ms',
+    height: '38@ms',
   },
   unitText: {
     fontSize: Fonts.sizes.sm,
@@ -230,8 +231,8 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     position: 'absolute',
-    top: 44,
-    width: 80,
+    top: '40@ms',
+    width: '70@ms',
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.borderColor,
@@ -244,8 +245,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   dropdownItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: '10@ms',
+    paddingHorizontal: '12@ms',
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderColor,
   },

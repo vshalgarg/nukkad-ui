@@ -45,7 +45,6 @@ const AddressForm = () => {
     setAddressData,
     setMode,
   } = useAddress();
-  console.log('addressData', addressData);
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [address1, setAddress1] = useState('');
@@ -65,7 +64,6 @@ const AddressForm = () => {
 
   useEffect(() => {
     if (mode === 'edit' && addressData) {
-      console.log('addressData', addressData);
       setName(addressData.name || '');
       setAddress1(addressData.addressLine1 || '');
       setMobile(addressData.mobileNumber || '');
@@ -194,7 +192,7 @@ const AddressForm = () => {
       updateAddress({ ...addressObject, id: addressData.id });
     } else {
       const newId = Date.now().toString();
-      addAddress({ ...addressObject, id: newId });
+      addAddress({ ...addressObject });
     }
 
     setMode('add');
@@ -234,7 +232,7 @@ const AddressForm = () => {
                   ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
-                  maxLength={30} 
+                  maxLength={30}
                   onTextChange={text => {
                     setName(text);
 
@@ -393,7 +391,10 @@ const AddressForm = () => {
                 />
               </View>
               <View style={formStyles.buttonContainer}>
-                <CustomButton title={strings.continue} onPress={handleContinue} />
+                <CustomButton
+                  title={strings.continue}
+                  onPress={handleContinue}
+                />
               </View>
             </View>
           </ScrollView>

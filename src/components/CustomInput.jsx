@@ -1,12 +1,14 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View, Dimensions } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import Flag from '../../assets/images/flag.svg';
 import Colors from '../styles/colors.js';
 import Fonts from '../styles/font.js';
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function CustomInput({
   isCountryCode,
   value = '',
-  fixedPrefix ='',
+  fixedPrefix = '',
   onTextChange,
   maxLength,
   keyboardType,
@@ -15,11 +17,10 @@ export default function CustomInput({
   autoCorrect,
   placeholder,
   isError = false,
-  editable=true,
+  editable = true,
   autoFocus,
   ...props
 }) {
-  // Get text part after prefix (only for display)
   const inputOnly = value.startsWith(fixedPrefix)
     ? value.slice(fixedPrefix.length)
     : '';
@@ -68,42 +69,41 @@ export default function CustomInput({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   wrapper: {
-    width: "100%",
-    marginBottom: 8,
+    marginBottom: '12@vs',
   },
   countryCodeContainer: {
     position: 'absolute',
-    left: 12,
-    top: '52%',
+    left: '12@ms',
+    top: '50%',
     transform: [{ translateY: -12 }],
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1,
   },
   countryCodeText: {
-    marginLeft: 8,
+    marginLeft: '5@ms',
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
-    textAlignVertical:"center"
+    textAlignVertical: 'center',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.secondary,
-    borderRadius: 24,
-    height: 48,
-    paddingHorizontal: 15,
+    borderRadius: '50@ms',
+    height: '40@vs',
+    paddingHorizontal: '15@ms',
     backgroundColor: Colors.white,
-    width: "100%",
+    width: SCREEN_WIDTH * 0.75,
   },
   fixedPrefix: {
     fontSize: Fonts.sizes.base,
-    fontWeight:500,
+    fontWeight: '500',
     color: Colors.secondary,
-    marginRight: 4, // spacing between prefix and text input
+    marginRight: '1@ms',
   },
   input: {
     flex: 1,
@@ -113,9 +113,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   inputWithCountryCode: {
-    paddingLeft: 70,
+    paddingLeft: '70@ms',
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
-    textAlignVertical:"center"
+    textAlignVertical: 'center',
   },
 });

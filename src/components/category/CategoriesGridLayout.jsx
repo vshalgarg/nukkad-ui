@@ -1,5 +1,6 @@
 import { Dimensions, FlatList, StyleSheet, View } from "react-native";
 import CategoryCard from "./CategoryCard";
+import { ScaledSheet } from 'react-native-size-matters';
 
 const numColumns = 4;
 const screenWidth = Dimensions.get("window").width;

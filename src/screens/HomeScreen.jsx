@@ -1,14 +1,14 @@
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import Grocery from '../../assets/images/grocery-logo.svg';
-import styles from './../styles/globalStyles.js';
 import { useSafeRouter } from '../hooks/useSafeRouter';
 import Colors from '../styles/colors.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserType } from './../store/userSlice.js';
-import textStyles from '../styles/textStyles.js';
-import Fonts from '../styles/font.js';
 import strings from '../constants/string.js';
+import Fonts from '../styles/font.js';
+
+import { ScaledSheet } from 'react-native-size-matters';
 
 export default function HomeScreen() {
   const { safePush } = useSafeRouter();
@@ -18,28 +18,12 @@ export default function HomeScreen() {
   const options = ['I AM CUSTOMER', 'I AM STOREKEEPER'];
 
   return (
-    <View
-      style={[
-        styles.pageContainer,
-        { justifyContent: 'center', alignItems: 'center' },
-      ]}
-    >
-      <Grocery style={{ marginBottom: 30 }} />
+    <View style={localStyles.pageContainer}>
+      <Grocery style={localStyles.logo} />
 
-      <Text
-        style={[styles.pageHeading, textStyles.heading, { marginBottom: 20 }]}
-      >
-        {strings.selectUserType}
-      </Text>
+      <Text style={localStyles.heading}>{strings.selectUserType}</Text>
 
-      <View
-        style={{
-          width: '100%',
-          alignItems: 'center',
-          gap: 20,
-          marginBottom: 50,
-        }}
-      >
+      <View style={localStyles.buttonContainer}>
         {options.map((option, index) => (
           <Pressable
             key={index}
@@ -47,29 +31,28 @@ export default function HomeScreen() {
               dispatch(setUserType(option));
               safePush('MobileOtpScreen');
             }}
-            style={{
-              borderRadius: 24,
-              borderWidth: 2,
-              borderColor:
-                userType === option ? Colors.selectUser : Colors.userRoles,
-              backgroundColor:
-                userType === option
-                  ? Colors.selectUserBackground
-                  : Colors.white,
-              alignItems: 'center',
-              paddingVertical: 12,
-              width: 291,
-              height: 48,
-            }}
+            style={[
+              localStyles.button,
+              {
+                borderColor:
+                  userType === option ? Colors.selectUser : Colors.userRoles,
+                backgroundColor:
+                  userType === option
+                    ? Colors.selectUserBackground
+                    : Colors.white,
+              },
+            ]}
             accessibilityLabel={`Select ${option}`}
           >
             <Text
-              style={{
-                fontSize: Fonts.sizes.base,
-                color:
-                  userType === option ? Colors.selectUser : Colors.secondary,
-                fontWeight: userType === option ? 'bold' : 'normal',
-              }}
+              style={[
+                localStyles.buttonText,
+                {
+                  color:
+                    userType === option ? Colors.selectUser : Colors.secondary,
+                  fontWeight: userType === option ? 'bold' : 'normal',
+                },
+              ]}
             >
               {option}
             </Text>
@@ -79,3 +62,38 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+const localStyles = ScaledSheet.create({
+  pageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: '40@s',
+    backgroundColor: Colors.white,
+  },
+  logo: {
+    marginBottom: '30@vs',
+  },
+  heading: {
+    fontSize: Fonts.sizes.xxl,
+    marginBottom: '20@vs',
+    fontWeight: 'bold',
+    color: Colors.primaryText,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: '12@vs',
+  },
+  button: {
+    height: '40@vs',
+    borderRadius: '24@s',
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: '20@s',
+  },
+  buttonText: {
+    fontSize: Fonts.sizes.base,
+  },
+});

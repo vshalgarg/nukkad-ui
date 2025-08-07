@@ -10,6 +10,8 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../styles/colors';
 import { useSafeRouter } from '../hooks/useSafeRouter';
 import strings from '../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
+import Fonts from '../styles/font';
 
 const SearchContainer = ({ query, onSearchSubmit }) => {
   const { safePush } = useSafeRouter();
@@ -55,10 +57,10 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    marginBottom: 5,
-    paddingHorizontal: 20,
+    marginBottom: '5@vs',
+    paddingHorizontal: '20@s',
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'center',
@@ -68,10 +70,10 @@ const styles = StyleSheet.create({
     width: '95%',
     borderWidth: 0.5,
     position: 'relative',
-    borderRadius: 50,
+    borderRadius: '50@s',
     flexDirection: 'row',
-    marginVertical: 10,
-    height: 50,
+    marginVertical: '10@vs',
+    height: '40@vs',
     alignItems: 'center',
   },
   icon: {
@@ -81,6 +83,7 @@ const styles = StyleSheet.create({
     width: '80%',
     backgroundColor: Colors.white,
     color: Colors.secondary,
+    fontSize:Fonts.sizes.sm
   },
 });
 

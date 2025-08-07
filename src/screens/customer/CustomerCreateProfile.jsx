@@ -28,6 +28,7 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 // import { setCartUser } from '../../store/cartSlice';
 import { validateCustomerProfile } from '../../schema/validation';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 let pressLock = false;
 
@@ -172,7 +173,7 @@ const CustomerCreateProfile = () => {
         dob: formatDateYYYYMMDD(payload.dob),
         role: 'customer',
         image: null,
-      }; 
+      };
 
       await createProfile(newProfile);
       // dispatch(setCartUser(profile.userId));
@@ -288,10 +289,17 @@ const CustomerCreateProfile = () => {
                   >
                     <Text
                       style={{
+                        fontSize: Fonts.sizes.base,
                         color: dob ? Colors.secondary : Colors.disabledText,
                       }}
                     >
-                      {dob ? dob.toDateString() : 'Select Date of Birth'}
+                      {dob
+                        ? dob.toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        : 'Select Date of Birth'}
                     </Text>
                   </View>
                 </Pressable>
@@ -439,9 +447,9 @@ const CustomerCreateProfile = () => {
 
 export default CustomerCreateProfile;
 
-const localStyles = StyleSheet.create({
+const localStyles = ScaledSheet.create({
   createProfileStyling: {
-    height: 63,
+    height: '63@vs',
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -449,38 +457,40 @@ const localStyles = StyleSheet.create({
   header: {
     fontWeight: '600',
     color: Colors.white,
+    fontSize: '16@s',
   },
   centerContainer: {
     alignItems: 'center',
     width: '100%',
   },
   formContainer: {
-    maxWidth: 500,
-    paddingHorizontal: 20,
+    maxWidth: '500@s',
+    paddingHorizontal: '20@s',
   },
   label: {
-    marginTop: 5,
-    marginBottom: 5,
+    marginTop: '5@vs',
+    marginBottom: '5@vs',
     fontWeight: '500',
     color: Colors.secondary,
+    fontSize: '14@s',
   },
   mandatory: {
     color: Colors.reject,
   },
   dobInput: {
-    height: 48,
-    padding: 12,
+    height: '40@vs',
+    paddingHorizontal: '12@s',
     borderWidth: 1,
     borderColor: Colors.inputBorder,
-    borderRadius: 50,
+    borderRadius: '50@s',
     backgroundColor: Colors.white,
-    fontSize: Fonts.sizes.base,
-    marginBottom: 9,
+    marginBottom: '9@vs',
+    justifyContent: 'center',
   },
   buttonWrapper: {
-    marginTop: 40,
+    marginTop: '40@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: '30@vs',
   },
 });

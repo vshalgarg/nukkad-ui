@@ -4,6 +4,7 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import Colors from '../styles/colors.js';
 import Fonts from '../styles/font.js';
 import strings from '../constants/string.js';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const { width } = Dimensions.get('window');
 
@@ -97,22 +98,21 @@ const AddressCard = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
-    marginTop: 16,
-    borderRadius: 12,
+    marginTop: '16@vs',
+    borderRadius: '12@s',
     backgroundColor: Colors.white,
     borderColor: Colors.borderColor,
     borderWidth: 1,
     elevation: 2,
-    padding: 14,
+    padding: '12@s',
     position: 'relative',
-    minHeight: 110,
   },
   selectedCard: {
     borderColor: Colors.primary,
     borderWidth: 2,
-    padding: 13,
+    padding: '13@s',
   },
   contentContainer: {
     flexDirection: 'row',
@@ -120,21 +120,21 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   infoContainer: {
-    flex: 1,
-    paddingRight: 10,
     height: '100%',
+    width: '50%',
+    flex: 1,
   },
   nameText: {
     fontSize: Fonts.sizes.base,
     fontWeight: '700',
     color: Colors.secondary,
-    marginBottom: 4,
+    marginBottom: '4@vs',
   },
   addressLines: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: 4,
+    gap: '4@s',
+    marginBottom: '4@vs',
   },
   secondaryText: {
     fontSize: Fonts.sizes.sm,
@@ -143,14 +143,13 @@ const styles = StyleSheet.create({
   cityLine: {
     fontSize: Fonts.sizes.sm,
     color: Colors.secondaryText,
-    marginTop: 2,
+    marginTop: '2@vs',
   },
   actionContainer: {
     height: 'auto',
     flexDirection: 'column',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
-    width: '36%',
   },
   btnContainer: {
     justifyContent: 'space-between',
@@ -159,26 +158,26 @@ const styles = StyleSheet.create({
   editDeleteRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    width: 100,
+    width: '100@s',
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: '15@s',
   },
   primaryButton: {
-    paddingVertical: 4,
+    paddingVertical: '4@vs',
   },
   deleteButton: {
-    paddingVertical: 4,
+    paddingVertical: '4@vs',
   },
   defaultBtn: {
     borderWidth: 1.5,
     borderColor: Colors.primary,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginTop: 10,
+    borderRadius: '20@s',
+    paddingHorizontal: '10@s',
+    paddingVertical: '4@vs',
+    marginTop: '10@vs',
     alignSelf: 'flex-start',
   },
   defaultBtnText: {
@@ -187,11 +186,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   changeAddressBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: '12@s',
+    paddingVertical: '6@vs',
+    borderRadius: '20@s',
     backgroundColor: Colors.primary,
-    marginTop: 4,
+    marginTop: '4@vs',
   },
   changeAddressText: {
     color: Colors.white,
@@ -199,5 +198,6 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.sm,
   },
 });
+
 
 export default AddressCard;
