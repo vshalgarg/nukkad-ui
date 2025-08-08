@@ -36,6 +36,7 @@ import { formatTabLabel } from '../../utils/formatTabLabel';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { ScaledSheet } from 'react-native-size-matters';
 
+
 const StorekeeperDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
   const [formState, setFormState] = useState(0);
@@ -56,6 +57,9 @@ const StorekeeperDashboard = () => {
   const route = useRoute();
   const tab = route?.params?.tab;
 
+  const [initialLoading, setInitialLoading] = useState(true);
+
+
   const statusTabs = [
     { label: 'PENDING', statuses: ['PENDING'] },
     { label: 'IN_PROGRESS', statuses: ['IN_PROGRESS', 'DISPATCHED'] },
@@ -68,9 +72,14 @@ const StorekeeperDashboard = () => {
     try {
       if (!token) return;
 
+
       // Set loading states
 
-      setLoadingMore(true);
+     if (page === 0) {
+      setInitialLoading(true);  // 🆕 Start full loader on first page
+    } else {
+      setLoadingMore(true);     // For pagination
+    }
 
       const orderData = await getOrders(token, status, page, size);
 
@@ -86,6 +95,7 @@ const StorekeeperDashboard = () => {
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to fetch orders');
     } finally {
+       setInitialLoading(false); 
       setLoadingMore(false);
       setRefreshing(false);
     }
@@ -107,7 +117,11 @@ const StorekeeperDashboard = () => {
     }
   };
 
-  
+  useEffect(() => {
+    const currentStatus = statusTabs[formState].statuses[0]; // Keep category filtering
+    setCurrentPage(0); // Reset to first page when category changes
+    loadOrders(currentStatus, 0, false); // Pass status and page
+  }, [formState, token]);
 
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];
@@ -129,16 +143,9 @@ const StorekeeperDashboard = () => {
     if (tabIndex !== -1) setFormState(tabIndex);
   }, [tab]);
 
- const filteredOrders = (Array.isArray(orders) ? [...orders] : [])
-  .filter(order => {
-    // For IN_PROGRESS tab (formState === 1), show both IN_PROGRESS and DISPATCHED
-    if (formState === 1) {
-      return order.orderStatus === 'IN_PROGRESS' || order.orderStatus === 'DISPATCHED';
-    }
-    // For other tabs, show only orders matching the tab's status
-    return order.orderStatus === statusTabs[formState].statuses[0];
-  })
-  // .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  const filteredOrders = (Array.isArray(orders) ? [...orders] : []).sort(
+    (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
+  );
 
 
   const safePush = routeObj => {
@@ -185,12 +192,10 @@ const StorekeeperDashboard = () => {
         onPress: async () => {
           const payload = { orderStatus: 'CANCELLED' };
           await updateOrderStatusById(orderId, payload, token);
-          setTimeout(() => {
-            dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
-          }, 1000);
+          dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
           const currentStatus = statusTabs[formState].statuses[0];
-          loadOrders(currentStatus, 0, false);
           setCurrentPage(0);
+          loadOrders(currentStatus, 0, false);
         },
       },
     ]);
@@ -204,10 +209,7 @@ const StorekeeperDashboard = () => {
         onPress: async () => {
           const payload = { orderStatus: 'DELIVERED' };
           await updateOrderStatusById(orderId, payload, token);
-          setTimeout(() => {
-            dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
-          }, 1000);
-
+          dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
           const currentStatus = statusTabs[formState].statuses[0];
           setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
@@ -232,12 +234,11 @@ const StorekeeperDashboard = () => {
         <Text style={[innerStyle.heading, textStyles.subheading]}>
           My Orders
         </Text>
-        {/* <TouchableOpacity
+        <TouchableOpacity
           onPress={() => safePush({ pathname: 'Notification' })}
         >
           <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
-        </TouchableOpacity> */}
-        <View></View>
+        </TouchableOpacity>
       </View>
 
       <SideBar
@@ -261,7 +262,11 @@ const StorekeeperDashboard = () => {
           </Pressable>
         ))}
       </View>
-
+{initialLoading ? (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.secondary} />
+      </View>
+    ) : (
       <FlashList
         style={{ flex: 1 }}
         data={filteredOrders}
@@ -396,6 +401,7 @@ const StorekeeperDashboard = () => {
           ) : null
         }
       />
+      )}
 
       <ConnectPopup
         visible={!!popupOrderId}
