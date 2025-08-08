@@ -66,8 +66,10 @@ const UserToolbar = ({
             </TouchableOpacity>
           )}
           <Pressable onPress={handleLocation} style={styles.location}>
-            <Ionicons name="storefront-outline" size={24} color="black" />
-            <Text style={styles.storeName}>{storeName}</Text>
+            <Ionicons name="storefront-outline" size={20} color="black" />
+            <Text style={styles.storeName} numberOfLines={1}
+              ellipsizeMode="tail"
+            >{storeName}</Text>
           </Pressable>
         </View>
 
@@ -129,6 +131,8 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     marginLeft: '15@ms',
     justifyContent: 'center',
+    maxWidth: '80%',
+
   },
   storeName: {
     fontSize: Fonts.sizes.base,

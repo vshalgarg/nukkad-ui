@@ -39,6 +39,26 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
   return Promise.resolve();
 });
 
+// 1. Headless task handler for kill mode (MUST be at top level)
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  await notifee.displayNotification({
+    title: remoteMessage.data?.title || 'New Message',
+    body: remoteMessage.data?.body,
+    android: {
+      channelId: 'default',
+      smallIcon: 'ic_notification',
+      color: '#FF0000',
+      pressAction: {
+        id: 'default',
+        launchActivity: 'default',
+      },
+      sound: 'default'
+    },
+    data: remoteMessage.data
+  });
+  return Promise.resolve();
+});
+
 export default function App() {
   useEffect(() => {
     const setupFCM = async () => {

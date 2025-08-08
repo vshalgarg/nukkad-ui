@@ -107,11 +107,7 @@ const StorekeeperDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const currentStatus = statusTabs[formState].statuses[0]; // Keep category filtering
-    setCurrentPage(0); // Reset to first page when category changes
-    loadOrders(currentStatus, 0, false); // Pass status and page
-  }, [formState, token]);
+  
 
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];
@@ -133,9 +129,17 @@ const StorekeeperDashboard = () => {
     if (tabIndex !== -1) setFormState(tabIndex);
   }, [tab]);
 
-  const filteredOrders = (Array.isArray(orders) ? [...orders] : []).sort(
-    (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
-  );
+ const filteredOrders = (Array.isArray(orders) ? [...orders] : [])
+  .filter(order => {
+    // For IN_PROGRESS tab (formState === 1), show both IN_PROGRESS and DISPATCHED
+    if (formState === 1) {
+      return order.orderStatus === 'IN_PROGRESS' || order.orderStatus === 'DISPATCHED';
+    }
+    // For other tabs, show only orders matching the tab's status
+    return order.orderStatus === statusTabs[formState].statuses[0];
+  })
+  // .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
 
   const safePush = routeObj => {
     try {
@@ -158,6 +162,7 @@ const StorekeeperDashboard = () => {
         );
       }
 
+      
       safePush({
         pathname: 'ShowDetails',
         params: {
@@ -283,29 +288,56 @@ const StorekeeperDashboard = () => {
             style={innerStyle.orderCard}
             onPress={() => handleDetails(order)}
           >
-            <View style={innerStyle.leftSection}>
+            {/* Top Section - Order Number + Icons */}
+            <View style={innerStyle.topSection}>
               <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
+              {order.orderStatus !== 'DELIVERED' &&
+                order.orderStatus !== 'CANCELLED' && (
+                  <Pressable
+                    ref={ref => (dotRefs.current[order.orderId] = ref)}
+                    onPress={() =>
+                      showPopup(order.orderId, dotRefs.current[order.orderId])
+                    }
+                  >
+                    <Entypo
+                      name="dots-three-vertical"
+                      size={18}
+                      color={Colors.secondary}
+                    />
+                  </Pressable>
+                )}
+            </View>
+
+            {/* Middle Section - Customer Info */}
+            <View style={innerStyle.middleSection}>
               <Text style={innerStyle.orderDetailsHeading}>
                 Customer Name:
-                <Text style={innerStyle.orderDetails}>
-                  {console.log(order)}
-                  {order.customerName}
-                </Text>
+                <Text style={innerStyle.orderDetails}> {order.customerName}</Text>
               </Text>
-              <Text style={innerStyle.orderDetailsHeading}>
+              <Text
+                style={innerStyle.orderDetailsHeading}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
                 Address:
-                <Text style={innerStyle.orderDetails}>
-                  {' '}
-                  {order.address}, {order.landmark}
-                </Text>
+                <Text style={innerStyle.orderDetails}> {order.address}</Text>
+              </Text>
+               <Text
+                style={innerStyle.orderDetailsHeading}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
+                Landmark:
+                <Text style={innerStyle.orderDetails}> {order.landmark}</Text>
               </Text>
               <Text style={innerStyle.orderDetailsHeading}>
                 Quantity:
-                <Text style={innerStyle.orderDetails}>
-                  {' '}
-                  {order.items.length}
-                </Text>
+                <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
               </Text>
+            </View>
+
+            {/* Bottom Section - Status + Actions */}
+            <View style={innerStyle.bottomSection}>
               <Text
                 style={[
                   innerStyle.updatedStatus,
@@ -314,65 +346,43 @@ const StorekeeperDashboard = () => {
                       order.orderStatus === 'PENDING'
                         ? 'red'
                         : order.orderStatus === 'IN_PROGRESS'
-                        ? 'orange'
-                        : order.orderStatus === 'DELIVERED'
-                        ? 'green'
-                        : 'red',
+                          ? 'orange'
+                          : order.orderStatus === 'DELIVERED'
+                            ? 'green'
+                            : 'red',
                   },
                 ]}
               >
                 {order.orderStatus.toUpperCase()}
               </Text>
-            </View>
-
-            <View style={innerStyle.rightSection}>
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
-              >
-                <Text style={innerStyle.orderDetails}>{order.date}</Text>
+              <View style={innerStyle.actionButtons}>
                 {order.orderStatus !== 'DELIVERED' &&
-                  order.orderStatus !== 'CANCELLED' && (
+                  order.orderStatus !== 'CANCELLED' &&
+                  order.orderStatus !== 'DISPATCHED' && (
                     <Pressable
-                      ref={ref => (dotRefs.current[order.orderId] = ref)}
-                      onPress={() =>
-                        showPopup(order.orderId, dotRefs.current[order.orderId])
-                      }
+                      style={innerStyle.showDetailsBtn}
+                      onPress={() => handleReject(order.orderId)}
                     >
-                      <Entypo
-                        name="dots-three-vertical"
-                        size={18}
-                        color={Colors.secondary}
-                      />
+                      <Text style={{ color: Colors.white, fontWeight: '800' }}>
+                        Reject
+                      </Text>
                     </Pressable>
                   )}
-              </View>
 
-              {order.orderStatus !== 'DELIVERED' &&
-                order.orderStatus !== 'CANCELLED' &&
-                order.orderStatus !== 'DISPATCHED' && (
+                {order.orderStatus === 'DISPATCHED' && (
                   <Pressable
-                    style={innerStyle.showDetailsBtn}
-                    onPress={() => handleReject(order.orderId)}
+                    style={[
+                      innerStyle.showDetailsBtn,
+                      { backgroundColor: Colors.primary },
+                    ]}
+                    onPress={() => handleDeliver(order.orderId)}
                   >
                     <Text style={{ color: Colors.white, fontWeight: '800' }}>
-                      Reject
+                      Deliver
                     </Text>
                   </Pressable>
                 )}
-
-              {order.orderStatus === 'DISPATCHED' && (
-                <Pressable
-                  style={[
-                    innerStyle.showDetailsBtn,
-                    { backgroundColor: Colors.primary },
-                  ]}
-                  onPress={() => handleDeliver(order.orderId)}
-                >
-                  <Text style={{ color: Colors.white, fontWeight: '800' }}>
-                    Deliver
-                  </Text>
-                </Pressable>
-              )}
+              </View>
             </View>
           </Pressable>
         )}
@@ -438,24 +448,8 @@ const innerStyle = ScaledSheet.create({
     textAlignVertical: 'center',
     marginTop: '50@vs',
   },
-  orderCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    elevation: 3,
-    backgroundColor: Colors.white,
-    padding: '10@ms',
-    borderRadius: '20@ms',
-    marginBottom: '10@vs',
-    marginHorizontal: '12@ms',
-    marginTop: '1@vs',
-  },
-  leftSection: {
-    width: '75%',
-  },
-  rightSection: {
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
+
+
   showDetailsBtn: {
     paddingHorizontal: '20@ms',
     paddingVertical: '10@vs',
@@ -499,5 +493,32 @@ const innerStyle = ScaledSheet.create({
   popupText: {
     fontSize: Fonts.sizes.sm,
     color: Colors.secondary,
+  },
+  orderCard: {
+    elevation: 3,
+    backgroundColor: Colors.white,
+    padding: '10@ms',
+    borderRadius: '20@ms',
+    marginBottom: '10@vs',
+    marginHorizontal: '12@ms',
+    marginTop: '1@vs',
+  },
+  topSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8@vs',
+  },
+  middleSection: {
+    marginBottom: '1@vs',
+  },
+  bottomSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: '10@ms',
   },
 });

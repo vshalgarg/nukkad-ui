@@ -57,7 +57,9 @@ const AllProduct = ({ products = [], loading = false }) => {
       {loading && products.length === 0 ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
       ) : sortedList.length === 0 ? (
-        <Text style={innerStyle.messageText}>No products found.</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ textAlign: 'center' }}>No products found.</Text>
+        </View>
       ) : (
         <View
           style={{

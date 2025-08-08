@@ -458,7 +458,7 @@ const styles = ScaledSheet.create({
     marginBottom: '24@vs',
   },
   inputContainer: {
-    marginBottom: '8@vs',
+    // marginBottom: '4@vs',
   },
   label: {
     fontSize: '14@s',

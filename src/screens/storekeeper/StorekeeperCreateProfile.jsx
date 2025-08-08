@@ -42,9 +42,9 @@ const StorekeeperCreateProfile = () => {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
-
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
+  
   const nameRef = useRef();
   const storeNameRef = useRef();
   const contactNumberRef = useRef();

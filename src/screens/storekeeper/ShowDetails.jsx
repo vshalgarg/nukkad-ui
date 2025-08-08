@@ -150,7 +150,6 @@ const ShowDetails = () => {
   const order = useSelector(state =>
     state.storekeeperOrders.orders.find(order => order.orderId === orderId),
   );
-  console.log(order);
 
   useEffect(() => {
     if (order?.storeKeeperNote) {
@@ -306,31 +305,31 @@ const ShowDetails = () => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes, Deliver',
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [
-                { name: 'StorekeeperDashboard', params: { tab: 'DELIVERED' } },
-              ],
-            });
-            setTimeout(async () => {
-              try {
-                const payload = { orderStatus: 'DELIVERED' };
+          onPress: async () => {
+            try {
+              const payload = { orderStatus: 'DELIVERED' };
+              await updateOrderStatusById(orderId, payload, token);
+              dispatch(
+                updateOrderStatus({
+                  orderId: orderId,
+                  newStatus: 'DELIVERED',
+                }),
+              );
 
-                await updateOrderStatusById(orderId, payload, token);
+              console.log('Order marked as delivered');
 
-                dispatch(
-                  updateOrderStatus({
-                    orderId: orderId,
-                    newStatus: 'DELIVERED',
-                  }),
-                );
-
-                console.log('Order marked as delivered');
-              } catch (error) {
-                console.error('Error delivering order:', error);
-              }
-            }, 100);
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'StorekeeperDashboard',
+                    params: { tab: fromTab, forceRefresh: Date.now() },
+                  },
+                ],
+              });
+            } catch (error) {
+              console.error('Error delivering order:', error);
+            }
           },
         },
       ],
@@ -616,6 +615,7 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '50@s',
     paddingHorizontal: '10@s',
     textAlign: 'center',
+    lineHeight: 20,
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
@@ -633,5 +633,9 @@ const innerStyle = ScaledSheet.create({
     paddingHorizontal: '20@s',
     paddingVertical: '5@vs',
     gap: '10@s',
+  },
+  orderDetails: {
+    color: Colors.secondary,
+    fontWeight: '500',
   },
 });
