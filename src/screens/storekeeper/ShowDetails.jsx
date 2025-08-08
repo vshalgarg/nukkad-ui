@@ -133,7 +133,7 @@ const ShowDetails = () => {
       setStoreKeeperNote(order.storeKeeperNote);
     }
   }, [order?.storeKeeperNote]);
-  
+
   const isInProgress = order?.orderStatus === 'IN_PROGRESS';
   const isDispatched = order?.orderStatus === 'DISPATCHED';
   const isDelivered = order?.orderStatus === 'DELIVERED';
@@ -282,31 +282,31 @@ const ShowDetails = () => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes, Deliver',
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [
-                { name: 'StorekeeperDashboard', params: { tab: 'DELIVERED' } },
-              ],
-            });
-            setTimeout(async () => {
-              try {
-                const payload = { orderStatus: 'DELIVERED' };
+          onPress: async () => {
+            try {
+              const payload = { orderStatus: 'DELIVERED' };
+              await updateOrderStatusById(orderId, payload, token);
+              dispatch(
+                updateOrderStatus({
+                  orderId: orderId,
+                  newStatus: 'DELIVERED',
+                }),
+              );
 
-                await updateOrderStatusById(orderId, payload, token);
+              console.log('Order marked as delivered');
 
-                dispatch(
-                  updateOrderStatus({
-                    orderId: orderId,
-                    newStatus: 'DELIVERED',
-                  }),
-                );
+              navigation.reset({
+                index: 0,
+                routes: [
+                  { name: 'StorekeeperDashboard', params: { tab: fromTab ,forceRefresh: Date.now()
+} },
+                ],
+              });
+            } catch (error) {
+              console.error('Error delivering order:', error);
+            }
 
-                console.log('Order marked as delivered');
-              } catch (error) {
-                console.error('Error delivering order:', error);
-              }
-            }, 100);
+
           },
         },
       ],
@@ -323,13 +323,13 @@ const ShowDetails = () => {
   return (
     <View style={[styles.pageContainer, { flex: 1 }]}>
       <BackButton title="Order Details" />
-      
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={{ paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
@@ -340,7 +340,7 @@ const ShowDetails = () => {
                 <View style={innerStyle.AddressCard}>
                   <View style={innerStyle.rowBetween}>
                     <Text style={innerStyle.addressCardDetails}>
-                      {order.customerName}
+                      Name:{order.customerName}
                     </Text>
                     {(isInProgress || isDispatched) && (
                       <TouchableOpacity
@@ -365,14 +365,18 @@ const ShowDetails = () => {
                       </TouchableOpacity>
                     )}
                   </View>
-                  <View>
+                  {/* <View>
                     <Text style={innerStyle.addressCardDetails}>
                       {order.customerMobileNumber}
                     </Text>
-                  </View>
+                  </View> */}
                   <Text style={innerStyle.addressCardDetails}>
-                    {order.address}
+                    Address: {order.address}
                   </Text>
+                  <Text style={innerStyle.addressCardDetails}>
+                    Landmark: {order.landmark}
+                  </Text>
+
                 </View>
                 <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
               </View>
@@ -440,7 +444,7 @@ const ShowDetails = () => {
       </KeyboardAvoidingView>
 
       {(isInProgress || isDispatched) && (
-        <View style={[innerStyle.fixedButtonWrapper, { 
+        <View style={[innerStyle.fixedButtonWrapper, {
           position: 'absolute',
           bottom: 0,
           left: 0,
@@ -518,6 +522,10 @@ const innerStyle = StyleSheet.create({
     height: 100,
     marginHorizontal: 20,
   },
+  orderDetailsHeading: {
+    lineHeight: '25@vs',
+    color: Colors.secondaryText,
+  },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -586,8 +594,8 @@ const innerStyle = StyleSheet.create({
     lineHeight: 20,
     includeFontPadding: false,
     textAlignVertical: 'center',
-    
-    
+
+
   },
   rejectedText: {
     color: Colors.reject,
@@ -603,5 +611,9 @@ const innerStyle = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     gap: 10,
+  },
+  orderDetails: {
+    color: Colors.secondary,
+    fontWeight: '500',
   },
 });

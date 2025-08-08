@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
+import Share from 'react-native-share';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfileImage from '../../../assets/images/ProfileImage.svg';
 import { useProfile } from '../../contexts/profileContext.js';
@@ -56,6 +56,25 @@ const SideBar = ({ isVisible, onClose }) => {
       useNativeDriver: true,
     }).start();
   }, [isVisible]);
+
+  const sharePlayStoreLink = async () => {
+  try {
+    const playStoreLink = 'https://play.google.com/store/apps/details?id=com.your.app'; // REPLACE WITH YOUR ACTUAL APP ID
+    
+    await Share.share({
+      title: 'Check out this store app!',
+      message: `I found this great store app. Download it now: ${playStoreLink}`,
+      social: Share.Social.WHATSAPP,
+    });
+  } catch (error) {
+    console.log('Error sharing:', error);
+    // Fallback to regular share dialog
+    Share.open({
+      title: 'Share App',
+      message: 'Check out this app: https://play.google.com/store/apps/details?id=com.your.app',
+    });
+  }
+};
 
   const openLink = async url => {
     try {
@@ -123,11 +142,15 @@ const SideBar = ({ isVisible, onClose }) => {
     'Help and Support': 'https://support.google.com',
     'Privacy Policy': 'https://policies.google.com/privacy',
     'Terms & Conditions': 'https://policies.google.com/terms',
-    'Refer a Store': 'https://www.google.com/',
+    // 'Refer a Store': 'https://www.google.com/',
   };
 
   const handleOptionClick = async menuName => {
     onClose();
+     if (menuName === 'Refer a Store') {
+    await sharePlayStoreLink();
+    return;
+  }
 
     if (externalLinks[menuName]) {
       await openLink(externalLinks[menuName]);
