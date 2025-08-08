@@ -59,24 +59,7 @@ const SideBar = ({ isVisible, onClose }) => {
     }).start();
   }, [isVisible]);
 
-  const sharePlayStoreLink = async () => {
-  try {
-    const playStoreLink = 'https://play.google.com/store/apps/details?id=com.your.app'; // REPLACE WITH YOUR ACTUAL APP ID
-    
-    await Share.share({
-      title: 'Check out this store app!',
-      message: `I found this great store app. Download it now: ${playStoreLink}`,
-      social: Share.Social.WHATSAPP,
-    });
-  } catch (error) {
-    console.log('Error sharing:', error);
-    // Fallback to regular share dialog
-    Share.open({
-      title: 'Share App',
-      message: 'Check out this app: https://play.google.com/store/apps/details?id=com.your.app',
-    });
-  }
-};
+
 
   const sharePlayStoreLink = async () => {
     try {

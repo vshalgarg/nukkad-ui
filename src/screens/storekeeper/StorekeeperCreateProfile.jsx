@@ -44,7 +44,7 @@ const StorekeeperCreateProfile = () => {
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
-  
+
   const nameRef = useRef();
   const storeNameRef = useRef();
   const contactNumberRef = useRef();
@@ -84,7 +84,7 @@ const StorekeeperCreateProfile = () => {
     }
   };
   const handleContinue = useCallback(async () => {
-    // setHasTriedSubmit(true);
+    setHasTriedSubmit(true);
     console.log('hadleContinue Pressed');
     if (pressLock) return;
     pressLock = true;
@@ -236,9 +236,11 @@ const StorekeeperCreateProfile = () => {
                   if (hasTriedSubmit) {
                     setErrors(prev => ({
                       ...prev,
-                      name: /^[A-Za-z\s]{2,}$/.test(cleaned.trim())
-                        ? false
-                        : true,
+                      name:
+                        cleaned.trim().length >= 2 &&
+                        /^[A-Za-z\s]+$/.test(cleaned)
+                          ? false
+                          : true,
                     }));
                   }
                 }}
