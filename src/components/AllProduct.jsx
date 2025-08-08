@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
   StyleSheet,
   Text,
   View,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
@@ -23,8 +23,8 @@ const AllProduct = ({ products = [], loading = false }) => {
 
   const sortedList = isSorted
     ? [...products].sort((a, b) =>
-      (a.name || a.title || '').localeCompare(b.name || b.title || ''),
-    )
+        (a.name || a.title || '').localeCompare(b.name || b.title || ''),
+      )
     : products;
 
   const pairedList = useMemo(() => {
@@ -59,14 +59,23 @@ const AllProduct = ({ products = [], loading = false }) => {
       ) : sortedList.length === 0 ? (
         <Text style={innerStyle.messageText}>No products found.</Text>
       ) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            paddingHorizontal: 10,
+          }}
+        >
           {sortedList.map(product => (
             <ProductCard
               key={product.id}
               product={product}
               onAddToCart={handleAddToCart}
               isDropdownOpen={dropdownOpenId === product.id}
-              setDropdownOpen={open => setDropdownOpenId(open ? product.id : null)}
+              setDropdownOpen={open =>
+                setDropdownOpenId(open ? product.id : null)
+              }
               cartItems={cartItems}
             />
           ))}
@@ -76,5 +85,4 @@ const AllProduct = ({ products = [], loading = false }) => {
   );
 };
 
-export default AllProduct;
-
+export default memo(AllProduct);

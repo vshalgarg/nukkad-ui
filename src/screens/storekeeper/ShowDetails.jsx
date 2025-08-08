@@ -33,6 +33,7 @@ import { dispatchOrder } from '../../services/storekeeper/dispatchOrderService';
 import { useAuth } from '../../contexts/authContext';
 import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
 import strings from '../../constants/string';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const OrderItem = memo(
   ({
@@ -121,6 +122,27 @@ const ShowDetails = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      },
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   const { orderId, items, fromTab = 'PENDING' } = route.params;
   const parsedItems = JSON.parse(items);
@@ -375,12 +397,12 @@ const ShowDetails = () => {
                   </View>
                   <Text style={innerStyle.addressCardDetails}>
                     {strings.address}
-                    {`${order.address}, ${order?.landmark}`}
+                    {order.address}
+                    {order?.landmark}
                   </Text>
                 </View>
                 <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
               </View>
-
               {parsedItems.map(item => {
                 const itemId = item.itemId || item.id || item.productId;
                 return (
@@ -401,7 +423,6 @@ const ShowDetails = () => {
                 <View style={{ marginTop: 10, marginHorizontal: 25 }}>
                   <Text
                     style={{
-                      marginBottom: 5,
                       fontWeight: 'bold',
                       fontSize: Fonts.sizes.base,
                     }}
@@ -411,15 +432,7 @@ const ShowDetails = () => {
 
                   {isInProgress ? (
                     <TextInput
-                      style={{
-                        height: 100,
-                        borderWidth: 1,
-                        borderColor: Colors.borderColor,
-                        borderRadius: 10,
-                        padding: 10,
-                        textAlignVertical: 'top',
-                        backgroundColor: Colors.white,
-                      }}
+                      style={innerStyle.noteInput}
                       multiline
                       placeholder="Write a note to the customer about this order"
                       value={storeKeeperNote}
@@ -446,22 +459,8 @@ const ShowDetails = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {(isInProgress || isDispatched) && (
-        <View
-          style={[
-            innerStyle.fixedButtonWrapper,
-            {
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              backgroundColor: Colors.white,
-              paddingVertical: 10,
-              borderTopWidth: 1,
-              borderTopColor: Colors.borderColor,
-            },
-          ]}
-        >
+      {(isInProgress || isDispatched) && !isKeyboardVisible && (
+        <View style={innerStyle.fixedButtonWrapper}>
           <View style={innerStyle.buttonContainer}>
             {isInProgress && (
               <>
@@ -501,45 +500,56 @@ const ShowDetails = () => {
 
 export default ShowDetails;
 
-const innerStyle = StyleSheet.create({
+const innerStyle = ScaledSheet.create({
   AddressCard: {
-    padding: 8,
+    padding: '5@s',
     borderWidth: 2,
-    borderRadius: 15,
+    borderRadius: '15@s',
     borderColor: Colors.primary,
-    marginBottom: 15,
+    marginBottom: '5@vs',
   },
   addressCardDetails: {
-    lineHeight: 30,
-    fontSize: Fonts.sizes.sm,
+    lineHeight: '30@vs',
+    fontSize: Fonts.sizes.sm, // already responsive from Fonts
     fontWeight: Fonts.weights.bold,
   },
   heading: {
-    fontSize: 20,
+    fontSize: Fonts.sizes.base,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: '10@vs',
   },
   card: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Colors.white,
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
+    padding: '10@s',
+    borderRadius: '10@s',
+    marginBottom: '10@vs',
     elevation: 2,
-    height: 100,
-    marginHorizontal: 20,
+    height: '90@vs',
+    marginHorizontal: '10@s',
   },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  fixedButtonWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.white,
+    paddingVertical: '10@vs',
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderColor,
+  },
+
   image: {
-    width: 80,
+    width: '80@s',
     height: '100%',
-    borderRadius: 10,
+    borderRadius: '10@s',
     resizeMode: 'cover',
   },
   title: {
@@ -547,7 +557,7 @@ const innerStyle = StyleSheet.create({
     fontWeight: 'bold',
   },
   text: {
-    marginTop: 5,
+    marginTop: '5@vs',
     color: Colors.secondary,
   },
   priceContainer: {
@@ -558,19 +568,19 @@ const innerStyle = StyleSheet.create({
   toggleWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    marginBottom: '5',
+    gap: '3@s',
+    marginBottom: '5@vs',
   },
   toggle: {
-    width: 80,
-    height: 34,
-    borderRadius: 20,
+    width: '70@s',
+    height: '30@vs',
+    borderRadius: '20@s',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
+    paddingHorizontal: '8@s',
     overflow: 'hidden',
-    gap: 5,
+    gap: '5@s',
   },
   toggleText: {
     fontSize: Fonts.sizes.xs,
@@ -583,20 +593,29 @@ const innerStyle = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   circle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: '16@s',
+    height: '16@s',
+    borderRadius: '8@s',
     backgroundColor: Colors.white,
   },
-  input: {
-    width: 80,
-    height: 40,
+  noteInput: {
+    height: '100@vs', // vertical scaling for height
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: 50,
-    paddingHorizontal: 10,
+    borderRadius: '10@ms', // moderate scaling for border radius
+    padding: '10@ms', // padding scaled
+    textAlignVertical: 'top',
+    backgroundColor: Colors.white,
+    marginBottom: '10@vs',
+  },
+  input: {
+    width: '70@s',
+    height: '30@vs',
+    borderWidth: 1,
+    borderColor: Colors.borderColor,
+    borderRadius: '50@s',
+    paddingHorizontal: '10@s',
     textAlign: 'center',
-    lineHeight: 20,
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
@@ -604,15 +623,15 @@ const innerStyle = StyleSheet.create({
     color: Colors.reject,
     fontWeight: 'bold',
     fontSize: Fonts.sizes.base,
-    width: 80,
+    width: '80@s',
     textAlign: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 10,
+    paddingHorizontal: '20@s',
+    paddingVertical: '5@vs',
+    gap: '10@s',
   },
 });

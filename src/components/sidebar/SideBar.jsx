@@ -180,7 +180,7 @@ const SideBar = ({ isVisible, onClose }) => {
             } catch (error) {
               console.error('Logout failed:', error);
             } finally {
-              setTimeout(() => setLoggingOut(false), 1000); // optional reset
+              setTimeout(() => setLoggingOut(false), 100); // optional reset
             }
           },
         },

@@ -74,8 +74,17 @@ const cartSlice = createSlice({
     removeFromCart: (state, action) => {
       const { itemId } = action.payload;
       console.log('Removing item with ID:', itemId);
+
+      // Clear quantity and unit in context before removing
+      const index = state.items.findIndex(item => item.product.id === itemId);
+      if (index !== -1) {
+        state.items[index].product.amount = '';
+        state.items[index].selectedUnit = '';
+      }
+
       state.items = state.items.filter(item => item.product.id !== itemId);
     },
+
     clearProductCartData: (state, action) => {
       const productId = action.payload;
       console.log('Clearing cart data for product ID:', productId);

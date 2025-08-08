@@ -129,7 +129,7 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   }, [product.image]);
 
   return (
-    <View style={[styles.card, isDropdownOpen && { zIndex: 2000 }]}>
+    <View style={[styles.card, isDropdownOpen && { zIndex: 100 }]}>
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}
@@ -243,7 +243,7 @@ const styles = ScaledSheet.create({
   dropdown: {
     borderColor: Colors.borderColor,
     borderRadius: '10@s',
-    minHeight: '35@vs',
+    minHeight: '32@vs',
   },
   dropdownBox: {
     borderColor: Colors.borderColor,
@@ -262,9 +262,9 @@ const styles = ScaledSheet.create({
     borderColor: Colors.borderColor,
     borderRadius: '10@s',
     paddingHorizontal: '10@s',
-    paddingVertical: Platform.OS === 'android' ? '4@vs' : '6@vs',
+    paddingVertical: Platform.OS === 'android' ? '2@vs' : '4@vs',
     width: '50%',
-    height: '35@vs',
+    height: '32@vs',
     fontSize: Fonts.sizes.sm,
   },
   button: {

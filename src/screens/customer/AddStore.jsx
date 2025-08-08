@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   InteractionManager,
+  Keyboard,
 } from 'react-native';
 import {
   useNavigation,
@@ -55,6 +56,9 @@ export default function AddStore() {
     return () => {
       isMountedRef.current = false;
     };
+  }, []);
+  useEffect(() => {
+    Keyboard.dismiss(); // 👈 Hides the keyboard when screen mounts
   }, []);
 
   const persistStoreIfNew = async store => {

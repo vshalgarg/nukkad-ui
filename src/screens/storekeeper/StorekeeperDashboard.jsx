@@ -180,10 +180,12 @@ const StorekeeperDashboard = () => {
         onPress: async () => {
           const payload = { orderStatus: 'CANCELLED' };
           await updateOrderStatusById(orderId, payload, token);
-          dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
+          setTimeout(() => {
+            dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
+          }, 1000);
           const currentStatus = statusTabs[formState].statuses[0];
-          setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
+          setCurrentPage(0);
         },
       },
     ]);
@@ -197,7 +199,10 @@ const StorekeeperDashboard = () => {
         onPress: async () => {
           const payload = { orderStatus: 'DELIVERED' };
           await updateOrderStatusById(orderId, payload, token);
-          dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
+          setTimeout(() => {
+            dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
+          }, 1000);
+
           const currentStatus = statusTabs[formState].statuses[0];
           setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
@@ -227,9 +232,7 @@ const StorekeeperDashboard = () => {
         >
           <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
         </TouchableOpacity> */}
-        <View>
-
-        </View>
+        <View></View>
       </View>
 
       <SideBar
