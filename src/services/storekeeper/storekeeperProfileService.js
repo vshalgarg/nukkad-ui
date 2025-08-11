@@ -11,10 +11,10 @@ export const getStorekeeperProfile = async ( token) => {
       },
     );
 
-    console.log('✅ Storekeeper get profile API success:', response.data);
+    console.log(' Storekeeper get profile API success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Storekeeper Create Profile API Error:', {
+    console.error(' Storekeeper Create Profile API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -59,7 +59,7 @@ export const createStorekeeperProfile = async (profileData, token) => {
       }
     });
 
-    // ✅ 3. Axios post
+    //  3. Axios post
     const response = await api.post(
       '/nukkad/api/storekeeper/v1/profile/save',
       formData,
@@ -71,10 +71,10 @@ export const createStorekeeperProfile = async (profileData, token) => {
       },
     );
 
-    console.log('✅ Storekeeper API success:', response.data);
+    console.log(' Storekeeper API success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Storekeeper Create Profile API Error:', {
+    console.error(' Storekeeper Create Profile API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -108,9 +108,9 @@ export const UpdateStorekeeperProfile = async (profileData, token) => {
       }),
     };
 
-    formData.append('data', jsonBlob); // ✅ send as file, not string
+    formData.append('data', jsonBlob); //  send as file, not string
 
-    //   // ✅ 2. Append image files
+    //   //  2. Append image files
     //   profileData.images?.forEach((img, index) => {
     //     if (img?.uri) {
     //       formData.append('images', {
@@ -133,10 +133,10 @@ export const UpdateStorekeeperProfile = async (profileData, token) => {
       },
     );
 
-    console.log('✅ Storekeeper API success:', response.data);
+    console.log(' Storekeeper API success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Storekeeper update Profile API Error:', {
+    console.error(' Storekeeper update Profile API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

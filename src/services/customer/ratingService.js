@@ -1,7 +1,7 @@
 // services/customer/rateStore.js
 import api from '../api';
 
-// ✅ Submit Rating & Review (customerId from token)
+//  Submit Rating & Review (customerId from token)
 export const rateStore = async ({ storeKeeperId, review, rating }, token) => {
   const payload = {
     storeKeeperId,
@@ -10,7 +10,7 @@ export const rateStore = async ({ storeKeeperId, review, rating }, token) => {
   };
 
   console.log(
-    '📤 Submitting Store Rating with payload (token-based customerId):',
+    ' Submitting Store Rating with payload (token-based customerId):',
     payload,
   );
 
@@ -22,14 +22,14 @@ export const rateStore = async ({ storeKeeperId, review, rating }, token) => {
       },
     });
 
-    console.log('✅ Store Rating API Success:', {
+    console.log(' Store Rating API Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error('❌ Store Rating API Error:', {
+    console.error(' Store Rating API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

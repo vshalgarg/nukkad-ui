@@ -29,8 +29,11 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   const { token } = useAuth();
 
   const [selectedUnit, setSelectedUnit] = useState(
-    cartItem?.selectedUnit || (product.unit || [])[0] || null,
+    cartItem?.product?.selectedUnit.toString() ||
+      (product.unit || [])[0] ||
+      null,
   );
+
   const [amount, setAmount] = useState(
     cartItem?.product?.amount?.toString() || '',
   );
@@ -40,17 +43,16 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   const units = product.unit || [];
   const unitOptions = units.map(q => ({ label: q.trim(), value: q }));
 
- useEffect(() => {
-   if (cartItem) {
-     const newAmount = cartItem.product.amount?.toString() || '';
-     const newUnit = cartItem.selectedUnit || product.unit?.[0] || '';
+  useEffect(() => {
+    if (cartItem) {
+      const newAmount = cartItem.product.amount?.toString() || '';
+      const newUnit = cartItem.product.selectedUnit || product.unit?.[0] || '';
 
-     // Only update if changed (to avoid cursor jump issues)
-     if (amount !== newAmount) setAmount(newAmount);
-     if (selectedUnit !== newUnit) setSelectedUnit(newUnit);
-   }
- }, [cartItem?.product.amount, cartItem?.selectedUnit]);
-
+      // Only update if changed (to avoid cursor jump issues)
+      if (amount !== newAmount) setAmount(newAmount);
+      if (selectedUnit !== newUnit) setSelectedUnit(newUnit);
+    }
+  }, [cartItem?.product.amount, cartItem?.selectedUnit]);
 
   const isValidAmount =
     amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0;
@@ -68,7 +70,8 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
         cartItem.product.amount?.toString() !== amount)) ||
     !isInCart;
 
-  const isReadyToSubmit = isValidAmount && selectedUnit && isModifiedSinceInCart;
+  const isReadyToSubmit =
+    isValidAmount && selectedUnit && isModifiedSinceInCart;
 
   const handleAddToCart = async () => {
     Keyboard.dismiss();
@@ -77,50 +80,43 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
 
     if (isNaN(cartQuantity) || cartQuantity <= 0) return;
 
-    try {
-      const itemId = product.id;
-      const isPkt = selectedUnit?.toLowerCase() === 'pkt';
-      const itemCount = isPkt ? Math.round(cartQuantity) : 1;
+    // Immediately update UI and Redux
+    const itemId = product.id;
+    const isPkt = selectedUnit?.toLowerCase() === 'pkt';
+    const itemCount = isPkt ? Math.round(cartQuantity) : 1;
 
-      if (isInCart && itemId) {
-        // ✅ Update cart
-        await updateCartAPI(itemId, cartQuantity, selectedUnit, token);
-
-        dispatch(
-          updateCartItemQuantity({
-            itemId,
-            amount: validAmount,
-            selectedUnit,
-            itemCount,
-          }),
-        );
-        setAmount(validAmount);
-        setSelectedUnit(selectedUnit);
-      } else {
-        // ➕ Add new item
-        const response = await addToCartAPI(
+    if (isInCart && itemId) {
+      dispatch(
+        updateCartItemQuantity({
           itemId,
-          cartQuantity,
+          amount: validAmount,
           selectedUnit,
-          token,
-        );
+          itemCount,
+        }),
+      );
+    } else {
+      const newItem = {
+        itemId,
+        product: { ...product, selectedUnit, amount: validAmount },
+        selectedUnit,
+        quantity: itemCount,
+      };
+      dispatch(addToCart(newItem));
+    }
 
-        const newItemId = response?.itemIds?.[0] || response?.id || itemId;
+    showToast('success', 'Added to cart');
 
-        const newItem = {
-          itemId: newItemId,
-          product: { ...product, selectedUnit, amount: validAmount },
-          selectedUnit,
-          quantity: itemCount,
-        };
-
-        dispatch(addToCart(newItem));
+    // Then make API call to sync with backend
+    try {
+      if (isInCart) {
+        await updateCartAPI(itemId, cartQuantity, selectedUnit, token);
+      } else {
+        await addToCartAPI(itemId, cartQuantity, selectedUnit, token);
       }
-
-      showToast('success', 'Added to cart');
     } catch (err) {
-      console.error('Add to cart failed:', err.message || err);
-      showToast('error', 'Failed to add item to cart');
+      console.error('Sync with server failed:', err.message || err);
+      showToast('error', 'Failed to sync with server');
+      // Optionally rollback Redux update here if critical
     }
   };
 
@@ -286,6 +282,5 @@ const styles = ScaledSheet.create({
     opacity: 0.6,
   },
 });
-
 
 export default ProductCard;

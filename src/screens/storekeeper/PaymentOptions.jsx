@@ -51,7 +51,7 @@ const PaymentOptions = () => {
       const defaultQr = fetched.find(qr => qr.default);
       if (defaultQr) setDefaultQRId(defaultQr.id);
     } catch (err) {
-      console.error('❌ Failed to load QR codes:', err);
+      console.error('Failed to load QR codes:', err);
     }
   };
 
@@ -104,7 +104,7 @@ const PaymentOptions = () => {
       await deletePaymentQR(id, token);
       await loadQRs();
     } catch (err) {
-      console.error('❌ Delete QR failed:', err);
+      console.error('Delete QR failed:', err);
       showToast('error', strings.failedToDeleteQR);
     }
   };
@@ -114,7 +114,7 @@ const PaymentOptions = () => {
       await setDefaultPaymentQR(id, token);
       setDefaultQRId(id);
     } catch (err) {
-      console.error('❌ Set default failed:', err);
+      console.error(' Set default failed:', err);
       showToast('error', strings.failedTosetDefaultQR);
     }
   };

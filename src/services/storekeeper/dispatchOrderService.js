@@ -11,14 +11,14 @@ export const dispatchOrder = async (payload, token) => {
         },
       },
     );
-    console.log('✅ Order Dispatch API Success:', {
+    console.log(' Order Dispatch API Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error('❌ Order Dispatch API Error:', {
+    console.error(' Order Dispatch API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

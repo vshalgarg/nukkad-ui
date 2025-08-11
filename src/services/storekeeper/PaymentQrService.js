@@ -19,10 +19,10 @@ export const uploadQRImage = async (file, token) => {
       },
     });
 
-    console.log('✅ Upload Success:', response.data);
+    console.log(' Upload Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ QR Upload Error:', error);
+    console.error(' QR Upload Error:', error);
     throw new Error('QR Upload failed');
   }
 };
@@ -37,10 +37,10 @@ export const fetchPaymentQRs = async (token) => {
       },
     });
 
-    console.log('✅ Payment QRs Fetch Success:', response.data);
+    console.log(' Payment QRs Fetch Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Payment QRs Fetch Error:', error);
+    console.error(' Payment QRs Fetch Error:', error);
     throw new Error('Payment QRs Fetch failed');
   }
 };
@@ -55,10 +55,10 @@ export const deletePaymentQR = async (qrId, token) => {
       },
     });
 
-    console.log('✅ Payment QR Delete Success:', response.data);
+    console.log(' Payment QR Delete Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Payment QR Delete Error:', error);
+    console.error(' Payment QR Delete Error:', error);
     throw new Error('Payment QR Delete failed');
   }
 };
@@ -85,10 +85,10 @@ export const updatePaymentQR = async (qrId, file, token) => {
       },
     );
 
-    console.log('✅ Payment QR Update Success:', response.data);
+    console.log(' Payment QR Update Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Payment QR Update Error:', error);
+    console.error(' Payment QR Update Error:', error);
     throw new Error('Payment QR Update failed');
   }
 };
@@ -106,10 +106,10 @@ export const setDefaultPaymentQR = async (qrId, token) => {
         },
       },
     );
-    console.log('✅ Default Payment QR Set Success:', response.data);
+    console.log(' Default Payment QR Set Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Default Payment QR Set Error:', error);
+    console.error(' Default Payment QR Set Error:', error);
     throw new Error('Setting Default Payment QR failed');
   }
 };

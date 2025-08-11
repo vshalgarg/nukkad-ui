@@ -1,7 +1,7 @@
 import api from '../api';
 
 export const updateOrderStatusById = async (orderId, payload, token) => {
-  console.log('🔁 Update Order Status API', orderId, payload);
+  console.log('Update Order Status API', orderId, payload);
 
   try {
     const response = await api.patch(
@@ -14,14 +14,14 @@ export const updateOrderStatusById = async (orderId, payload, token) => {
       },
     );
 
-    console.log('✅ Order Status Update Success:', {
+    console.log(' Order Status Update Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error('❌ Order Status Update Error:', {
+    console.error(' Order Status Update Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

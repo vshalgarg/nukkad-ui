@@ -1,7 +1,7 @@
 import api from '../api';
 
 export const fetchOrderHistory = async (token, options = {}) => {
-  console.log('📥 Fetching Order History...');
+  console.log('Fetching Order History...');
 
   const {
     page = 0,
@@ -39,7 +39,7 @@ export const fetchOrderHistory = async (token, options = {}) => {
       },
     );
 
-    console.log('✅ Order History Success:', {
+    console.log('Order History Success:', {
       status: response.status,
       data: response.data,
     });
@@ -49,7 +49,7 @@ export const fetchOrderHistory = async (token, options = {}) => {
     const status = error.response?.status;
     const message = error.response?.data?.message;
 
-    console.error('❌ Order History Error:', {
+    console.error('Order History Error:', {
       message: error.message,
       status,
       data: error.response?.data,

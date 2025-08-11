@@ -87,4 +87,4 @@ const AllProduct = ({ products = [], loading = false }) => {
   );
 };
 
-export default memo(AllProduct);
+export default AllProduct;

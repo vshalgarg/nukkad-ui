@@ -43,7 +43,7 @@ const Address = () => {
   const hideDelete = fromCart;
 
   const handleSelectAddress = async id => {
-    console.log('🛒 Address card pressed!');
+    console.log('Address card pressed!');
     setSelectedAddressId(String(id));
     await AsyncStorage.setItem('selectedAddressId', String(id));
     if (fromCart) {

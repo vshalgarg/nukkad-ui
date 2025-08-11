@@ -57,7 +57,7 @@ export default function MyStores() {
         }
       }
     } catch (err) {
-      console.error('❌ Failed to fetch stores:', err);
+      console.error('Failed to fetch stores:', err);
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ export default function MyStores() {
               }
             } catch (err) {
               console.error(
-                '❌ Delete failed:',
+                'Delete failed:',
                 err?.response?.data || err.message,
               );
             }
@@ -176,20 +176,29 @@ export default function MyStores() {
             <ActivityIndicator size="large" color={Colors.primary} />
           </View>
         ) : stores.length === 0 ? (
-          <View
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-          >
-            <Text style={innerStyle.noStores}>{strings.noStoresFound}</Text>
-            <View style={innerStyle.addStoreContainer}>
-              <Pressable style={innerStyle.button} onPress={handleAddStore}>
-                <Ionicons
-                  name="add-circle-outline"
-                  size={24}
-                  color={Colors.secondary}
-                />
-                <Text style={innerStyle.buttonText}> {strings.addStore} </Text>
-              </Pressable>
-            </View>
+          <View style={innerStyle.noStoresContainer}>
+            {/* Icon or Illustration */}
+            <Ionicons
+              name="storefront-outline"
+              size={80}
+              color={Colors.secondaryText}
+            />
+
+            <Text style={innerStyle.noStoresTitle}>
+              {strings.noStoresFound}
+            </Text>
+            <Text style={innerStyle.noStoresSubTitle}>
+              You don't have any stores yet. Start by adding your first store!
+            </Text>
+            <Pressable
+              style={innerStyle.addStoreButton}
+              onPress={handleAddStore}
+            >
+              <Ionicons name="add-circle" size={28} color={Colors.white} />
+              <Text style={innerStyle.addStoreButtonText}>
+                {strings.addStore}
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <>
@@ -257,6 +266,52 @@ const innerStyle = ScaledSheet.create({
     marginLeft: '5@s',
     color: 'white',
   },
+  noStoresContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: '20@s',
+    backgroundColor: Colors.white,
+  },
+
+  noStoresTitle: {
+    fontSize: Fonts.sizes.xl,
+    color: Colors.secondary,
+    fontWeight: 'bold',
+    marginTop: '15@vs',
+    textAlign: 'center',
+  },
+
+  noStoresSubTitle: {
+    fontSize: Fonts.sizes.md,
+    color: Colors.secondaryText,
+    marginTop: '8@vs',
+    marginBottom: '25@vs',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+
+  addStoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: '8@vs',
+    paddingHorizontal: '20@s',
+    borderRadius: '30@s',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+
+  addStoreButtonText: {
+    fontSize: Fonts.sizes.base,
+    color: Colors.white,
+    marginLeft: '10@s',
+    fontWeight: '600',
+  },
+
   card: {
     marginTop: '16@vs',
     padding: '16@s',

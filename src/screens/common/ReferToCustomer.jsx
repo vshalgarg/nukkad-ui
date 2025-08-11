@@ -36,17 +36,25 @@ const ReferToCustomer = () => {
         message:
           '🛍️ Add my store to start shopping!\n\n' +
           '📲 Scan the QR code to add the store instantly.\n' +
-          '🆔 Or enter Store ID: ' + storeId + ' manually in the app.\n\n' +
-          'Let\'s start shopping today!',
+          '🆔 Or enter Store ID: ' +
+          storeId +
+          ' manually in the app.\n\n' +
+          "Let's start shopping today!",
         url: `file://${uri}`,
         type: 'image/png',
       });
     } catch (error) {
+      if (
+        error.message &&
+        (error.message.includes('User did not share') ||
+          error.message.includes('Cancelled') ||
+          error.message.includes('cancelled'))
+      ) {
+        return;
+      }
       console.error('Share error:', error);
     }
   };
-
-
   useEffect(() => {
     const fetchStoreId = async () => {
       try {
@@ -73,7 +81,7 @@ const ReferToCustomer = () => {
             const parsedData = JSON.parse(rawData);
             const storeQrId = parsedData.storeQrId;
             const storeName = parsedData.storeName;
-            console.log('✅ storeQrId from AsyncStorage:', storeQrId, storeName);
+            console.log('storeQrId from AsyncStorage:', storeQrId, storeName);
             if (storeQrId) {
               setStoreId(storeQrId);
               setStoreName(storeName)
@@ -86,7 +94,7 @@ const ReferToCustomer = () => {
         }
 
       } catch (error) {
-        console.error('❌ Failed to fetch and parse store ID:', error);
+        console.error('Failed to fetch and parse store ID:', error);
       }
     };
 

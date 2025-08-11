@@ -88,7 +88,7 @@ export default function AddStore() {
       try {
         scannerRef.current?.stopCamera?.();
       } catch (e) {
-        console.warn('⚠️ stopCamera failed silently', e);
+        console.warn(' stopCamera failed silently', e);
       } finally {
         if (isMountedRef.current) setShowScanner(false);
       }
@@ -115,6 +115,7 @@ export default function AddStore() {
       }
 
       const store = await addCustomerStore(storeQrId);
+      console.log('store messages', store.message);
 
       if (!store?.storekeeperId) {
         stopCameraAndNavigate(() => safePush('CustomerDashboard'));
@@ -125,17 +126,18 @@ export default function AddStore() {
 
       const toastPayload = {
         type: 'success',
-        message: store.message || 'Store Added Successfully',
+        title: store.message || strings.addedStoreSuccessfully,
       };
 
       saveStore(store);
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', {
+          store,
           toast: JSON.stringify(toastPayload),
         }),
       );
     } catch (err) {
-      console.error('❌ QR Scan Error:', err);
+      console.error('QR Scan Error:', err);
       const message =
         err?.response?.data?.message || err.message || 'Invalid QR';
       showToast('error', strings.failedToAddStore, message);
@@ -159,12 +161,12 @@ export default function AddStore() {
 
       const toastPayload = {
         type: 'success',
-        title: strings.addedStoreSuccessfully,
-        message: store.message,
+        title: store.message || strings.addedStoreSuccessfully,
       };
 
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', {
+          store,
           toast: JSON.stringify(toastPayload),
         }),
       );
@@ -250,7 +252,7 @@ const innerStyle = ScaledSheet.create({
     backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '10@s', 
+    gap: '10@s',
     paddingBottom: `${height * 0.15}@vs`,
   },
   text: {
@@ -282,7 +284,7 @@ const innerStyle = ScaledSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
- 
+
   label: {
     textAlign: 'center',
     fontSize: Fonts.sizes.base,

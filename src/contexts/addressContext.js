@@ -47,26 +47,56 @@ export const AddressProvider = ({ children }) => {
   }, [selectedAddressId]);
 
   // 🔥 ADD NEW ADDRESS
-  const addAddress = async data => {
-    const res = await addNewAddress(data); // ✅ Save to backend
-    console.log('data', data);
-    console.log('dataId', res.id);
-    setSelectedAddressId(res.id);
-    await syncAddressesFromServer();
-    await AsyncStorage.setItem('selectedAddressId', String(res.id));
-    const selectedAddress = await AsyncStorage.getItem('selectedAddressId');
-    console.log(selectedAddress)
-    console.log(typeof selectedAddress);
-    
+const addAddress = async data => {
+  const tempId = `temp-${Date.now()}`;
+  const optimisticAddress = {
+    ...data,
+    id: tempId,
+    default: address.length === 0,
   };
+
+  // Instant UI update
+  setAddress(prev => [...prev, optimisticAddress]);
+  setSelectedAddressId(tempId);
+
+  try {
+    const res = await addNewAddress(data);
+
+    // Replace tempId with real id in local state before sync
+    setAddress(prev =>
+      prev.map(a => (a.id === tempId ? { ...a, id: res.id } : a)),
+    );
+
+    // Keep selected consistent
+    setSelectedAddressId(res.id);
+    await AsyncStorage.setItem('selectedAddressId', String(res.id));
+
+    // Final sync (will keep selection intact)
+    await syncAddressesFromServer();
+  } catch (err) {
+    console.error('Failed to add address:', err);
+    setAddress(prev => prev.filter(a => a.id !== tempId)); // rollback
+  }
+};
+
 
   // 🔥 UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {
-    console.log('updated data', updated);
-    const res = await updateExistingAddress(updated.id, updated); // ✅ Update backend
-    setSelectedAddressId(res.id);
-    await AsyncStorage.setItem('selectedAddressId', String(res.id));
-    await syncAddressesFromServer();
+    // 1. Optimistically update local state
+    setAddress(prev =>
+      prev.map(a => (a.id === updated.id ? { ...a, ...updated } : a)),
+    );
+
+    // 2. Save to backend
+    try {
+      const res = await updateExistingAddress(updated.id, updated);
+      setSelectedAddressId(res.id);
+      await AsyncStorage.setItem('selectedAddressId', String(res.id));
+      await syncAddressesFromServer(); // Ensure final sync
+    } catch (err) {
+      console.error('Failed to update address:', err);
+      // Optional: rollback logic here if needed
+    }
   };
 
   // 🔥 DELETE ADDRESS

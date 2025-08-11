@@ -24,10 +24,12 @@ import { createStorekeeperProfile } from '../../services/storekeeper/storekeeper
 import { storekeeperProfileSchema } from '../../schema/validation';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
 const StorekeeperCreateProfile = () => {
+  useBackHandlerControl({blockBack:true})
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
 
@@ -170,7 +172,7 @@ const StorekeeperCreateProfile = () => {
       // setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
     } catch (err) {
-      console.error('❌ Storekeeper profile error:', err.message);
+      console.error('Storekeeper profile error:', err.message);
       showToast('error', strings.failedToCreateProfile);
       state, (pressLock = false);
     } finally {

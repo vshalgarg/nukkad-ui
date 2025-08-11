@@ -79,7 +79,7 @@ const Orders = () => {
 
         setHasMore(fetchedOrders.length === size);
       } catch (err) {
-        console.error('❌ Failed to fetch orders:', err);
+        console.error('Failed to fetch orders:', err);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -128,7 +128,7 @@ const Orders = () => {
       await fetchOrders(0, cleanedParams);
       setFilterModalVisible(false);
     } catch (err) {
-      console.error('❌ Filtered Order Fetch Failed:', err);
+      console.error(' Filtered Order Fetch Failed:', err);
       Alert.alert('Failed to apply filters');
     }
   };

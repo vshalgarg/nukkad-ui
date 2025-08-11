@@ -46,7 +46,7 @@ export const StorekeeperProfileProvider = ({ children }) => {
       setStorekeeperProfile(data);
       await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(data));
     } catch (err) {
-      console.error('❌ Failed to fetch storekeeper profile:', err);
+      console.error(' Failed to fetch storekeeper profile:', err);
       throw err;
     }
   };
@@ -58,7 +58,7 @@ export const StorekeeperProfileProvider = ({ children }) => {
       setStorekeeperProfile(apiData);
       await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(apiData));
     } catch (err) {
-      console.error('❌ Failed to create storekeeper profile:', err);
+      console.error(' Failed to create storekeeper profile:', err);
       throw err;
     }
   };
@@ -74,7 +74,7 @@ export const StorekeeperProfileProvider = ({ children }) => {
       setStorekeeperProfile(updatedProfile);
       await AsyncStorage.setItem('storekeeperProfile', JSON.stringify(updatedProfile));
     } catch (err) {
-      console.error('❌ Failed to update storekeeper profile:', err);
+      console.error('Failed to update storekeeper profile:', err);
       throw err;
     }
   };

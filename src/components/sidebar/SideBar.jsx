@@ -64,7 +64,7 @@ const SideBar = ({ isVisible, onClose }) => {
   const sharePlayStoreLink = async () => {
     try {
       const playStoreLink =
-        'https://play.google.com/store/apps/details?id=com.your.app'; // REPLACE WITH YOUR ACTUAL APP ID
+        'https://play.google.com/store/apps/details?id=com.your.app'; 
 
       await Share.share({
         title: 'Check out this store app!',
@@ -73,7 +73,6 @@ const SideBar = ({ isVisible, onClose }) => {
       });
     } catch (error) {
       console.log('Error sharing:', error);
-      // Fallback to regular share dialog
       Share.open({
         title: 'Share App',
         message:
@@ -84,7 +83,7 @@ const SideBar = ({ isVisible, onClose }) => {
   const openLink = async url => {
     try {
       console.log('Trying to open:', url);
-      await Linking.openURL(url); // skip canOpenURL
+      await Linking.openURL(url); 
     } catch (error) {
       console.warn('Failed to open URL:', url, error);
     }
@@ -182,7 +181,7 @@ const SideBar = ({ isVisible, onClose }) => {
             } catch (error) {
               console.error('Logout failed:', error);
             } finally {
-              setTimeout(() => setLoggingOut(false), 100); // optional reset
+              setTimeout(() => setLoggingOut(false), 100); 
             }
           },
         },

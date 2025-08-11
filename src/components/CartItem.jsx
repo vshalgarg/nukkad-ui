@@ -35,7 +35,7 @@ const CartItem = ({
   const dispatch = useDispatch();
   const { token } = useAuth();
   if (!item || !item.product) {
-    console.warn('⛔️ CartItem received undefined item or product', item);
+    console.warn(' CartItem received undefined item or product', item);
     return null;
   }
   const [imageError, setImageError] = useState(false);
@@ -55,7 +55,7 @@ const CartItem = ({
       dispatch(removeFromCart({ itemId: product.id }));
       if (onItemRemoved) onItemRemoved();
     } catch (err) {
-      console.error('❌ Failed to delete item from cart', err);
+      console.error(' Failed to delete item from cart', err);
     }
   };
 
@@ -72,7 +72,7 @@ const CartItem = ({
       );
       setOpenDropdownId(null);
     } catch (err) {
-      console.error('❌ Failed to update unit', err);
+      console.error('Failed to update unit', err);
     }
   };
 
@@ -95,11 +95,11 @@ const CartItem = ({
               }),
             );
           })
-          .catch(() => console.log('❌ Failed to update quantity'));
+          .catch(() => console.log('Failed to update quantity'));
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [amountInput, selectedUnit]); // now watching selectedUnit too
+  }, [amountInput, selectedUnit]); 
 
   useEffect(() => {
     setImageError(false);

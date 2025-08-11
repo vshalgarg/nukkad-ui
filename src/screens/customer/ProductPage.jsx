@@ -160,7 +160,7 @@ const ProductPage = () => {
       setTotalPages(Math.ceil(response.total / PAGE_SIZE) || 1);
       setCurrentPage(page);
     } catch (err) {
-      console.error('❌ Search failed:', err.message);
+      console.error('Search failed:', err.message);
       setGroupedResults([]);
     } finally {
       setSearching(false);
@@ -180,7 +180,7 @@ const ProductPage = () => {
       setTotalPages(Math.ceil(total / PAGE_SIZE) || 1);
       setCurrentPage(page);
     } catch (err) {
-      console.error('❌ Category fetch failed:', err.message);
+      console.error('Category fetch failed:', err.message);
       setGroupedResults([]);
     } finally {
       setSearching(false);

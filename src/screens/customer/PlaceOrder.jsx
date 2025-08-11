@@ -8,9 +8,11 @@ import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
 import strings from '../../constants/string';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
 const PlaceOrder = () => {
   const { safePush } = useSafeRouter();
+    useBackHandlerControl({ blockBack: true });
 
   const handleContinueShopping = () => {
     safePush('CustomerDashboard');

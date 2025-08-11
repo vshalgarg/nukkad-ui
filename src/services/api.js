@@ -53,14 +53,14 @@ const api = axios.create({
   },
 });
 
-// 📤 Request Interceptor
+//  Request Interceptor
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('authToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // 🔍 Log full request details
+  //  Log full request details
   console.log('➡️ API Request:', {
     method: config.method,
     url: `${config.baseURL}${config.url}`,
@@ -72,13 +72,13 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// 📥 Response Interceptor
+//  Response Interceptor
 api.interceptors.response.use(
   (response) => {
     const { responseCode, message } = response.data;
 
-    // 🔍 Log successful responses
-    console.log('✅ API Response:', {
+    //  Log successful responses
+    console.log(' API Response:', {
       url: response.config.url,
       status: response.status,
       data: response.data,
@@ -95,8 +95,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // ❌ Log errors
-    console.error('❌ API Error:', {
+    //  Log errors
+    console.error(' API Error:', {
       message: error.message,
       url: error?.config?.url,
       method: error?.config?.method,

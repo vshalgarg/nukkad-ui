@@ -38,11 +38,12 @@ const ShoppingCart = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
+  let pressLock = false;
 
   const dispatch = useDispatch();
 
   const cartItems = useSelector(state => state.cart.items);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cartItems.length === 0);
 
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
@@ -50,7 +51,11 @@ const ShoppingCart = () => {
   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
   console.log(address);
-  console.log("selected addressId",typeof selectedAddressId,selectedAddressId);
+  console.log(
+    'selected addressId',
+    typeof selectedAddressId,
+    selectedAddressId,
+  );
   const selectedAddress =
     address.find(item => item.id.toString() === String(selectedAddressId)) ||
     address.find(item => item.isDefault);
@@ -70,8 +75,6 @@ const ShoppingCart = () => {
           quantity: item.allUnits,
         },
       }));
-
-      setCartItems(formattedItems);
       dispatch(setCartItems(formattedItems));
     } catch (err) {
       showToast('error', strings.failedToLoadItems);
@@ -130,19 +133,18 @@ const ShoppingCart = () => {
       setOrderInProgress(false);
       return;
     }
-
     if (cartItems.length === 0) {
       showToast('error', strings.missingItems1, strings.missingItems2);
       setOrderInProgress(false);
       return;
     }
-
-    const hasInvalidAmount = cartItems.some(item => {
-      const amt = Number(item.product.amount);
-      return isNaN(amt) || amt <= 0;
-    });
-
-    if (hasInvalidAmount) {
+    if (
+      cartItems.some(
+        item =>
+          isNaN(Number(item.product.amount)) ||
+          Number(item.product.amount) <= 0,
+      )
+    ) {
       showToast('error', strings.failedToPlaceOrder, strings.invalidQty);
       setOrderInProgress(false);
       return;
@@ -150,7 +152,7 @@ const ShoppingCart = () => {
 
     const payload = {
       deliveryAddressId: selectedAddress?.id,
-      storeKeeperId: storeKeeperId,
+      storeKeeperId,
       orderItem: cartItems.map(item => ({
         itemId: item.product.id,
         quantity: Number(item.product.amount),
@@ -158,19 +160,23 @@ const ShoppingCart = () => {
       })),
     };
 
+    // 🚀 Navigate instantly
+    safePush('PlaceOrder');
+
+    // 🌐 Place order in the background
     try {
       const res = await placeOrder(payload, token);
-      safePush('PlaceOrder');
-      setTimeout(() => {
-        dispatch(clearCart());
-      }, 500);
+      dispatch(clearCart());
+      // You could also emit an event or update state so PlaceOrder screen shows success
     } catch (error) {
-      console.error('❌ Error placing order:', error);
+      console.error('Error placing order:', error);
       showToast('error', error.message || 'Failed to place order');
+      // Optionally navigate back or show retry in PlaceOrder screen
     } finally {
       setOrderInProgress(false);
     }
   };
+
 
   const handleEditAddress = address => {
     setMode('edit');
@@ -270,7 +276,7 @@ const ShoppingCart = () => {
               <CustomButton
                 title={strings.proceed}
                 onPress={handleCompleteOrder}
-                disabled={!selectedAddress}
+                disabled={!selectedAddress || orderInProgress}
               />
             </View>
           </>

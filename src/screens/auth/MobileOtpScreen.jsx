@@ -23,7 +23,6 @@ import { sendOtp, verifyOtp } from '../../services/authApi';
 import { useAuth } from '../../contexts/authContext';
 import { setCartItems, setCartUser } from '../../store/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
 import { getCartItemsAPI } from '../../services/customer/cartService';
 import strings from '../../constants/string';
@@ -31,7 +30,6 @@ import { ScaledSheet } from 'react-native-size-matters';
 import { Keyboard } from 'react-native';
 
 const MobileOtpScreen = () => {
-  useBackHandlerControl({ blockBack: true });
   const { safePush } = useSafeRouter();
   const { login } = useAuth();
   const dispatch = useDispatch();
@@ -120,10 +118,7 @@ const MobileOtpScreen = () => {
       const token = res?.token;
       const role = res?.roles?.[0];
       const userId = res?.userId;
-      console.log(res.firstTimeLogin);
       const returningUser = res.firstTimeLogin === 1502;
-      console.log(returningUser);
-      console.log(role, token);
 
       if (!token) throw new Error('No token received');
       await AsyncStorage.removeItem('selectedAddressId');
@@ -133,6 +128,10 @@ const MobileOtpScreen = () => {
       const toastPayload = {
         type: 'success',
         title: `${strings.verifiedOtp}`,
+      };
+      const returingUserToastPayload = {
+        type: 'success',
+        title: `${strings.Welcome}`,
       };
 
       if (role === 'CUSTOMER') {
@@ -151,7 +150,7 @@ const MobileOtpScreen = () => {
           }));
           dispatch(setCartItems(formattedItems));
           safePush('CustomerDashboard', {
-            toast: JSON.stringify(toastPayload),
+            toast: JSON.stringify(returingUserToastPayload),
           });
         } else {
           safePush('CustomerCreateProfile', {
@@ -164,7 +163,7 @@ const MobileOtpScreen = () => {
         if (returningUser) {
           fetchStorekeeperProfile();
           safePush('StorekeeperDashboard', {
-            toast: JSON.stringify(toastPayload),
+            toast: JSON.stringify(returingUserToastPayload),
           });
         } else {
           safePush('StorekeeperCreateProfile', {

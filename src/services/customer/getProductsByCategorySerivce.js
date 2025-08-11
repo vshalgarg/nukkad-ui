@@ -12,7 +12,7 @@ export const getProductsByCategory = async (categoryId, page = 1, pageSize = 10)
     );
 
     console.log(
-      '✅ API raw response:',
+      ' API raw response:',
       JSON.stringify(response?.data, null, 2),
     );
 
@@ -21,7 +21,7 @@ export const getProductsByCategory = async (categoryId, page = 1, pageSize = 10)
       total: response.data.totalItems
     } // use correct path here
   } catch (error) {
-    console.error('❌ Get Products by Category API Error:', {
+    console.error(' Get Products by Category API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

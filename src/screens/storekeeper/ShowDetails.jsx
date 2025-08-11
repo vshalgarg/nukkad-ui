@@ -526,8 +526,7 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '10@s',
     marginBottom: '10@vs',
     elevation: 2,
-    height: '90@vs',
-    marginHorizontal: '10@s',
+    height: 100,
   },
   rowBetween: {
     flexDirection: 'row',
@@ -597,23 +596,14 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '8@s',
     backgroundColor: Colors.white,
   },
-  noteInput: {
-    height: '100@vs', // vertical scaling for height
-    borderWidth: 1,
-    borderColor: Colors.borderColor,
-    borderRadius: '10@ms', // moderate scaling for border radius
-    padding: '10@ms', // padding scaled
-    textAlignVertical: 'top',
-    backgroundColor: Colors.white,
-    marginBottom: '10@vs',
-  },
+
   input: {
     width: '70@s',
     height: '30@vs',
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: '50@s',
-    paddingHorizontal: '10@s',
+    borderRadius: 40,
+    paddingHorizontal: 10,
     textAlign: 'center',
     lineHeight: 20,
     includeFontPadding: false,

@@ -10,23 +10,19 @@ export const getOrders = async (token) => {
     Authorization: `Bearer ${token}`,
   };
 
-  console.log('📦 [getOrders] API Request');
-  console.log('➡️ Method: GET');
-  console.log('➡️ URL:', fullUrl);
-  console.log('➡️ Headers:', headers);
 
   try {
     const response = await api.get(endpoint, {
       headers,
     });
 
-    console.log('✅ [getOrders] Success Response');
+    console.log(' [getOrders] Success Response');
     console.log('Status:', response.status);
     console.log('Data:', response.data);
 
     return response.data;
   } catch (error) {
-    console.error('❌ [getOrders] Error Response');
+    console.error(' [getOrders] Error Response');
 
     if (error.response) {
       console.error('Status:', error.response.status);

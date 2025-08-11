@@ -27,10 +27,10 @@ export default function CategorySlider({ selectedCategoryId }) {
 const fetchCategories = async () => {
   try {
     const response = await getAllCategories();
-    console.log('✅ Raw Slider Categories Response:', response);
+    console.log(' Raw Slider Categories Response:', response);
 
     if (!Array.isArray(response)) {
-      console.error('❌ Expected array but got:', typeof response, response);
+      console.error(' Expected array but got:', typeof response, response);
       return;
     }
 
@@ -48,7 +48,7 @@ const fetchCategories = async () => {
 
     setCategories(reordered);
   } catch (error) {
-    console.error('❌ Failed to load categories:', error.message);
+    console.error(' Failed to load categories:', error.message);
   }
 };
 
@@ -96,15 +96,6 @@ const fetchCategories = async () => {
     );
   };
 
-  // if (loading) {
-  //   return (
-  //     <ActivityIndicator
-  //       size="small"
-  //       color={Colors.secondary}
-  //       style={{ marginTop: 20 }}
-  //     />
-  //   );
-  // }
 
   return (
     <View style={styles.wrapper}>

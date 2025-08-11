@@ -27,18 +27,27 @@ import strings from '../../constants/string.js';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
+
   const route = useRoute();
-  const { toast } = route.params || {};
+  const { params } = route.params || {};
+  const { store, toast } = route.params || {};
+  console.log('store:', store);
+  console.log('toast:', toast);
+
+  console.log('params', params);
   const { createProfile } = useProfile();
+
   useEffect(() => {
-    console.log(toast)
     if (toast) {
       try {
         const parsedToast = JSON.parse(toast);
         showToast(parsedToast.type, parsedToast.title);
       } catch (e) {
-        console.warn('⚠️ Failed to parse toast:', e.message);
+        console.warn(' Failed to parse toast:', e.message);
       }
+    }
+    if (params?.storeData) {
+      saveStore(params?.storeData);
     }
   }, []);
 
@@ -46,8 +55,8 @@ const CustomerDashboard = () => {
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { token, role } = useAuth();
-  const { saveStore, isLoading: storeLoading } = useStore();
+  const { token } = useAuth();
+  const { saveStore } = useStore();
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -59,7 +68,7 @@ const CustomerDashboard = () => {
         setCategories([]);
       }
     } catch (error) {
-      console.error('❌ Failed to load categories:', error.message);
+      console.error('Failed to load categories:', error.message);
     } finally {
       setLoading(false);
     }
@@ -68,21 +77,18 @@ const CustomerDashboard = () => {
   const fetchStoreAndProfile = async () => {
     try {
       const userProfile = await getCustomerProfile(token);
-      const formattedProfile = {
+      await createProfile({
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.image || null,
         dob: userProfile.dob || '',
-      };
-      await createProfile(formattedProfile);
+      });
 
       const stores = await getMyStores(token);
-      console.log('stores from dashboard', stores);
-
       const savedStoreString = await AsyncStorage.getItem('@selected_store');
       const savedStore = savedStoreString ? JSON.parse(savedStoreString) : null;
-      console.log("savedStore")
+
       if (stores.length === 1) {
         saveStore(stores[0]);
       } else if (
@@ -92,7 +98,7 @@ const CustomerDashboard = () => {
         saveStore(savedStore);
       }
     } catch (err) {
-      console.warn('⚠️ Failed to fetch store/profile:', err.message);
+      console.warn('Failed to fetch store/profile:', err.message);
     }
   };
 
@@ -123,14 +129,27 @@ const CustomerDashboard = () => {
         await AsyncStorage.removeItem('selectedAddressId');
       }
     } catch (err) {
-      console.warn('⚠️ Failed to sync and set default address:', err.message);
+      console.warn(' Failed to sync and set default address:', err.message);
     }
   };
 
   useEffect(() => {
-    fetchCategories(true);
-    syncAddressAndSetDefault();
-    fetchStoreAndProfile();
+
+    (async () => {
+      const cached = await AsyncStorage.getItem('categories');
+      if (cached) {
+        setCategories(JSON.parse(cached));
+        setLoading(false); 
+      }
+    })();
+
+    Promise.allSettled([
+      fetchCategories(), // refresh categories
+      syncAddressAndSetDefault(), // sync address
+      fetchStoreAndProfile(), // profile & store
+    ]).catch(err => {
+      console.warn('Parallel fetch failed:', err.message);
+    });
   }, [fetchCategories]);
 
   const handleCategoryPress = category => {
@@ -146,7 +165,6 @@ const CustomerDashboard = () => {
     }
   };
 
-  // 👇 FlatList Data Items
   const data = [
     { type: 'search' },
     { type: 'slider' },
@@ -176,7 +194,7 @@ const CustomerDashboard = () => {
   return (
     <SafeAreaView style={styles.pageContainer}>
       <UserToolbar />
-      {loading ? (
+      {loading && categories.length === 0 ? (
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
@@ -188,6 +206,7 @@ const CustomerDashboard = () => {
         </View>
       ) : (
         <FlatList
+          showsVerticalScrollIndicator={false}
           data={data}
           keyExtractor={(item, index) => item.type + index}
           renderItem={renderItem}

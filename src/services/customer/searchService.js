@@ -7,10 +7,10 @@ export const searchProducts = async keyword => {
       params: { keyword },
     });
 
-    console.log('✅ Search API Result:', response.data);
+    console.log(' Search API Result:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Search API Error:', error.message);
+    console.error(' Search API Error:', error.message);
     throw new Error('Failed to fetch search results');
   }
 };

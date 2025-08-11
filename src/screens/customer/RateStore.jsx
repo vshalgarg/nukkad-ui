@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
   TouchableWithoutFeedback,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -40,11 +41,10 @@ const RateStore = () => {
   const { token } = useAuth();
   const { storeData } = useStore();
 
-  const storeName = storeData?.storeName || 'Select Store First';
+  const storeName = storeData?.storeName;
   const handleSubmitReview = async () => {
     if (rating === 0 || feedback.trim() === '') {
       showToast('error', strings.provideRatingAndFeedback);
-
       return;
     }
 
@@ -88,14 +88,25 @@ const RateStore = () => {
           backgroundColor={Colors.backbuttonColor}
         />
         <View style={styles.container}>
-          <Text
-            style={[
-              textStyles.heading,
-              { textAlign: 'center', marginVertical: 25 },
-            ]}
-          >
-            Store: {storeName}
-          </Text>
+          {storeName ? (
+            <Text
+              style={[
+                textStyles.heading,
+                { textAlign: 'center', marginVertical: 25 },
+              ]}
+            >
+              Store: {storeName}
+            </Text>
+          ) : (
+            <Text
+              style={[
+                textStyles.heading,
+                { textAlign: 'center', marginVertical: 25 },
+              ]}
+            >
+              Please add or select an address.
+            </Text>
+          )}
           <View style={styles.starsContainer}>
             {[1, 2, 3, 4, 5].map(value => (
               <TouchableOpacity

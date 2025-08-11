@@ -6,7 +6,7 @@ const STORE_KEY = '@selected_store';
 
 export const StoreProvider = ({ children }) => {
   const [storeData, setStoreData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // ✅ New loading state
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
     loadStoreFromStorage();
@@ -18,12 +18,12 @@ export const StoreProvider = ({ children }) => {
       if (jsonValue) {
         const parsedStore = JSON.parse(jsonValue);
         setStoreData(parsedStore);
-        console.log('✅ Loaded selected store from AsyncStorage:', parsedStore);
+        console.log(' Loaded selected store from AsyncStorage:', parsedStore);
       }
     } catch (err) {
-      console.error('❌ Failed to load selected store:', err.message);
+      console.error(' Failed to load selected store:', err.message);
     } finally {
-      setIsLoading(false); // ✅ Done loading
+      setIsLoading(false); 
     }
   };
 
@@ -32,14 +32,14 @@ export const StoreProvider = ({ children }) => {
       if (store) {
         await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
         setStoreData(store);
-        console.log('✅ Store saved to AsyncStorage',store);
+        console.log('Store saved to AsyncStorage',store);
       } else {
         await AsyncStorage.removeItem(STORE_KEY);
         setStoreData(null);
-        console.log('🗑️ Store removed from AsyncStorage');
+        console.log('Store removed from AsyncStorage');
       }
     } catch (err) {
-      console.error('❌ Failed to save selected store:', err.message);
+      console.error('Failed to save selected store:', err.message);
     }
   };
 
@@ -48,7 +48,7 @@ export const StoreProvider = ({ children }) => {
       await AsyncStorage.removeItem(STORE_KEY);
       setStoreData(null);
     } catch (err) {
-      console.error('❌ Failed to reset selected store:', err.message);
+      console.error('Failed to reset selected store:', err.message);
     }
   };
 
@@ -60,7 +60,7 @@ export const StoreProvider = ({ children }) => {
         saveStore,
         resetStore,
         loadStoreFromStorage,
-        isLoading, // ✅ Expose loading
+        isLoading,
       }}
     >
       {children}

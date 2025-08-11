@@ -13,14 +13,14 @@ export const sendOtp = async (mobileNumber, role = null) => {
       payload,
     );
 
-    console.log('✅ Send OTP API Success:', {
+    console.log(' Send OTP API Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error('❌ Send OTP API Error:', {
+    console.error(' Send OTP API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -43,14 +43,14 @@ export const verifyOtp = async (mobileNumber, otp) => {
       payload,
     );
 
-    console.log('✅ Verify OTP API Success:', {
+    console.log(' Verify OTP API Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error('❌ Verify OTP API Error:', {
+    console.error(' Verify OTP API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

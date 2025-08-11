@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { addToCart, clearCart } from '../../store/cartSlice';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
@@ -32,42 +32,39 @@ const OrderHistory = ({
   });
 
   const handleRepeatOrder = async () => {
-    if (!order.items || order.items.length === 0) {
+    if (!order.items?.length) {
       Alert.alert('No items to reorder');
       return;
     }
-    await clearCartAPI(token);
-
-    dispatch(clearCart());
 
     try {
-      for (const item of order.items) {
-        const itemId = item.itemId;
-        const unit = item.unit;
-        const quantity = item.quantity;
+      await clearCartAPI(token);
+      dispatch(clearCart());
+
+      const promises = order.items.map(async item => {
+        const { itemId, unit, quantity, itemName } = item;
         const amount = quantity.toString();
         const isPkt = unit === 'PKT';
         const itemCount = isPkt ? Number(quantity) : 1;
 
-        // 🔁 Call addToCart API to sync backend
         const response = await addToCartAPI(itemId, quantity, unit, token);
         const addedItemId = response?.itemIds?.[0] || response?.id || itemId;
 
-        const product = {
-          _id: itemId,
-          name: item.itemName,
-          selectedUnit: unit,
-          amount: amount,
-        };
-
-        const cartItem = {
+        return {
           itemId: addedItemId,
-          product,
+          product: {
+            _id: itemId,
+            name: itemName,
+            selectedUnit: unit,
+            amount,
+          },
           selectedUnit: unit,
           quantity: itemCount,
         };
-        dispatch(addToCart(cartItem));
-      }
+      });
+
+      const cartItems = await Promise.all(promises);
+      cartItems.forEach(item => dispatch(addToCart(item)));
 
       safePush('ShoppingCart', { fromRepeatOrder: true });
     } catch (err) {
@@ -115,50 +112,56 @@ const OrderHistory = ({
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
-      <View style={styles.row}>
-        <Text style={styles.label} numberOfLines={1} ellipsizeMode="tail">
-          {`${strings.orderId}: #${order.orderId}`}
-        </Text>
-        <Text style={styles.date}>{formattedDate}</Text>
-      </View>
+      <View style={styles.mainRow}>
+        {/* Left Column */}
+        <View style={styles.column}>
+          <Text style={styles.label} numberOfLines={1} ellipsizeMode="tail">
+            {`${strings.orderId}: #${order.orderId}`}
+          </Text>
+          <Text style={styles.label} numberOfLines={2} ellipsizeMode="tail">
+            {role === 'CUSTOMER'
+              ? `${strings.store} ${shopName}`
+              : `${strings.customer} ${order.customerName}`}
+          </Text>
+          <Text style={styles.label}>
+            {strings.totalItems}{' '}
+            <Text style={styles.values}>{totalQuantity}</Text>
+          </Text>
+          {(order.orderStatus === 'DISPATCHED' ||
+            order.orderStatus === 'DELIVERED') && (
+            <Text style={styles.label}>
+              {strings.totalPrice}{' '}
+              <Text style={styles.values}>{totalPrice}</Text>
+            </Text>
+          )}
+        </View>
 
-      {/* Row 2 */}
-      <View style={styles.row}>
-        <Text style={styles.label} numberOfLines={2} ellipsizeMode="tail">
-          {role === 'CUSTOMER'
-            ? `${strings.store} ${shopName}`
-            : `${strings.customer} ${order.customerName}`}
-        </Text>
-        <View style={styles.statusBadgeWrapper}>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusBg(order.orderStatus) },
-            ]}
-          >
-            <Text
+        {/* Right Column */}
+        <View style={styles.columnRight}>
+          <Text style={styles.date}>{formattedDate}</Text>
+          <View style={styles.statusBadgeWrapper}>
+            <View
               style={[
-                styles.statusText,
-                { color: getStatusTextColor(order.orderStatus) },
+                styles.statusBadge,
+                { backgroundColor: getStatusBg(order.orderStatus) },
               ]}
             >
-              {order.orderStatus}
-            </Text>
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: getStatusTextColor(order.orderStatus) },
+                ]}
+              >
+                {order.orderStatus}
+              </Text>
+            </View>
           </View>
+          {role === 'CUSTOMER' && (
+            <TouchableOpacity onPress={handleRepeatOrder}>
+              <Text style={styles.repeat}>{strings.repeatOrder}</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      </View>
-
-      {/* Row 3 */}
-      <View style={styles.row}>
-        <Text style={styles.label}>
-          {strings.totalItems}{' '}
-          <Text style={styles.values}>{totalQuantity}</Text>
-        </Text>
-        {role === 'CUSTOMER' && (
-          <TouchableOpacity onPress={handleRepeatOrder}>
-            <Text style={styles.repeat}>{strings.repeatOrder}</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Expanded View */}
@@ -183,12 +186,26 @@ const styles = ScaledSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  row: {
+  mainRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '6@s',
-    marginBottom: '6@vs',
+    alignItems: 'stretch',
+    gap: '8@s',
+  },
+  column: {
+    flex: 2,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    gap: '4@vs',
+    minWidth: 0,
+  },
+  columnRight: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: '4@vs',
+    minWidth: 0,
   },
   label: {
     fontSize: Fonts.sizes.sm,

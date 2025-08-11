@@ -104,15 +104,14 @@ const styles = ScaledSheet.create({
     borderRadius: '12@s',
     backgroundColor: Colors.white,
     borderColor: Colors.borderColor,
-    borderWidth: 1,
+    borderWidth: 2,
     elevation: 2,
     padding: '12@s',
-    position: 'relative',
   },
   selectedCard: {
     borderColor: Colors.primary,
     borderWidth: 2,
-    padding: '13@s',
+    padding: '12@s',
   },
   contentContainer: {
     flexDirection: 'row',
@@ -198,6 +197,5 @@ const styles = ScaledSheet.create({
     fontSize: Fonts.sizes.sm,
   },
 });
-
 
 export default AddressCard;

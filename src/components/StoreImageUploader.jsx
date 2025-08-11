@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Feather';
-import Colors from '../styles/colors'; // Ensure Colors.primary, .borderColor etc. are defined
+import Colors from '../styles/colors'; 
 import { ScaledSheet } from 'react-native-size-matters';
 
 const MAX_IMAGES = 4;

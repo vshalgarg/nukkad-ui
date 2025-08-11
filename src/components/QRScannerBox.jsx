@@ -23,15 +23,12 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
   const [hasPermission, setHasPermission] = useState(Platform.OS === 'ios');
   const [scanned, setScanned] = useState(false);
 
-  // 👇 create a ref to camera instance
   const cameraRef = useRef();
 
-  // 👇 expose stopCamera to parent
   useImperativeHandle(ref, () => ({
     stopCamera: () => {
-      console.log('📷 stopCamera called');
-      // Optional — if the library supports stop/pause methods, use them
-      // cameraRef.current?.stop(); // only if API exists
+      console.log('stopCamera called');
+      
     },
   }));
 

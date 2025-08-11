@@ -1,7 +1,7 @@
 // services/customer/profile.js
 import api from '../api';
 
-// ✅ Get Customer Profile
+//  Get Customer Profile
 export const getCustomerProfile = async (token) => {
   try {
     const response = await api.get('/nukkad/api/customer/v1/get/profile', {
@@ -10,7 +10,7 @@ export const getCustomerProfile = async (token) => {
       },
     });
 
-    console.log('✅ Get Profile API Success:', {
+    console.log(' Get Profile API Success:', {
       status: response.status,
       data: response.data,
     });
@@ -28,7 +28,7 @@ export const getCustomerProfile = async (token) => {
       DOB: user.dob,
     };
   } catch (error) {
-    console.error('❌ Get Profile API Error:', {
+    console.error(' Get Profile API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -38,9 +38,9 @@ export const getCustomerProfile = async (token) => {
   }
 };
 
-// ✅ Update Customer Profile
+//  Update Customer Profile
 export const updateCustomerProfile = async (payload, token) => {
-  console.log('📤 Updating Customer Profile with payload:', payload);
+  console.log(' Updating Customer Profile with payload:', payload);
 
   try {
     const response = await api.put('/nukkad/api/customer/v1/update', payload, {
@@ -50,7 +50,7 @@ export const updateCustomerProfile = async (payload, token) => {
       },
     });
 
-    console.log('✅ Update Profile API Success:', {
+    console.log(' Update Profile API Success:', {
       status: response.status,
       data: response.data,
     });
@@ -67,7 +67,7 @@ export const updateCustomerProfile = async (payload, token) => {
       DOB: updatedUser.dob,
     };
   } catch (error) {
-    console.error('❌ Update Profile API Error:', {
+    console.error(' Update Profile API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
