@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/authContext';
 import { useNavigation } from '@react-navigation/native';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
@@ -45,15 +46,10 @@ export default function MyStores() {
         saveStore(response[0]);
         setSelectedStoreTemp(response[0]);
       } else {
-        const exists =
-          storeData &&
-          response.some(s => s.storekeeperId === storeData.storekeeperId);
+        const exists = await AsyncStorage.getItem('@selected_store');
 
         if (exists) {
-          setSelectedStoreTemp(storeData); // ✅ set selected store
-        } else {
-          saveStore(response[0]);
-          setSelectedStoreTemp(response[0]); // ✅ fallback selection
+          setSelectedStoreTemp(storeData);
         }
       }
     } catch (err) {
@@ -87,19 +83,31 @@ export default function MyStores() {
 
               await deleteStore(idToDelete, token);
 
-              // ✅ Use same logic as keyExtractor for filtering
-              setStores(prev =>
-                prev.filter(
+              setStores(prev => {
+                const updatedStores = prev.filter(
                   s =>
                     (s.id?.toString() || s.storekeeperId?.toString()) !==
                     idToDelete,
-                ),
-              );
+                );
 
-              if (selectedStoreTemp?.storekeeperId === store.storekeeperId) {
+                // ✅ If deleted store was selected, pick another store as selected
+                if (
+                  selectedStoreTemp?.storekeeperId === store.storekeeperId &&
+                  updatedStores.length > 0
+                ) {
+                  setSelectedStoreTemp(updatedStores[0]);
+                  saveStore(updatedStores[0]);
+                }
+
+                return updatedStores;
+              });
+
+              // ✅ If no stores left, clear selection
+              if (
+                selectedStoreTemp?.storekeeperId === store.storekeeperId &&
+                stores.length === 1
+              ) {
                 setSelectedStoreTemp(null);
-              }
-              if (storeData?.storekeeperId === store.storekeeperId) {
                 saveStore(null);
               }
             } catch (err) {
@@ -126,7 +134,10 @@ export default function MyStores() {
   };
 
   const renderItem = ({ item }) => {
-    const isSelected = selectedStoreTemp?.id === item.id;
+    const isSelected =
+      (selectedStoreTemp?.id?.toString() ||
+        selectedStoreTemp?.storekeeperId?.toString()) ===
+      (item.id?.toString() || item.storekeeperId?.toString());
 
     return (
       <Pressable

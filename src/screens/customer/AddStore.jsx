@@ -130,9 +130,9 @@ export default function AddStore() {
       };
 
       saveStore(store);
+      await AsyncStorage.setItem('@selected_store', JSON.stringify(store));
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', {
-          store,
           toast: JSON.stringify(toastPayload),
         }),
       );
@@ -153,6 +153,7 @@ export default function AddStore() {
       const store = await addCustomerStore(id);
       await persistStoreIfNew(store);
       saveStore(store);
+      await AsyncStorage.setItem('@selected_store', JSON.stringify(store));
 
       if (!store?.storekeeperId) {
         stopCameraAndNavigate(() => navigation.navigate('CustomerDashboard'));
@@ -166,7 +167,6 @@ export default function AddStore() {
 
       stopCameraAndNavigate(() =>
         safePush('CustomerDashboard', {
-          store,
           toast: JSON.stringify(toastPayload),
         }),
       );

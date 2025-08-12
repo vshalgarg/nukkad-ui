@@ -29,13 +29,14 @@ const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
 
   const route = useRoute();
-  const { params } = route.params || {};
-  const { store, toast } = route.params || {};
-  console.log('store:', store);
-  console.log('toast:', toast);
-
-  console.log('params', params);
+  const { toast } = route.params || {}; // ✅ only keep toast param
   const { createProfile } = useProfile();
+  const { safePush } = useSafeRouter();
+  const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
+  const { saveStore } = useStore();
 
   useEffect(() => {
     if (toast) {
@@ -43,20 +44,20 @@ const CustomerDashboard = () => {
         const parsedToast = JSON.parse(toast);
         showToast(parsedToast.type, parsedToast.title);
       } catch (e) {
-        console.warn(' Failed to parse toast:', e.message);
+        console.warn('Failed to parse toast:', e.message);
       }
     }
-    if (params?.storeData) {
-      saveStore(params?.storeData);
-    }
-  }, []);
+  }, [toast]);
 
-  const { safePush } = useSafeRouter();
-  const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
-  const { saveStore } = useStore();
+  useEffect(() => {
+    (async () => {
+      const savedStoreString = await AsyncStorage.getItem('@selected_store');
+      if (savedStoreString) {
+        const savedStore = JSON.parse(savedStoreString);
+        saveStore(savedStore); // put into context
+      }
+    })();
+  }, []);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -129,24 +130,23 @@ const CustomerDashboard = () => {
         await AsyncStorage.removeItem('selectedAddressId');
       }
     } catch (err) {
-      console.warn(' Failed to sync and set default address:', err.message);
+      console.warn('Failed to sync and set default address:', err.message);
     }
   };
 
   useEffect(() => {
-
     (async () => {
       const cached = await AsyncStorage.getItem('categories');
       if (cached) {
         setCategories(JSON.parse(cached));
-        setLoading(false); 
+        setLoading(false);
       }
     })();
 
     Promise.allSettled([
-      fetchCategories(), // refresh categories
-      syncAddressAndSetDefault(), // sync address
-      fetchStoreAndProfile(), // profile & store
+      fetchCategories(),
+      syncAddressAndSetDefault(),
+      fetchStoreAndProfile(),
     ]).catch(err => {
       console.warn('Parallel fetch failed:', err.message);
     });

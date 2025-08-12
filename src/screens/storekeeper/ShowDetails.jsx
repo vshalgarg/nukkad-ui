@@ -217,7 +217,7 @@ const ShowDetails = () => {
             const payload = { orderStatus: 'CANCELLED' };
 
             await updateOrderStatusById(orderId, payload, token);
-
+            navigation.goBack();
             dispatch(
               updateOrderStatus({
                 orderId: orderId,

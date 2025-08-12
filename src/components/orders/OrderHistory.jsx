@@ -116,7 +116,8 @@ const OrderHistory = ({
         {/* Left Column */}
         <View style={styles.column}>
           <Text style={styles.label} numberOfLines={1} ellipsizeMode="tail">
-            {`${strings.orderId}: #${order.orderId}`}
+            {strings.orderId}
+            <Text style={styles.values}>{`#${order.orderId}`}</Text>
           </Text>
           <Text style={styles.label} numberOfLines={2} ellipsizeMode="tail">
             {role === 'CUSTOMER'
@@ -130,8 +131,8 @@ const OrderHistory = ({
           {(order.orderStatus === 'DISPATCHED' ||
             order.orderStatus === 'DELIVERED') && (
             <Text style={styles.label}>
-              {strings.totalPrice}{' '}
-              <Text style={styles.values}>{totalPrice}</Text>
+              {strings.totalPrice}
+              <Text style={styles.values}>₹{totalPrice}</Text>
             </Text>
           )}
         </View>

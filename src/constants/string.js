@@ -102,7 +102,7 @@ const strings = {
   apply: 'Apply',
   noOrderFound: 'No orders found.',
 
-  orderId: 'Order ID',
+  orderId: 'Order ID :',
   orderStatus: 'Order Status',
   orderDate: 'Order Date',
   totalPrice: 'Total Price :',
@@ -111,7 +111,7 @@ const strings = {
   orderDetails: 'Order Details',
   orderHistory: 'Order History',
   store: 'Store :',
-  customer: 'Customer:',
+  customer: 'Customer :',
   repeatOrder: 'Repeat Order',
 
   paymentOptions: 'Payment Options',
