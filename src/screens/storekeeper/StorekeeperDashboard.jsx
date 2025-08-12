@@ -119,10 +119,12 @@ const StorekeeperDashboard = () => {
   useFocusEffect(
     useCallback(() => {
       const currentStatus = statusTabs[formState].statuses[0];
+      dispatch
       setCurrentPage(0);
       loadOrders(currentStatus, 0, false);
     }, [formState, token]),
   );
+
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       const currentStatus = statusTabs[formState].statuses[0];
@@ -131,31 +133,6 @@ const StorekeeperDashboard = () => {
       setCurrentPage(nextPage);
     }
   };
-
-  useEffect(() => {
-    // nothing to do if no explicit tab param
-    if (!tab) return;
-
-    // find index for tab param (case-insensitive)
-    const tabIndex = statusTabs.findIndex(
-      t => t.label.toLowerCase() === tab.toLowerCase(),
-    );
-
-    if (tabIndex !== -1) {
-      // set UI tab (updates the highlighted tab button)
-      setFormState(tabIndex);
-
-      // optional but recommended: clear old orders so user doesn't see stale content
-      // while the new fetch is in-flight.
-      dispatch(setOrders([]));
-
-      // reset pagination and fetch fresh data for this tab
-      setCurrentPage(0);
-      const currentStatus = statusTabs[tabIndex].statuses[0];
-      loadOrders(currentStatus, 0, false);
-    }
-  }, [tab, route?.params?.forceRefresh, token]);
-
 
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];

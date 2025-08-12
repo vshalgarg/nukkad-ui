@@ -154,7 +154,7 @@ const ShowDetails = () => {
   useEffect(() => {
     if (order?.storeKeeperNote) {
       setStoreKeeperNote(order.storeKeeperNote);
-      console.log("in useEffect",order)
+      console.log("in useEffect", order)
     }
   }, [order?.storeKeeperNote]);
 
@@ -218,13 +218,21 @@ const ShowDetails = () => {
             try {
               const payload = { orderStatus: 'CANCELLED' };
               await updateOrderStatusById(orderId, payload, token);
+              // navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
               dispatch(
                 updateOrderStatus({
                   orderId: orderId,
                   newStatus: 'CANCELLED',
                 })
               );
-              navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
+            //   navigation.navigate({
+            //   name: 'StorekeeperDashboard',
+            //   params: { forceRefresh: Date.now(), tab: fromTab },
+            //   merge: true, 
+            // });
+
+            navigation.goBack();
+
 
 
             } catch (error) {
@@ -321,15 +329,17 @@ const ShowDetails = () => {
             try {
               const payload = { orderStatus: 'DELIVERED' };
               await updateOrderStatusById(orderId, payload, token);
+              // navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
               dispatch(
                 updateOrderStatus({
                   orderId: orderId,
                   newStatus: 'DELIVERED',
                 }),
               );
+              navigation.goBack();
 
               console.log('Order marked as delivered');
-              navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
+
             } catch (error) {
               console.error('Error delivering order:', error);
             }

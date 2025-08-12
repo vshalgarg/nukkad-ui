@@ -402,7 +402,7 @@ const StorekeeperProfileScreen = () => {
       return (
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>
-          <CustomInput value={profile[key]} editable={false} style={!isEditing ? {} : { backgroundColor: Colors.disabledText }} />
+          <CustomInput value={profile[key]} editable={false} style={!isEditing ? {} : { borderColor: Colors.disabledText , color: Colors.reject }} />
         </View>
       );
     }
