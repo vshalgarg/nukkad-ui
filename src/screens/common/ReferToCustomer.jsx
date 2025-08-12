@@ -17,6 +17,7 @@ import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ScaledSheet } from 'react-native-size-matters';
+import { showToast } from '../../utils/toastUtils';
 
 
 const ReferToCustomer = () => {
@@ -24,6 +25,23 @@ const ReferToCustomer = () => {
   const [storeName, setStoreName] = useState(" ");
   const qrRef = useRef();
   const viewShotRef = useRef();
+
+  const isShareCancelled = (err) => {
+  if (!err) return false;
+  const msg = (err.message || err.error || '').toString().toLowerCase();
+  const code = (err.code || '').toString().toLowerCase();
+  return (
+    msg.includes('user did not share') ||
+    msg.includes('user canceled') ||
+    msg.includes('user cancelled') ||
+    msg.includes('cancelled') ||
+    msg.includes('canceled') ||
+    code === 'ecancelled' ||
+    code.includes('cancel') ||
+    err === 'USER_CANCELLED' ||
+    err === 'CANCELED'
+  );
+};
 
   const handleShare = async () => {
     try {
@@ -34,7 +52,7 @@ const ReferToCustomer = () => {
       await Share.open({
         title: 'Share Store QR',
         message:
-          '🛍️ Add my store to start shopping!\n\n' +
+          `🛍️ Add ${storeName} to start shopping!\n\n` +
           '📲 Scan the QR code to add the store instantly.\n' +
           '🆔 Or enter Store ID: ' +
           storeId +
@@ -44,15 +62,13 @@ const ReferToCustomer = () => {
         type: 'image/png',
       });
     } catch (error) {
-      if (
-        error.message &&
-        (error.message.includes('User did not share') ||
-          error.message.includes('Cancelled') ||
-          error.message.includes('cancelled'))
-      ) {
-        return;
-      }
+       if (isShareCancelled(error)) {
+      console.log('Share cancelled by user — ignoring.');
+      return;
+    }
       console.error('Share error:', error);
+      showToast('error', 'Failed to share', error.message || 'Please try again');
+
     }
   };
   useEffect(() => {

@@ -17,7 +17,6 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Entypo from 'react-native-vector-icons/Entypo';
-
 import BackButton from '../../components/BackButton';
 import ConnectPopup from '../../components/ConnectPopUp';
 import CustomButton from '../../components/CustomButton';
@@ -34,6 +33,7 @@ import { useAuth } from '../../contexts/authContext';
 import { updateOrderStatusById } from '../../services/storekeeper/orderStatusService';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import { showToast } from '../../utils/toastUtils';
 
 const OrderItem = memo(
   ({
@@ -154,6 +154,7 @@ const ShowDetails = () => {
   useEffect(() => {
     if (order?.storeKeeperNote) {
       setStoreKeeperNote(order.storeKeeperNote);
+      console.log("in useEffect", order)
     }
   }, [order?.storeKeeperNote]);
 
@@ -214,16 +215,35 @@ const ShowDetails = () => {
           text: 'Reject',
           style: 'destructive',
           onPress: async () => {
-            const payload = { orderStatus: 'CANCELLED' };
+            try {
+              const payload = { orderStatus: 'CANCELLED' };
+              await updateOrderStatusById(orderId, payload, token);
+              // navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
+              dispatch(
+                updateOrderStatus({
+                  orderId: orderId,
+                  newStatus: 'CANCELLED',
+                })
+              );
+            //   navigation.navigate({
+            //   name: 'StorekeeperDashboard',
+            //   params: { forceRefresh: Date.now(), tab: fromTab },
+            //   merge: true, 
+            // });
 
-            await updateOrderStatusById(orderId, payload, token);
             navigation.goBack();
-            dispatch(
-              updateOrderStatus({
-                orderId: orderId,
-                newStatus: 'CANCELLED',
-              }),
-            );
+
+
+
+            } catch (error) {
+              console.log(error)
+              showToast(
+                'error',
+                'Failed to reject order',
+                err?.message || 'Please try again',
+              );
+            }
+
           },
         },
       ],
@@ -309,24 +329,17 @@ const ShowDetails = () => {
             try {
               const payload = { orderStatus: 'DELIVERED' };
               await updateOrderStatusById(orderId, payload, token);
+              // navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
               dispatch(
                 updateOrderStatus({
                   orderId: orderId,
                   newStatus: 'DELIVERED',
                 }),
               );
+              navigation.goBack();
 
               console.log('Order marked as delivered');
 
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: 'StorekeeperDashboard',
-                    params: { tab: fromTab, forceRefresh: Date.now() },
-                  },
-                ],
-              });
             } catch (error) {
               console.error('Error delivering order:', error);
             }
@@ -363,7 +376,7 @@ const ShowDetails = () => {
                 <View style={innerStyle.AddressCard}>
                   <View style={innerStyle.rowBetween}>
                     <Text style={innerStyle.addressCardDetails}>
-                      {`${strings.customer} `}
+                      {`${strings.customer}`}
                       {order.customerName}
                     </Text>
                     {(isInProgress || isDispatched) && (
@@ -396,7 +409,7 @@ const ShowDetails = () => {
                   </View>
                   <Text style={innerStyle.addressCardDetails}>
                     {strings.address}
-                    {order.address}
+                    {order.address},
                     {order?.landmark}
                   </Text>
                 </View>
@@ -419,40 +432,40 @@ const ShowDetails = () => {
 
               {(isInProgress ||
                 ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
-                <View style={{ marginTop: 10, marginHorizontal: 25 }}>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: Fonts.sizes.base,
-                    }}
-                  >
-                    Note :
-                  </Text>
-
-                  {isInProgress ? (
-                    <TextInput
-                      style={innerStyle.noteInput}
-                      multiline
-                      placeholder="Write a note to the customer about this order"
-                      value={storeKeeperNote}
-                      editable
-                      onChangeText={setStoreKeeperNote}
-                    />
-                  ) : (
+                  <View style={{ marginTop: 10, marginHorizontal: 25 }}>
                     <Text
                       style={{
-                        fontStyle: 'italic',
-                        color: Colors.textColor,
-                        fontSize: 15,
+                        fontWeight: 'bold',
+                        fontSize: Fonts.sizes.base,
                       }}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
                     >
-                      {` ${storeKeeperNote} `}
+                      Note :
                     </Text>
-                  )}
-                </View>
-              )}
+
+                    {isInProgress ? (
+                      <TextInput
+                        style={innerStyle.noteInput}
+                        multiline
+                        placeholder="Write a note to the customer about this order"
+                        value={storeKeeperNote}
+                        editable
+                        onChangeText={setStoreKeeperNote}
+                      />
+                    ) : (
+                      <Text
+                        style={{
+                          fontStyle: 'italic',
+                          color: Colors.textColor,
+                          fontSize: 15,
+                        }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {` ${storeKeeperNote} `}
+                      </Text>
+                    )}
+                  </View>
+                )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>

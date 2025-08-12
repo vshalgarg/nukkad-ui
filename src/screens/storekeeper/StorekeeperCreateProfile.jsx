@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 
 import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
+import {
+  useRoute,
+} from '@react-navigation/native';
 
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
@@ -26,13 +29,13 @@ import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
+
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
 const StorekeeperCreateProfile = () => {
   useBackHandlerControl({blockBack:true})
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
-
   const [name, setName] = useState('');
   const [storeName, setStoreName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -46,7 +49,6 @@ const StorekeeperCreateProfile = () => {
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
-
   const nameRef = useRef();
   const storeNameRef = useRef();
   const contactNumberRef = useRef();
@@ -59,9 +61,10 @@ const StorekeeperCreateProfile = () => {
   const pincodeRef = useRef();
   const scrollViewRef = useRef();
   const { token } = useAuth();
-
   const { createStorekeeperProfile } = useStorekeeperProfile();
   const { safePush } = useSafeRouter();
+  const route = useRoute();
+  const { toast } = route.params || {};
 
   const scrollToInput = ref => {
     if (ref?.current && scrollViewRef?.current) {
@@ -142,27 +145,6 @@ const StorekeeperCreateProfile = () => {
       pressLock = false;
       return;
     }
-
-    // ✅ Proceed with submission
-    // const nameParts = name.trim().split(' ');
-    // const updatedProfile = {
-    //   ...profile,
-    //   firstName: nameParts[0],
-    //   lastName: nameParts.slice(1).join(' '),
-    //   contactNumber,
-    //   storeName,
-    //   role: 'storekeeper',
-    // };
-
-    // const newAddress = {
-    //   storeName,
-    //   contactNumber,
-    //   addressLine1,
-    //   addressLine2,
-    //   landmark,
-    //   city,
-    //   pincode,
-    // };
     console.log('isSubmitting', isSubmitting);
     console.log('Zod result:', result);
     try {
@@ -194,6 +176,18 @@ const StorekeeperCreateProfile = () => {
     images,
     token,
   ]);
+
+   useEffect(() => {
+         console.log(toast)
+         if (toast) {
+           try {
+             const parsedToast = JSON.parse(toast);
+             showToast(parsedToast.type, parsedToast.title);
+           } catch (e) {
+             console.warn('⚠️ Failed to parse toast:', e.message);
+           }
+         }
+       }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
