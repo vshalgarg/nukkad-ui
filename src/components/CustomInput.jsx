@@ -5,7 +5,6 @@ import Flag from '../../assets/images/flag.svg';
 import Colors from '../styles/colors.js';
 import Fonts from '../styles/font.js';
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
 const CustomInput = forwardRef(function CustomInput(
   {
     isCountryCode,

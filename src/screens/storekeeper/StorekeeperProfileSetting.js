@@ -22,6 +22,8 @@ import CustomInput from '../../components/CustomInput';
 import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../../styles/font';
 import { Dimensions } from 'react-native';
+import { useSafeRouter } from '../../hooks/useSafeRouter';
+
 
 const { width } = Dimensions.get('screen');
 const profileSchema = z.object({
@@ -40,7 +42,7 @@ const profileSchema = z.object({
   gstNum: z
     .string()
     .min(1, 'GST Number is required')
-    .max(30, "GST Number can't be more that 30 characters"),
+    .max(15, "GST Number can't be more that 30 characters"),
   storeQrId: z.string().optional(),
   addressLine1: z
     .string()
@@ -137,6 +139,7 @@ const StorekeeperProfileScreen = () => {
   const cityRef = useRef(null);
   const stateRef = useRef(null);
   const pincodeRef = useRef(null);
+  const { safePush } = useSafeRouter();
 
   // Create a mapping of field keys to their refs
   const fieldRefs = {
@@ -296,6 +299,7 @@ const StorekeeperProfileScreen = () => {
         text1: strings.profileUpdatedSuccessfully,
       });
       setIsEditing(false);
+       safePush('StorekeeperDashboard');
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -308,7 +312,7 @@ const StorekeeperProfileScreen = () => {
     name: 30,
     storeName: 30,
     contactNumber: 10,
-    gstNum: 30,
+    gstNum: 15,
     addressLine1: 35,
     addressLine2: 35,
     landmark: 20,
@@ -398,7 +402,7 @@ const StorekeeperProfileScreen = () => {
       return (
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>
-          <CustomInput value={profile[key]} editable={false} />
+          <CustomInput value={profile[key]} editable={false} style={!isEditing ? {} : { backgroundColor: Colors.disabledText }} />
         </View>
       );
     }

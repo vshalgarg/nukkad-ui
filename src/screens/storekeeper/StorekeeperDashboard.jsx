@@ -35,6 +35,7 @@ import { updateOrderStatusById } from '../../services/storekeeper/orderStatusSer
 import { formatTabLabel } from '../../utils/formatTabLabel';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { ScaledSheet } from 'react-native-size-matters';
+import { showToast } from '../../utils/toastUtils.js';
 
 
 const StorekeeperDashboard = () => {
@@ -59,6 +60,8 @@ const StorekeeperDashboard = () => {
 
   const [initialLoading, setInitialLoading] = useState(true);
 
+  const { toast } = route.params || {};
+
 
   const statusTabs = [
     { label: 'PENDING', statuses: ['PENDING'] },
@@ -75,11 +78,11 @@ const StorekeeperDashboard = () => {
 
       // Set loading states
 
-     if (page === 0) {
-      setInitialLoading(true);  // 🆕 Start full loader on first page
-    } else {
-      setLoadingMore(true);     // For pagination
-    }
+      if (page === 0) {
+        setInitialLoading(true);  // 🆕 Start full loader on first page
+      } else {
+        setLoadingMore(true);     // For pagination
+      }
 
       const orderData = await getOrders(token, status, page, size);
 
@@ -95,12 +98,24 @@ const StorekeeperDashboard = () => {
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to fetch orders');
     } finally {
-       setInitialLoading(false); 
+      setInitialLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
     }
   };
 
+
+  useEffect(() => {
+    console.log(toast)
+    if (toast) {
+      try {
+        const parsedToast = JSON.parse(toast);
+        showToast(parsedToast.type, parsedToast.title);
+      } catch (e) {
+        console.warn('⚠️ Failed to parse toast:', e.message);
+      }
+    }
+  }, []);
   useFocusEffect(
     useCallback(() => {
       const currentStatus = statusTabs[formState].statuses[0];
@@ -118,10 +133,29 @@ const StorekeeperDashboard = () => {
   };
 
   useEffect(() => {
-    const currentStatus = statusTabs[formState].statuses[0]; // Keep category filtering
-    setCurrentPage(0); // Reset to first page when category changes
-    loadOrders(currentStatus, 0, false); // Pass status and page
-  }, [formState, token]);
+    // nothing to do if no explicit tab param
+    if (!tab) return;
+
+    // find index for tab param (case-insensitive)
+    const tabIndex = statusTabs.findIndex(
+      t => t.label.toLowerCase() === tab.toLowerCase(),
+    );
+
+    if (tabIndex !== -1) {
+      // set UI tab (updates the highlighted tab button)
+      setFormState(tabIndex);
+
+      // optional but recommended: clear old orders so user doesn't see stale content
+      // while the new fetch is in-flight.
+      dispatch(setOrders([]));
+
+      // reset pagination and fetch fresh data for this tab
+      setCurrentPage(0);
+      const currentStatus = statusTabs[tabIndex].statuses[0];
+      loadOrders(currentStatus, 0, false);
+    }
+  }, [tab, route?.params?.forceRefresh, token]);
+
 
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];
@@ -136,12 +170,7 @@ const StorekeeperDashboard = () => {
     setRefreshing(false); // ⬅️ stop spinner manually
   };
 
-  useEffect(() => {
-    const tabIndex = statusTabs.findIndex(
-      t => t.label.toLowerCase() === tab?.toLowerCase(),
-    );
-    if (tabIndex !== -1) setFormState(tabIndex);
-  }, [tab]);
+
 
   const filteredOrders = (Array.isArray(orders) ? [...orders] : []).sort(
     (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
@@ -169,7 +198,7 @@ const StorekeeperDashboard = () => {
         );
       }
 
-      
+
       safePush({
         pathname: 'ShowDetails',
         params: {
@@ -262,145 +291,145 @@ const StorekeeperDashboard = () => {
           </Pressable>
         ))}
       </View>
-{initialLoading ? (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={Colors.secondary} />
-      </View>
-    ) : (
-      <FlashList
-        style={{ flex: 1 }}
-        data={filteredOrders}
-        estimatedItemSize={150}
-        keyExtractor={item => item.orderId.toString()}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        contentContainerStyle={{
-          paddingHorizontal: 2,
-          paddingBottom: 30,
-          flexGrow: 1,
-        }}
-        ListEmptyComponent={() => (
-          <View style={innerStyle.emptyWrapper}>
-            <Text style={innerStyle.emptyStateText}>
-              No {formatTabLabel(statusTabs[formState].label)} Orders Found.
-            </Text>
-          </View>
-        )}
-        renderItem={({ item: order }) => (
-          <Pressable
-            key={order.orderId}
-            style={innerStyle.orderCard}
-            onPress={() => handleDetails(order)}
-          >
-            {/* Top Section - Order Number + Icons */}
-            <View style={innerStyle.topSection}>
-              <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
-              {order.orderStatus !== 'DELIVERED' &&
-                order.orderStatus !== 'CANCELLED' && (
-                  <Pressable
-                    ref={ref => (dotRefs.current[order.orderId] = ref)}
-                    onPress={() =>
-                      showPopup(order.orderId, dotRefs.current[order.orderId])
-                    }
-                  >
-                    <Entypo
-                      name="dots-three-vertical"
-                      size={18}
-                      color={Colors.secondary}
-                    />
-                  </Pressable>
-                )}
-            </View>
-
-            {/* Middle Section - Customer Info */}
-            <View style={innerStyle.middleSection}>
-              <Text style={innerStyle.orderDetailsHeading}>
-                Customer Name:
-                <Text style={innerStyle.orderDetails}> {order.customerName}</Text>
-              </Text>
-              <Text
-                style={innerStyle.orderDetailsHeading}
-                numberOfLines={3}
-                ellipsizeMode="tail"
-              >
-                Address:
-                <Text style={innerStyle.orderDetails}> {order.address}</Text>
-              </Text>
-               <Text
-                style={innerStyle.orderDetailsHeading}
-                numberOfLines={3}
-                ellipsizeMode="tail"
-              >
-                Landmark:
-                <Text style={innerStyle.orderDetails}> {order.landmark}</Text>
-              </Text>
-              <Text style={innerStyle.orderDetailsHeading}>
-                Quantity:
-                <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
+      {initialLoading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={Colors.secondary} />
+        </View>
+      ) : (
+        <FlashList
+          style={{ flex: 1 }}
+          data={filteredOrders}
+          estimatedItemSize={150}
+          keyExtractor={item => item.orderId.toString()}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+          contentContainerStyle={{
+            paddingHorizontal: 2,
+            paddingBottom: 30,
+            flexGrow: 1,
+          }}
+          ListEmptyComponent={() => (
+            <View style={innerStyle.emptyWrapper}>
+              <Text style={innerStyle.emptyStateText}>
+                No {formatTabLabel(statusTabs[formState].label)} Orders Found.
               </Text>
             </View>
-
-            {/* Bottom Section - Status + Actions */}
-            <View style={innerStyle.bottomSection}>
-              <Text
-                style={[
-                  innerStyle.updatedStatus,
-                  {
-                    color:
-                      order.orderStatus === 'PENDING'
-                        ? 'red'
-                        : order.orderStatus === 'IN_PROGRESS'
-                          ? 'orange'
-                          : order.orderStatus === 'DELIVERED'
-                            ? 'green'
-                            : 'red',
-                  },
-                ]}
-              >
-                {order.orderStatus.toUpperCase()}
-              </Text>
-              <View style={innerStyle.actionButtons}>
+          )}
+          renderItem={({ item: order }) => (
+            <Pressable
+              key={order.orderId}
+              style={innerStyle.orderCard}
+              onPress={() => handleDetails(order)}
+            >
+              {/* Top Section - Order Number + Icons */}
+              <View style={innerStyle.topSection}>
+                <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
                 {order.orderStatus !== 'DELIVERED' &&
-                  order.orderStatus !== 'CANCELLED' &&
-                  order.orderStatus !== 'DISPATCHED' && (
+                  order.orderStatus !== 'CANCELLED' && (
                     <Pressable
-                      style={innerStyle.showDetailsBtn}
-                      onPress={() => handleReject(order.orderId)}
+                      ref={ref => (dotRefs.current[order.orderId] = ref)}
+                      onPress={() =>
+                        showPopup(order.orderId, dotRefs.current[order.orderId])
+                      }
+                    >
+                      <Entypo
+                        name="dots-three-vertical"
+                        size={18}
+                        color={Colors.secondary}
+                      />
+                    </Pressable>
+                  )}
+              </View>
+
+              {/* Middle Section - Customer Info */}
+              <View style={innerStyle.middleSection}>
+                <Text style={innerStyle.orderDetailsHeading}>
+                  Customer Name:
+                  <Text style={innerStyle.orderDetails}> {order.customerName}</Text>
+                </Text>
+                <Text
+                  style={innerStyle.orderDetailsHeading}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  Address:
+                  <Text style={innerStyle.orderDetails}> {order.address}</Text>
+                </Text>
+                <Text
+                  style={innerStyle.orderDetailsHeading}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  Landmark:
+                  <Text style={innerStyle.orderDetails}> {order.landmark}</Text>
+                </Text>
+                <Text style={innerStyle.orderDetailsHeading}>
+                  Quantity:
+                  <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
+                </Text>
+              </View>
+
+              {/* Bottom Section - Status + Actions */}
+              <View style={innerStyle.bottomSection}>
+                <Text
+                  style={[
+                    innerStyle.updatedStatus,
+                    {
+                      color:
+                        order.orderStatus === 'PENDING'
+                          ? 'red'
+                          : order.orderStatus === 'IN_PROGRESS'
+                            ? 'orange'
+                            : order.orderStatus === 'DELIVERED'
+                              ? 'green'
+                              : 'red',
+                    },
+                  ]}
+                >
+                  {order.orderStatus.toUpperCase()}
+                </Text>
+                <View style={innerStyle.actionButtons}>
+                  {order.orderStatus !== 'DELIVERED' &&
+                    order.orderStatus !== 'CANCELLED' &&
+                    order.orderStatus !== 'DISPATCHED' && (
+                      <Pressable
+                        style={innerStyle.showDetailsBtn}
+                        onPress={() => handleReject(order.orderId)}
+                      >
+                        <Text style={{ color: Colors.white, fontWeight: '800' }}>
+                          Reject
+                        </Text>
+                      </Pressable>
+                    )}
+
+                  {order.orderStatus === 'DISPATCHED' && (
+                    <Pressable
+                      style={[
+                        innerStyle.showDetailsBtn,
+                        { backgroundColor: Colors.primary },
+                      ]}
+                      onPress={() => handleDeliver(order.orderId)}
                     >
                       <Text style={{ color: Colors.white, fontWeight: '800' }}>
-                        Reject
+                        Deliver
                       </Text>
                     </Pressable>
                   )}
-
-                {order.orderStatus === 'DISPATCHED' && (
-                  <Pressable
-                    style={[
-                      innerStyle.showDetailsBtn,
-                      { backgroundColor: Colors.primary },
-                    ]}
-                    onPress={() => handleDeliver(order.orderId)}
-                  >
-                    <Text style={{ color: Colors.white, fontWeight: '800' }}>
-                      Deliver
-                    </Text>
-                  </Pressable>
-                )}
+                </View>
               </View>
-            </View>
-          </Pressable>
-        )}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          loadingMore ? (
-            <View style={{ padding: 16 }}>
-              <ActivityIndicator size="small" color={Colors.secondary} />
-            </View>
-          ) : null
-        }
-      />
+            </Pressable>
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ padding: 16 }}>
+                <ActivityIndicator size="small" color={Colors.secondary} />
+              </View>
+            ) : null
+          }
+        />
       )}
 
       <ConnectPopup
