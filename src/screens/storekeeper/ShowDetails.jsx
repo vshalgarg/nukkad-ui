@@ -154,7 +154,7 @@ const ShowDetails = () => {
   useEffect(() => {
     if (order?.storeKeeperNote) {
       setStoreKeeperNote(order.storeKeeperNote);
-      console.log("in useEffect", order)
+      console.log('in useEffect', order);
     }
   }, [order?.storeKeeperNote]);
 
@@ -223,27 +223,23 @@ const ShowDetails = () => {
                 updateOrderStatus({
                   orderId: orderId,
                   newStatus: 'CANCELLED',
-                })
+                }),
               );
-            //   navigation.navigate({
-            //   name: 'StorekeeperDashboard',
-            //   params: { forceRefresh: Date.now(), tab: fromTab },
-            //   merge: true, 
-            // });
+              //   navigation.navigate({
+              //   name: 'StorekeeperDashboard',
+              //   params: { forceRefresh: Date.now(), tab: fromTab },
+              //   merge: true,
+              // });
 
-            navigation.goBack();
-
-
-
+              navigation.goBack();
             } catch (error) {
-              console.log(error)
+              console.log(error);
               showToast(
                 'error',
                 'Failed to reject order',
                 err?.message || 'Please try again',
               );
             }
-
           },
         },
       ],
@@ -339,7 +335,6 @@ const ShowDetails = () => {
               navigation.goBack();
 
               console.log('Order marked as delivered');
-
             } catch (error) {
               console.error('Error delivering order:', error);
             }
@@ -377,7 +372,7 @@ const ShowDetails = () => {
                   <View style={innerStyle.rowBetween}>
                     <Text style={innerStyle.addressCardDetails}>
                       {`${strings.customer}`}
-                      {order.customerName}
+                      {order?.address?.name}
                     </Text>
                     {(isInProgress || isDispatched) && (
                       <TouchableOpacity
@@ -404,13 +399,12 @@ const ShowDetails = () => {
                   </View>
                   <View>
                     <Text style={innerStyle.addressCardDetails}>
-                      {`${strings.mobile}:`} {order.customerMobileNumber}
+                      {`${strings.mobile}:`} {order?.address?.mobileNumber}
                     </Text>
                   </View>
                   <Text style={innerStyle.addressCardDetails}>
                     {strings.address}
-                    {order.address},
-                    {order?.landmark}
+                    {order?.address?.addressLine1},{order?.address?.landmark}
                   </Text>
                 </View>
                 <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
@@ -432,40 +426,40 @@ const ShowDetails = () => {
 
               {(isInProgress ||
                 ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
-                  <View style={{ marginTop: 10, marginHorizontal: 25 }}>
+                <View style={{ marginTop: 10, marginHorizontal: 25 }}>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: Fonts.sizes.base,
+                    }}
+                  >
+                    Note :
+                  </Text>
+
+                  {isInProgress ? (
+                    <TextInput
+                      style={innerStyle.noteInput}
+                      multiline
+                      placeholder="Write a note to the customer about this order"
+                      value={storeKeeperNote}
+                      editable
+                      onChangeText={setStoreKeeperNote}
+                    />
+                  ) : (
                     <Text
                       style={{
-                        fontWeight: 'bold',
-                        fontSize: Fonts.sizes.base,
+                        fontStyle: 'italic',
+                        color: Colors.textColor,
+                        fontSize: 15,
                       }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
-                      Note :
+                      {` ${storeKeeperNote} `}
                     </Text>
-
-                    {isInProgress ? (
-                      <TextInput
-                        style={innerStyle.noteInput}
-                        multiline
-                        placeholder="Write a note to the customer about this order"
-                        value={storeKeeperNote}
-                        editable
-                        onChangeText={setStoreKeeperNote}
-                      />
-                    ) : (
-                      <Text
-                        style={{
-                          fontStyle: 'italic',
-                          color: Colors.textColor,
-                          fontSize: 15,
-                        }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {` ${storeKeeperNote} `}
-                      </Text>
-                    )}
-                  </View>
-                )}
+                  )}
+                </View>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -503,7 +497,7 @@ const ShowDetails = () => {
       <ConnectPopup
         visible={showPopup}
         onClose={() => setShowPopup(false)}
-        phone={order?.customerMobileNumber || '9999999999'}
+        phone={order?.address?.mobileNumber || '9999999999'}
         position={popupPosition}
       />
     </View>

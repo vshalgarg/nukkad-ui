@@ -323,7 +323,7 @@ const StorekeeperDashboard = () => {
               <View style={innerStyle.middleSection}>
                 <Text style={innerStyle.orderDetailsHeading}>
                   Customer Name:
-                  <Text style={innerStyle.orderDetails}> {order.customerName}</Text>
+                  <Text style={innerStyle.orderDetails}> {order?.address?.name}</Text>
                 </Text>
                 <Text
                   style={innerStyle.orderDetailsHeading}
@@ -331,7 +331,7 @@ const StorekeeperDashboard = () => {
                   ellipsizeMode="tail"
                 >
                   Address:
-                  <Text style={innerStyle.orderDetails}> {order.address}</Text>
+                  <Text style={innerStyle.orderDetails}> {order?.address?.addressLine1}</Text>
                 </Text>
                 <Text
                   style={innerStyle.orderDetailsHeading}
@@ -339,7 +339,7 @@ const StorekeeperDashboard = () => {
                   ellipsizeMode="tail"
                 >
                   Landmark:
-                  <Text style={innerStyle.orderDetails}> {order.landmark}</Text>
+                  <Text style={innerStyle.orderDetails}> {order?.address?.landmark}</Text>
                 </Text>
                 <Text style={innerStyle.orderDetailsHeading}>
                   Quantity:
@@ -413,8 +413,9 @@ const StorekeeperDashboard = () => {
         visible={!!popupOrderId}
         onClose={() => setPopupOrderId(null)}
         position={popupCards}
-        mobileNumber={
-          filteredOrders.find(o => o.orderId === popupOrderId)?.mobileNumber
+        phone={
+          filteredOrders.find(o => o.orderId === popupOrderId)?.address?.mobileNumber
+
         }
       />
     </View>
