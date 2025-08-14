@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { addToCart, clearCart } from '../../store/cartSlice';
+import { addToCart, clearCart, setCartItems } from '../../store/cartSlice';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import { useState } from 'react';
 
 const OrderHistory = ({
   order,
@@ -24,6 +25,7 @@ const OrderHistory = ({
   const dispatch = useDispatch();
   const shopName = order.storeName || 'Unknown Store';
   const { token } = useAuth();
+  const [isRepeating, setIsRepeating] = useState(false);
 
   const formattedDate = new Date(order.orderDate).toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -37,38 +39,61 @@ const OrderHistory = ({
       return;
     }
 
+    setIsRepeating(true);
+
     try {
+      // Clear the cart first
       await clearCartAPI(token);
       dispatch(clearCart());
 
-      const promises = order.items.map(async item => {
+      // Extract necessary data only once
+      const itemsToAdd = order.items.map(item => {
         const { itemId, unit, quantity, itemName } = item;
         const amount = quantity.toString();
         const isPkt = unit === 'PKT';
         const itemCount = isPkt ? Number(quantity) : 1;
 
-        const response = await addToCartAPI(itemId, quantity, unit, token);
-        const addedItemId = response?.itemIds?.[0] || response?.id || itemId;
-
         return {
-          itemId: addedItemId,
-          product: {
-            _id: itemId,
-            name: itemName,
-            selectedUnit: unit,
-            amount,
-          },
-          selectedUnit: unit,
-          quantity: itemCount,
+          itemId,
+          quantity,
+          unit,
+          itemName,
+          amount,
+          itemCount,
         };
       });
 
-      const cartItems = await Promise.all(promises);
-      cartItems.forEach(item => dispatch(addToCart(item)));
-
+      // Call the API to add all items to the cart in one go
+      const response = await addToCartAPI(itemsToAdd, token);
       safePush('ShoppingCart', { fromRepeatOrder: true });
+
+      // Map the response data into the cart structure
+      const cartItems = itemsToAdd.map((item, index) => {
+        const addedItemId =
+          response?.itemIds?.[index] || response?.id || item.itemId;
+        return {
+          itemId: addedItemId,
+          product: {
+            _id: addedItemId,
+            name: item.itemName || 'Unknown',
+            selectedUnit: item.unit || 'PCS',
+            amount: item.amount || '1',
+          },
+        };
+      });
+
+      // Update Redux state with the cart items
+      dispatch(setCartItems(cartItems));
     } catch (err) {
       console.error('Repeat Order Failed:', err.message || err);
+      Alert.alert(
+        'Error',
+        'Failed to repeat your order. Please try again later.',
+      );
+    } finally {
+      setTimeout(() => {
+        setIsRepeating(false);
+      }, 700);
     }
   };
 
@@ -159,7 +184,9 @@ const OrderHistory = ({
           </View>
           {role === 'CUSTOMER' && (
             <TouchableOpacity onPress={handleRepeatOrder}>
-              <Text style={styles.repeat}>{strings.repeatOrder}</Text>
+              <Text style={styles.repeat}>
+                {isRepeating ? strings.repeating : strings.repeatOrder}
+              </Text>
             </TouchableOpacity>
           )}
         </View>

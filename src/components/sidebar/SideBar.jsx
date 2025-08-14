@@ -59,12 +59,10 @@ const SideBar = ({ isVisible, onClose }) => {
     }).start();
   }, [isVisible]);
 
-
-
   const sharePlayStoreLink = async () => {
     try {
       const playStoreLink =
-        'https://play.google.com/store/apps/details?id=com.your.app'; 
+        'https://play.google.com/store/apps/details?id=com.your.app';
 
       await Share.share({
         title: 'Check out this store app!',
@@ -83,7 +81,7 @@ const SideBar = ({ isVisible, onClose }) => {
   const openLink = async url => {
     try {
       console.log('Trying to open:', url);
-      await Linking.openURL(url); 
+      await Linking.openURL(url);
     } catch (error) {
       console.warn('Failed to open URL:', url, error);
     }
@@ -172,6 +170,7 @@ const SideBar = ({ isVisible, onClose }) => {
               await AsyncStorage.removeItem('authToken');
               await AsyncStorage.removeItem('userRole');
               await AsyncStorage.removeItem('storekeeperProfile');
+              await AsyncStorage.clear();
               dispatch(clearCart());
               dispatch(resetUser());
               resetProfile();
@@ -181,7 +180,7 @@ const SideBar = ({ isVisible, onClose }) => {
             } catch (error) {
               console.error('Logout failed:', error);
             } finally {
-              setTimeout(() => setLoggingOut(false), 100); 
+              setTimeout(() => setLoggingOut(false), 100);
             }
           },
         },

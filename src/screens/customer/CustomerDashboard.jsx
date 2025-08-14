@@ -222,4 +222,4 @@ const CustomerDashboard = () => {
   );
 };
 
-export default React.memo(CustomerDashboard);
+export default CustomerDashboard;

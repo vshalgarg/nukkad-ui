@@ -153,12 +153,15 @@ export default function MyStores() {
             >
               {item.storeName}
             </Text>
+
             <Text
               style={innerStyle.address}
-              numberOfLines={2}
+              numberOfLines={3}
               ellipsizeMode="tail"
             >
-              {`${item.addressLine1}, ${item.city}`}
+              {[item.addressLine1, item.addressLine2, item.landmark, item.city]
+                .filter(Boolean)
+                .join(', ')}
             </Text>
           </View>
 

@@ -365,8 +365,8 @@ const ShowDetails = () => {
           keyboardShouldPersistTaps="handled"
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View>
-              <View style={{ padding: 20 }}>
+            <View style={{ padding: 20 }}>
+              <View>
                 <Text style={innerStyle.heading}>Delivery Address</Text>
                 <View style={innerStyle.AddressCard}>
                   <View style={innerStyle.rowBetween}>
@@ -426,7 +426,7 @@ const ShowDetails = () => {
 
               {(isInProgress ||
                 ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
-                <View style={{ marginTop: 10, marginHorizontal: 25 }}>
+                <View style={{ marginTop: 10 }}>
                   <Text
                     style={{
                       fontWeight: 'bold',
@@ -550,6 +550,16 @@ const innerStyle = ScaledSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.borderColor,
   },
+  noteInput: {
+    height: '100@vs', // vertical scaling for height
+    borderWidth: 1,
+    borderColor: Colors.borderColor,
+    borderRadius: '10@ms', // moderate scaling for border radius
+    padding: '10@ms', // padding scaled
+    textAlignVertical: 'top',
+    backgroundColor: Colors.white,
+    marginBottom: '10@vs',
+  },
 
   image: {
     width: '80@s',
@@ -583,7 +593,7 @@ const innerStyle = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: '8@s',
+    paddingHorizontal: '7@s',
     overflow: 'hidden',
     gap: '5@s',
   },
@@ -606,15 +616,14 @@ const innerStyle = ScaledSheet.create({
 
   input: {
     width: '70@s',
-    height: '30@vs',
+    height: '33@vs',
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: 40,
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
     textAlign: 'center',
     lineHeight: 20,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+    fontSize: Fonts.sizes.sm,
   },
   rejectedText: {
     color: Colors.reject,

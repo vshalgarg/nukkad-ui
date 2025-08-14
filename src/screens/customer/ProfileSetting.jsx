@@ -74,10 +74,27 @@ const ProfileSetting = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProfile = async () => {
       try {
-        setLoading(true);
+        const cachedProfile = profileData || {};
+        if (cachedProfile?.firstName) {
+          setProfile(cachedProfile);
+
+          if (cachedProfile.dob) {
+            setDOB(formatDate(cachedProfile.dob));
+            setDobDate(new Date(cachedProfile.dob));
+          }
+
+          // Allow UI to render with cached data instantly
+          setLoading(false);
+        }
+
+        // Fetch fresh data in the background
         const userProfile = await getCustomerProfile(token);
+        if (!isMounted) return;
+
         const formattedProfile = {
           firstName: userProfile.firstName || '',
           lastName: userProfile.lastName || '',
@@ -89,7 +106,7 @@ const ProfileSetting = () => {
         };
 
         setProfile(formattedProfile);
-        await createProfile(formattedProfile);
+        createProfile(formattedProfile);
 
         if (userProfile.dob) {
           setDOB(formatDate(userProfile.dob));
@@ -98,11 +115,14 @@ const ProfileSetting = () => {
       } catch (err) {
         showToast('error', err.message || strings.failedToLoadProfile);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchProfile();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const pickImage = async () => {
@@ -147,6 +167,26 @@ const ProfileSetting = () => {
   const saveProfile = async () => {
     Keyboard.dismiss();
     if (!profile) return;
+
+    // Validate required fields
+    if (!profile.firstName?.trim()) {
+      showToast('error', 'First name cannot be empty');
+      return;
+    }
+    if (!profile.lastName?.trim()) {
+      showToast('error', 'Last name cannot be empty');
+      return;
+    }
+    if (!profile.email?.trim()) {
+      showToast('error', 'Email cannot be empty');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profile.email.trim())) {
+      showToast('error', 'Invalid email format');
+      return;
+    }
+
     setIsSaving(true);
 
     const formattedDOB = dobDate.toISOString().split('T')[0];
@@ -161,7 +201,6 @@ const ProfileSetting = () => {
     try {
       await updateProfile(updatedProfile, token);
       setIsEditing(false);
-      showToast('success', 'Profile updated successfully');
       handlePress();
     } catch (err) {
       showToast('error', err.message || 'Failed to update profile');
@@ -171,8 +210,8 @@ const ProfileSetting = () => {
   };
 
   const handlePress = () => {
-    if (profile.role === 'STOREKEEPER') safePush('StorekeeperDashboard');
-    else safePush('CustomerDashboard');
+    safePush('CustomerDashboard');
+    showToast('success', 'Profile Updated Successfully');
   };
 
   const handleDeleteAccount = () => {
@@ -270,13 +309,30 @@ const ProfileSetting = () => {
                   ref={firstNameRef}
                   style={innerStyle.halfInput}
                   value={profile.firstName}
-                  onChangeText={val => handleChange('firstName', val)}
+                  onChangeText={val => {
+                    // Only keep letters
+                    let cleanText = val.replace(/[^A-Za-z]/g, '');
+
+                    // Optional: capitalize first letter
+                    // cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
+
+                    if (cleanText !== profile.firstName) {
+                      handleChange('firstName', cleanText);
+                    }
+                  }}
                   maxLength={15}
                 />
                 <TextInput
                   style={innerStyle.halfInput}
                   value={profile.lastName}
-                  onChangeText={val => handleChange('lastName', val)}
+                  onChangeText={val => {
+                    // Allow only letters and spaces
+                    const cleanText = val.replace(/[^A-Za-z ]/g, '');
+
+                    if (cleanText !== profile.lastName) {
+                      handleChange('lastName', cleanText);
+                    }
+                  }}
                   maxLength={15}
                 />
               </>
@@ -385,6 +441,8 @@ const innerStyle = ScaledSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    width: '120@s',
+    height: '120@s',
   },
   image: {
     width: '120@s',

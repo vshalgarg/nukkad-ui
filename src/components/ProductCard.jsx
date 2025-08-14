@@ -19,6 +19,7 @@ import { useAuth } from '../contexts/authContext';
 import { addToCartAPI, updateCartAPI } from '../services/customer/cartService';
 import { showToast } from '../utils/toastUtils';
 import { ScaledSheet } from 'react-native-size-matters';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
 
@@ -155,8 +156,12 @@ const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
           value={selectedUnit}
           items={unitOptions}
           setOpen={setDropdownOpen}
-          ArrowUpIconComponent={() => null}
-          ArrowDownIconComponent={() => null}
+          ArrowUpIconComponent={() => (
+            <Ionicons name="chevron-up" size={18} color="gray" />
+          )}
+          ArrowDownIconComponent={() => (
+            <Ionicons name="chevron-down" size={18} color="gray" />
+          )}
           setValue={setSelectedUnit}
           style={styles.dropdown}
           placeholder={selectedUnit}
@@ -247,7 +252,6 @@ const styles = ScaledSheet.create({
   },
   text: {
     fontSize: Fonts.sizes.sm,
-    textAlign: 'center',
   },
   placeholder: {
     fontSize: Fonts.sizes.sm,

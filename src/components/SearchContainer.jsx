@@ -5,25 +5,25 @@ import {
   Pressable,
   TouchableOpacity,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../styles/colors';
 import { useSafeRouter } from '../hooks/useSafeRouter';
 import strings from '../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../styles/font';
+import { SearchContext } from '../contexts/searchContext';
 
 const SearchContainer = ({ query, onSearchSubmit }) => {
   const { safePush } = useSafeRouter();
-  const [input, setInput] = useState(query || '');
+  const { queryInput, setQueryInput } = useContext(SearchContext);
 
   useEffect(() => {
-    setInput(query || '');
+    setQueryInput(query || '');
   }, [query]);
   const handleClear = () => {
-    setInput('');
+    setQueryInput('');
     if (onSearchSubmit) onSearchSubmit('');
-    safePush('CustomerDashboard');
   };
 
   return (
@@ -37,17 +37,17 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
         />
 
         <TextInput
-          style={styles.input}
+          style={styles.queryInput}
           placeholder={`${strings.searchPlaceholder}`}
           placeholderTextColor={Colors.secondaryText}
-          value={input}
-          onChangeText={setInput}
+          value={queryInput}
+          onChangeText={setQueryInput}
           onSubmitEditing={() => {
-            if (onSearchSubmit) onSearchSubmit(input);
+            if (onSearchSubmit) onSearchSubmit(queryInput);
           }}
           returnKeyType="search"
         />
-        {input && (
+        {queryInput && (
           <TouchableOpacity onPress={handleClear}>
             <Entypo name="cross" size={20} color={Colors.secondaryText} />
           </TouchableOpacity>
@@ -79,12 +79,12 @@ const styles = ScaledSheet.create({
   icon: {
     marginLeft: '5%',
   },
-  input: {
+  queryInput: {
     width: '80%',
     backgroundColor: Colors.white,
     color: Colors.secondary,
-    fontSize:Fonts.sizes.sm
+    fontSize: Fonts.sizes.sm,
   },
 });
 
-export default SearchContainer;
+export default React.memo(SearchContainer);

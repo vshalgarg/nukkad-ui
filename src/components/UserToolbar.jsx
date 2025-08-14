@@ -67,9 +67,13 @@ const UserToolbar = ({
           )}
           <Pressable onPress={handleLocation} style={styles.location}>
             <Ionicons name="storefront-outline" size={20} color="black" />
-            <Text style={styles.storeName} numberOfLines={1}
+            <Text
+              style={styles.storeName}
+              numberOfLines={1}
               ellipsizeMode="tail"
-            >{storeName}</Text>
+            >
+              {storeName}
+            </Text>
           </Pressable>
         </View>
 
@@ -111,7 +115,7 @@ const UserToolbar = ({
   );
 };
 
-export default UserToolbar;
+export default React.memo(UserToolbar);
 
 const styles = ScaledSheet.create({
   toolbar: {
@@ -132,7 +136,6 @@ const styles = ScaledSheet.create({
     marginLeft: '15@ms',
     justifyContent: 'center',
     maxWidth: '80%',
-
   },
   storeName: {
     fontSize: Fonts.sizes.base,

@@ -4,26 +4,48 @@ import api from '../api';
 
 export const addToCartAPI = async (itemId, quantity, unit, token) => {
   try {
-    console.log(' [addToCartAPI] Request:', { itemId, quantity, unit });
+    let payload;
 
-    const response = await api.post(
-      '/nukkad/api/cartItem/v1/add',
-      {
-        items: [{ itemId, quantity, unit }],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
+    if (Array.isArray(itemId)) {
+      // Batch request
+      payload = {
+        items: itemId.map(item => ({
+          itemId: item.itemId,
+          quantity: Number(item.quantity),
+          unit: item.unit || 'PCS',
+        })),
+      };
+    } else {
+      // Single item request
+      payload = {
+        items: [
+          {
+            itemId,
+            quantity: Number(quantity),
+            unit: unit || 'PCS',
+          },
+        ],
+      };
+    }
 
-    console.log(' [addToCartAPI] Response:', response.data);
+    console.log('[addToCartAPI] Request:', payload);
+
+    const response = await api.post('/nukkad/api/cartItem/v1/add', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        clientName: 'NUKKAD',
+        clientSecret: 'q3F+hzK1Dnsyv7rQOtkR+DQIJdAlPHBr8AlYQ3ZqvE8=',
+      },
+    });
+
+    console.log('[addToCartAPI] Response:', response.data);
     return response.data;
   } catch (error) {
     const errorMessage =
       error?.response?.data?.message || error?.message || 'Unknown error';
-    console.error(' [addToCartAPI] Error:', errorMessage);
+    console.error('[addToCartAPI] Error:', errorMessage);
     throw new Error(errorMessage);
   }
 };

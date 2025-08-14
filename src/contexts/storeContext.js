@@ -6,7 +6,7 @@ const STORE_KEY = '@selected_store';
 
 export const StoreProvider = ({ children }) => {
   const [storeData, setStoreData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadStoreFromStorage();
@@ -15,6 +15,7 @@ export const StoreProvider = ({ children }) => {
   const loadStoreFromStorage = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORE_KEY);
+
       if (jsonValue) {
         const parsedStore = JSON.parse(jsonValue);
         setStoreData(parsedStore);
@@ -23,7 +24,7 @@ export const StoreProvider = ({ children }) => {
     } catch (err) {
       console.error(' Failed to load selected store:', err.message);
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -32,7 +33,7 @@ export const StoreProvider = ({ children }) => {
       if (store) {
         await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
         setStoreData(store);
-        console.log('Store saved to AsyncStorage',store);
+        console.log('Store saved to AsyncStorage', store);
       } else {
         await AsyncStorage.removeItem(STORE_KEY);
         setStoreData(null);

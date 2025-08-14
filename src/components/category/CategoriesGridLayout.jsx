@@ -1,5 +1,6 @@
 import { Dimensions, FlatList, StyleSheet, View } from "react-native";
 import CategoryCard from "./CategoryCard";
+import React from "react";
 
 const numColumns = 4;
 const screenWidth = Dimensions.get("window").width;
@@ -35,4 +36,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CategoryGridLayout;
+export default React.memo(CategoryGridLayout);

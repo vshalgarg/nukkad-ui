@@ -13,7 +13,9 @@ import styles from '../styles/globalStyles';
 import ProductCard from './ProductCard';
 import Fonts from '../styles/font.js';
 import Colors from '../styles/colors.js';
+import { Dimensions } from 'react-native';
 
+const { height } = Dimensions.get('screen');
 const AllProduct = ({ products = [], loading = false }) => {
   const dispatch = useDispatch();
   const [isSorted, setIsSorted] = useState(false);
@@ -57,18 +59,13 @@ const AllProduct = ({ products = [], loading = false }) => {
       {loading && products.length === 0 ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
       ) : sortedList.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ textAlign: 'center' }}>No products found.</Text>
+        <View style={innerStyle.emptyContainer}>
+          <Text style={innerStyle.emptyText}>
+            No products found. Try searching for something else
+          </Text>
         </View>
       ) : (
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            paddingHorizontal: 10,
-          }}
-        >
+        <View style={innerStyle.productsContainer}>
           {sortedList.map(product => (
             <ProductCard
               key={product.id}
@@ -88,3 +85,24 @@ const AllProduct = ({ products = [], loading = false }) => {
 };
 
 export default AllProduct;
+
+const innerStyle = StyleSheet.create({
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    height: height - height * 0.4,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: Colors.secondaryText,
+    fontSize: Fonts.sizes.base,
+  },
+  productsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+});

@@ -1,5 +1,5 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -38,6 +38,7 @@ const ShoppingCart = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
+
   let pressLock = false;
 
   const dispatch = useDispatch();
@@ -50,17 +51,11 @@ const ShoppingCart = () => {
   const { storeData } = useStore();
   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
-  console.log(address);
-  console.log(
-    'selected addressId',
-    typeof selectedAddressId,
-    selectedAddressId,
-  );
   const selectedAddress =
     address.find(item => item.id.toString() === String(selectedAddressId)) ||
     address.find(item => item.isDefault);
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getCartItemsAPI(token);
@@ -79,31 +74,23 @@ const ShoppingCart = () => {
     } catch (err) {
       showToast('error', strings.failedToLoadItems);
     } finally {
-      setLoading(false); // Stop loader
+      setLoading(false);
     }
-  };
+  }, [dispatch, token]);
 
   useEffect(() => {
     fetchCartItems();
-  }, []);
+  }, [fetchCartItems]);
 
-  const itemAmounts = cartItems.map(item => {
-    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
-    const amount = isPacket ? parseInt(item.product.amount) || 0 : 1;
+  const totalCount = useMemo(
+    () =>
+      cartItems.reduce((total, item) => {
+        const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
 
-    return {
-      productId: item.product.id,
-      name: item.product.name,
-      amount,
-      selectedUnit: item.product.selectedUnit,
-    };
-  });
-
-  const totalCount = cartItems.reduce((total, item) => {
-    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
-
-    return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
-  }, 0);
+        return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
+      }, 0),
+    [cartItems],
+  );
 
   const handleAddAddress = async () => {
     setMode('add');
@@ -176,7 +163,6 @@ const ShoppingCart = () => {
       setOrderInProgress(false);
     }
   };
-
 
   const handleEditAddress = address => {
     setMode('edit');

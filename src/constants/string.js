@@ -113,6 +113,7 @@ const strings = {
   store: 'Store :',
   customer: 'Customer :',
   repeatOrder: 'Repeat Order',
+  repeating: 'Repeating...',
 
   paymentOptions: 'Payment Options',
   qrCode: 'QR Code',

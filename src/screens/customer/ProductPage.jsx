@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
@@ -22,7 +22,10 @@ import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import Fonts from '../../styles/font.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import strings from '../../constants/string.js';
+import { Dimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const { height } = Dimensions.get('screen');
 const ProductPage = () => {
   useBackHandlerControl({ confirmBack: false });
   const navigation = useNavigation();
@@ -43,32 +46,44 @@ const ProductPage = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const PAGE_SIZE = 10;
 
-  const renderCategory = useCallback(({ item: category }) => (
-    <AllProduct
-      products={category.items}
-      style={{ marginVertical: 10, paddingHorizontal: 10 }}
-    />
-  ), []);
+  const renderCategory = useCallback(
+    ({ item: category }) => (
+      <AllProduct
+        products={category.items}
+        style={{ marginVertical: 10, paddingHorizontal: 10 }}
+      />
+    ),
+    [],
+  );
 
-  const renderEmpty = useCallback(() => (
-    !searching && (
-      <Text style={{
-        textAlign: 'center',
-        marginTop: 40,
-        color: Colors.secondaryText
-      }}>
-        No items found.
-      </Text>
-    )
-  ), [searching]);
+  const renderEmpty = useCallback(
+    () =>
+      !searching && (
+        <View style={innerStyle.noItemContainer}>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: Colors.secondaryText,
+              fontSize: Fonts.sizes.base,
+              padding: 15,
+            }}
+          >
+            No products found. Try searching for something else
+          </Text>
+        </View>
+      ),
+    [searching],
+  );
 
-  const renderFooter = useCallback(() => (
-    loadingMore && (
-      <View style={{ padding: 20 }}>
-        <ActivityIndicator size="small" color={Colors.primary} />
-      </View>
-    )
-  ), [loadingMore]);
+  const renderFooter = useCallback(
+    () =>
+      loadingMore && (
+        <View style={{ padding: 20 }}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+        </View>
+      ),
+    [loadingMore],
+  );
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -111,15 +126,23 @@ const ProductPage = () => {
       const nextPage = currentPage + 1;
 
       if (categoryId) {
-        const { items, total } = await getProductsByCategory(categoryId, nextPage, PAGE_SIZE);
+        const { items, total } = await getProductsByCategory(
+          categoryId,
+          nextPage,
+          PAGE_SIZE,
+        );
         if (items?.length) {
           setGroupedResults(prev => {
             // Create a deep copy to ensure state updates
             const newState = JSON.parse(JSON.stringify(prev));
             if (newState.length > 0) {
               // Filter out any potential duplicates
-              const existingIds = new Set(newState[0].items.map(item => item.id));
-              const filteredItems = items.filter(item => !existingIds.has(item.id));
+              const existingIds = new Set(
+                newState[0].items.map(item => item.id),
+              );
+              const filteredItems = items.filter(
+                item => !existingIds.has(item.id),
+              );
               newState[0].items = [...newState[0].items, ...filteredItems];
             }
             return newState;
@@ -128,13 +151,21 @@ const ProductPage = () => {
           setTotalPages(Math.ceil(total / PAGE_SIZE));
         }
       } else if (searchQuery) {
-        const { items, total } = await searchProducts(searchQuery, nextPage, PAGE_SIZE);
+        const { items, total } = await searchProducts(
+          searchQuery,
+          nextPage,
+          PAGE_SIZE,
+        );
         if (items?.length) {
           setGroupedResults(prev => {
             const newState = JSON.parse(JSON.stringify(prev));
             if (newState.length > 0) {
-              const existingIds = new Set(newState[0].items.map(item => item.id));
-              const filteredItems = items.filter(item => !existingIds.has(item.id));
+              const existingIds = new Set(
+                newState[0].items.map(item => item.id),
+              );
+              const filteredItems = items.filter(
+                item => !existingIds.has(item.id),
+              );
               newState[0].items = [...newState[0].items, ...filteredItems];
             }
             return newState;
@@ -156,12 +187,18 @@ const ProductPage = () => {
     try {
       const response = await searchProducts(keyword, page, PAGE_SIZE);
       const items = response?.items || [];
-      setGroupedResults([{ id: 'search', items }]);
+
+      if (items.length > 0) {
+        setGroupedResults([{ id: 'search', items }]);
+      } else {
+        setGroupedResults([]); // ✅ triggers ListEmptyComponent
+      }
+
       setTotalPages(Math.ceil(response.total / PAGE_SIZE) || 1);
       setCurrentPage(page);
     } catch (err) {
       console.error('Search failed:', err.message);
-      setGroupedResults([]);
+      setGroupedResults([]); // also show empty
     } finally {
       setSearching(false);
     }
@@ -170,15 +207,55 @@ const ProductPage = () => {
   const fetchCategoryProducts = async (page = 0) => {
     setSearching(true);
     try {
-      const { items, total } = await getProductsByCategory(categoryId, page, PAGE_SIZE);
+      const cacheKey = `products_category_${categoryId}`;
+      const cached = await AsyncStorage.getItem(cacheKey);
+      const cachedData = cached ? JSON.parse(cached) : null;
+
+      if (cachedData && cachedData.items?.length > 0) {
+        setGroupedResults([cachedData]);
+        setTotalPages(Math.ceil(cachedData.total / PAGE_SIZE) || 1);
+        setCurrentPage(page);
+
+        // Background check for updates
+        getProductsByCategory(categoryId, 0, PAGE_SIZE)
+          .then(({ items, total }) => {
+            if (total > cachedData.total) {
+              const category = {
+                id: categoryId,
+                name: categoryName || 'Category',
+                items,
+                total,
+              };
+              setGroupedResults([category]);
+              setTotalPages(Math.ceil(total / PAGE_SIZE) || 1);
+              setCurrentPage(0);
+              AsyncStorage.setItem(cacheKey, JSON.stringify(category));
+            }
+          })
+          .catch(err =>
+            console.warn('Background category fetch failed:', err.message),
+          );
+
+        setSearching(false);
+        return; // ✅ Skip full API call if cached
+      }
+
+      // No cache → normal fetch
+      const { items, total } = await getProductsByCategory(
+        categoryId,
+        page,
+        PAGE_SIZE,
+      );
       const category = {
         id: categoryId,
         name: categoryName || 'Category',
         items,
+        total,
       };
       setGroupedResults([category]);
       setTotalPages(Math.ceil(total / PAGE_SIZE) || 1);
       setCurrentPage(page);
+      AsyncStorage.setItem(cacheKey, JSON.stringify(category));
     } catch (err) {
       console.error('Category fetch failed:', err.message);
       setGroupedResults([]);
@@ -186,6 +263,7 @@ const ProductPage = () => {
       setSearching(false);
     }
   };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -214,7 +292,7 @@ const ProductPage = () => {
 
       <FlashList
         data={groupedResults}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         renderItem={renderCategory}
         estimatedItemSize={230}
         ListEmptyComponent={renderEmpty}
@@ -222,11 +300,11 @@ const ProductPage = () => {
         onEndReached={loadMoreProducts}
         onEndReachedThreshold={0.2}
         contentContainerStyle={{
-          paddingBottom: totalItems > 0 ? 100 : 20, // Space for cart banner
+          flexGrow: 1,
+          paddingBottom: totalItems > 0 ? 100 : 20,
           paddingTop: 10,
-          minHeight: keyboardVisible ? '100%' : undefined // Fix keyboard overlap
+          minHeight: keyboardVisible ? '100%' : undefined,
         }}
-
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
@@ -245,7 +323,7 @@ const ProductPage = () => {
         }
       />
 
-      {totalItems > 0 && !keyboardVisible && ( 
+      {totalItems > 0 && !keyboardVisible && (
         <View style={innerStyle.fixedBottomBanner}>
           <Text style={innerStyle.popupText}>
             <Text>{strings.productCount(totalItems)}</Text>
@@ -263,6 +341,12 @@ const ProductPage = () => {
 };
 
 const innerStyle = StyleSheet.create({
+  noItemContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: height - height * 0.4,
+  },
   fixedBottomBanner: {
     position: 'absolute',
     bottom: 25,

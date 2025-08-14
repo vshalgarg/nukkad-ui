@@ -1,5 +1,5 @@
 // components/CartItem.jsx
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -99,7 +99,7 @@ const CartItem = ({
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [amountInput, selectedUnit]); 
+  }, [amountInput, selectedUnit]);
 
   useEffect(() => {
     setImageError(false);
@@ -168,7 +168,7 @@ const CartItem = ({
   );
 };
 
-export default CartItem;
+export default React.memo(CartItem);
 
 const styles = ScaledSheet.create({
   cartItem: {

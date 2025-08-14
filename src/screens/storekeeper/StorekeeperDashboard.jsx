@@ -329,7 +329,7 @@ const StorekeeperDashboard = () => {
                   style={innerStyle.orderDetailsHeading}
                   numberOfLines={3}
                   ellipsizeMode="tail"
-                >
+                > 
                   Address:
                   <Text style={innerStyle.orderDetails}> {order?.address?.addressLine1}</Text>
                 </Text>

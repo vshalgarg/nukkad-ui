@@ -21,6 +21,7 @@ import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressCon
 import { StorekeeperProfileProvider } from './src/contexts/storeKeeperProfileContext';
 import { toastConfig } from './src/utils/toastConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SearchProvider } from './src/contexts/searchContext';
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
   await notifee.displayNotification({
@@ -144,13 +145,15 @@ export default function App() {
           <PersistGate loading={null} persistor={persistor}>
             <StorekeeperProfileProvider>
               <ProfileProvider>
-                <AddressProvider>
-                  <StoreProvider>
-                    <StorekeeperAddressProvider>
-                      <AppContent />
-                    </StorekeeperAddressProvider>
-                  </StoreProvider>
-                </AddressProvider>
+                <SearchProvider>
+                  <AddressProvider>
+                    <StoreProvider>
+                      <StorekeeperAddressProvider>
+                        <AppContent />
+                      </StorekeeperAddressProvider>
+                    </StoreProvider>
+                  </AddressProvider>
+                </SearchProvider>
               </ProfileProvider>
             </StorekeeperProfileProvider>
           </PersistGate>

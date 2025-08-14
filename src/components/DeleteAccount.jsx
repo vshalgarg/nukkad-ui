@@ -18,6 +18,7 @@ import { showToast } from '../utils/toastUtils';
 import CustomButton from '../components/CustomButton';
 import { deleteAccount } from '../services/common/deleteAccountService';
 import { useSafeRouter } from '../hooks/useSafeRouter';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
@@ -70,10 +71,12 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
         }
 
         await deleteAccount(data.token);
+        await AsyncStorage.clear();
         onConfirm();
 
         try {
           safePush('Home');
+          showToast('success', 'Your account has been deleted');
         } catch (navError) {
           console.error('Navigation error:', navError);
           showToast('error', 'Navigation failed', 'Please restart the app');
