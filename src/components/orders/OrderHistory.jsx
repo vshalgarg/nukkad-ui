@@ -122,7 +122,7 @@ const OrderHistory = ({
           <Text style={styles.label} numberOfLines={2} ellipsizeMode="tail">
             {role === 'CUSTOMER'
               ? `${strings.store} ${shopName}`
-              : `${strings.customer} ${order.customerName}`}
+              : `${strings.customer} ${order?.address?.name}`}
           </Text>
           <Text style={styles.label}>
             {strings.totalItems}{' '}

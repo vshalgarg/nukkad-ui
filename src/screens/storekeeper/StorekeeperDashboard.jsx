@@ -231,6 +231,17 @@ const StorekeeperDashboard = () => {
     });
   };
 
+  const computeOrderTotal = (order) => {
+    if (!order?.items || !Array.isArray(order.items)) return 0;
+    return order.items.reduce((sum, it) => {
+      const price = parseFloat(it.price ?? 0) || 0;
+      return sum + price ;
+    }, 0);
+  };
+
+  const formatINR = (value) =>
+    `₹ ${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
   return (
     <View style={[styles.pageContainer]}>
       <View style={innerStyle.topBar}>
@@ -240,11 +251,11 @@ const StorekeeperDashboard = () => {
         <Text style={[innerStyle.heading, textStyles.subheading]}>
           My Orders
         </Text>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => safePush({ pathname: 'Notification' })}
         >
           <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <SideBar
@@ -289,7 +300,8 @@ const StorekeeperDashboard = () => {
           ListEmptyComponent={() => (
             <View style={innerStyle.emptyWrapper}>
               <Text style={innerStyle.emptyStateText}>
-                No {formatTabLabel(statusTabs[formState].label)} Orders Found.
+                {/* No {formatTabLabel(statusTabs[formState].label)} Orders Found. */}
+                No Orders Found.
               </Text>
             </View>
           )}
@@ -345,6 +357,12 @@ const StorekeeperDashboard = () => {
                   Quantity:
                   <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
                 </Text>
+                {(order.orderStatus === 'DISPATCHED' || order.orderStatus === 'DELIVERED') && (
+                  <Text style={innerStyle.orderDetailsHeading}>
+                    Total:
+                    <Text style={innerStyle.orderDetails}> {formatINR(computeOrderTotal(order))}</Text>
+                  </Text>
+                )}
               </View>
 
               {/* Bottom Section - Status + Actions */}
@@ -429,11 +447,14 @@ const innerStyle = ScaledSheet.create({
     padding: '10@ms',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    // justifyContent: 'center',
   },
+
   heading: {
     fontSize: Fonts.sizes.lg,
     fontWeight: '700',
+    flex: 1,
+    textAlign: 'center'
   },
   orderStatus: {
     paddingHorizontal: '5@ms',

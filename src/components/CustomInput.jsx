@@ -76,7 +76,7 @@ export default CustomInput;
 
 const styles = ScaledSheet.create({
   wrapper: {
-    marginBottom: '12@vs',
+    // marginBottom: '12@vs',
   },
   countryCodeContainer: {
     position: 'absolute',

@@ -299,7 +299,7 @@ const StorekeeperProfileScreen = () => {
         text1: strings.profileUpdatedSuccessfully,
       });
       setIsEditing(false);
-       safePush('StorekeeperDashboard');
+      safePush('StorekeeperDashboard');
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -326,10 +326,18 @@ const StorekeeperProfileScreen = () => {
       <BackButton title={strings.profileSetting} />
       <View style={{ marginVertical: 20 }}>
         <TouchableOpacity
-          style={styles.editIcon}
+          style={[
+    styles.editIcon,
+    isEditing && styles.cancelButton
+  ]}
           onPress={() => setIsEditing(!isEditing)}
         >
-          <Icon name="edit" size={20} />
+            <Icon 
+    name={isEditing ? "x" : "edit"} 
+    size={23} 
+    color={isEditing ? Colors.reject : Colors.secondary} 
+  />
+
         </TouchableOpacity>
       </View>
 
@@ -402,7 +410,10 @@ const StorekeeperProfileScreen = () => {
       return (
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>
-          <CustomInput value={profile[key]} editable={false} style={!isEditing ? {} : { borderColor: Colors.disabledText , color: Colors.reject }} />
+          <CustomInput value={profile[key]} editable={false}   {...(!isEditing ? {} : {
+            style: { borderColor: Colors.disabledText },
+            color: Colors.disabledText
+          })} />
         </View>
       );
     }
@@ -436,7 +447,7 @@ const StorekeeperProfileScreen = () => {
 
 const styles = ScaledSheet.create({
   container: {
-    paddingHorizontal: '16@s',
+    paddingHorizontal: '20@s',
     backgroundColor: Colors.white,
   },
   header: {
@@ -449,9 +460,16 @@ const styles = ScaledSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    padding: '10@s',
+    marginRight: '20@s',
+    padding: '2@s',
     borderRadius: '30@s',
   },
+  cancelButton: {
+  backgroundColor: Colors.white,
+  borderWidth: '1.5@s',
+  borderColor: Colors.reject,
+  elevation: 1,
+},
   row: {
     flexDirection: 'row',
     gap: '10@s',
@@ -462,7 +480,7 @@ const styles = ScaledSheet.create({
     marginBottom: '24@vs',
   },
   inputContainer: {
-    // marginBottom: '4@vs',
+    marginBottom: '10@vs',
   },
   label: {
     fontSize: '14@s',
