@@ -408,7 +408,6 @@ const ShowDetails = () => {
                     </Text>
                   </View>
                 </View>
-
               </View>
               {parsedItems.map(item => {
                 const itemId = item.itemId || item.id || item.productId;
@@ -425,43 +424,43 @@ const ShowDetails = () => {
                 );
               })}
 
-
               {(isInProgress ||
                 ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
-                  <View style={{ marginTop: 10 }}>
+                <View style={{ marginTop: 10 }}>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: Fonts.sizes.base,
+                    }}
+                  >
+                    Note :
+                  </Text>
+
+                  {isInProgress ? (
+                    <TextInput
+                      style={innerStyle.noteInput}
+                      multiline
+                      placeholderTextColor={Colors.secondaryText}
+                      placeholder="Write a note to the customer about this order"
+                      value={storeKeeperNote}
+                      editable
+                      onChangeText={setStoreKeeperNote}
+                    />
+                  ) : (
                     <Text
                       style={{
-                        fontWeight: 'bold',
-                        fontSize: Fonts.sizes.base,
+                        fontStyle: 'italic',
+                        color: Colors.textColor,
+                        fontSize: 15,
                       }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
-                      Note :
+                      {` ${storeKeeperNote} `}
                     </Text>
-
-                    {isInProgress ? (
-                      <TextInput
-                        style={innerStyle.noteInput}
-                        multiline
-                        placeholder="Write a note to the customer about this order"
-                        value={storeKeeperNote}
-                        editable
-                        onChangeText={setStoreKeeperNote}
-                      />
-                    ) : (
-                      <Text
-                        style={{
-                          fontStyle: 'italic',
-                          color: Colors.textColor,
-                          fontSize: 15,
-                        }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {` ${storeKeeperNote} `}
-                      </Text>
-                    )}
-                  </View>
-                )}
+                  )}
+                </View>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -540,7 +539,7 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '10@s',
     marginBottom: '10@vs',
     elevation: 2,
-    height: 100,
+    height: '90@vs',
   },
   rowBetween: {
     flexDirection: 'row',
@@ -570,7 +569,7 @@ const innerStyle = ScaledSheet.create({
 
   image: {
     width: '80@s',
-    height: '100%',
+    aspectRatio: 1,
     borderRadius: '10@s',
     resizeMode: 'cover',
   },
@@ -600,7 +599,7 @@ const innerStyle = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: '7@s',
+    paddingHorizontal: '8@s',
     overflow: 'hidden',
     gap: '5@s',
   },
@@ -622,15 +621,16 @@ const innerStyle = ScaledSheet.create({
   },
 
   input: {
-    width: '70@s',
-    height: '33@vs',
+    width: '80@s',
+    height: '35@vs',
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: 40,
-    // paddingHorizontal: 10,
+    paddingHorizontal: 10,
     textAlign: 'center',
     lineHeight: 20,
-    fontSize: Fonts.sizes.sm,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   rejectedText: {
     color: Colors.reject,
@@ -652,10 +652,10 @@ const innerStyle = ScaledSheet.create({
     fontWeight: '500',
   },
   totalContainer: {
-    flexDirection:"row",
-    justifyContent:"space-between",
-    alignItems:"center",
-    marginVertical:"15@s"
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: '15@s',
   },
   totalText: {
     fontSize: '16@s',

@@ -244,7 +244,7 @@ const ProfileSetting = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <BackButton title={strings.profileSetting} onPress={handlePress} />
+        <BackButton title={strings.profileSetting}  />
 
         <View style={innerStyle.container}>
           <View style={innerStyle.profileImageSection}>

@@ -98,7 +98,7 @@ const SideBar = ({ isVisible, onClose }) => {
     // { name: 'Settings', icon: 'settings-sharp' },
     { name: 'Refer a Store', icon: 'share-social-sharp' },
     { name: 'Refer Store to Customer', icon: 'share-social-sharp' },
-    { name: 'Help and Support', icon: 'help-circle' },
+    { name: 'Help and Support', icon: 'help-circle'},
     { name: 'Privacy Policy', icon: 'shield-half' },
     { name: 'Terms & Conditions', icon: 'document' },
     ...(userRole !== 'STOREKEEPER'
