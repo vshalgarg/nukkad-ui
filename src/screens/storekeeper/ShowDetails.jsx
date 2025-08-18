@@ -110,12 +110,9 @@ const OrderItem = memo(
 
 const ShowDetails = () => {
   const [storeKeeperNote, setStoreKeeperNote] = useState();
-
   const [showPopup, setShowPopup] = useState(false);
-
   const dotRef = React.useRef(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
-
   const { token } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -218,19 +215,12 @@ const ShowDetails = () => {
             try {
               const payload = { orderStatus: 'CANCELLED' };
               await updateOrderStatusById(orderId, payload, token);
-              // navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
               dispatch(
                 updateOrderStatus({
                   orderId: orderId,
                   newStatus: 'CANCELLED',
                 }),
               );
-              //   navigation.navigate({
-              //   name: 'StorekeeperDashboard',
-              //   params: { forceRefresh: Date.now(), tab: fromTab },
-              //   merge: true,
-              // });
-
               navigation.goBack();
             } catch (error) {
               console.log(error);
@@ -325,7 +315,6 @@ const ShowDetails = () => {
             try {
               const payload = { orderStatus: 'DELIVERED' };
               await updateOrderStatusById(orderId, payload, token);
-              // navigation.navigate('StorekeeperDashboard', { tab: fromTab, forceRefresh: Date.now() });
               dispatch(
                 updateOrderStatus({
                   orderId: orderId,
@@ -333,7 +322,6 @@ const ShowDetails = () => {
                 }),
               );
               navigation.goBack();
-
               console.log('Order marked as delivered');
             } catch (error) {
               console.error('Error delivering order:', error);
@@ -350,6 +338,11 @@ const ShowDetails = () => {
     const price = prices[itemId];
     return !price || parseFloat(price) === 0;
   });
+  // Calculate total amount (add right before return statement)
+  const totalAmount = parsedItems.reduce((sum, item) => {
+    const itemId = item.itemId || item.id || item.productId;
+    return sum + (parseFloat(prices[itemId]) || 0);
+  }, 0);
 
   return (
     <View style={[styles.pageContainer, { flex: 1 }]}>
@@ -367,7 +360,7 @@ const ShowDetails = () => {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ padding: 20 }}>
               <View>
-                <Text style={innerStyle.heading}>Delivery Address</Text>
+                <Text style={innerStyle.heading1}>Delivery Address</Text>
                 <View style={innerStyle.AddressCard}>
                   <View style={innerStyle.rowBetween}>
                     <Text style={innerStyle.addressCardDetails}>
@@ -407,7 +400,15 @@ const ShowDetails = () => {
                     {order?.address?.addressLine1},{order?.address?.landmark}
                   </Text>
                 </View>
-                <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
+                <View style={innerStyle.totalContainer}>
+                  <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
+                  <View>
+                    <Text style={innerStyle.totalText}>
+                      Total: ₹{totalAmount.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+
               </View>
               {parsedItems.map(item => {
                 const itemId = item.itemId || item.id || item.productId;
@@ -424,42 +425,43 @@ const ShowDetails = () => {
                 );
               })}
 
+
               {(isInProgress ||
                 ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
-                <View style={{ marginTop: 10 }}>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: Fonts.sizes.base,
-                    }}
-                  >
-                    Note :
-                  </Text>
-
-                  {isInProgress ? (
-                    <TextInput
-                      style={innerStyle.noteInput}
-                      multiline
-                      placeholder="Write a note to the customer about this order"
-                      value={storeKeeperNote}
-                      editable
-                      onChangeText={setStoreKeeperNote}
-                    />
-                  ) : (
+                  <View style={{ marginTop: 10 }}>
                     <Text
                       style={{
-                        fontStyle: 'italic',
-                        color: Colors.textColor,
-                        fontSize: 15,
+                        fontWeight: 'bold',
+                        fontSize: Fonts.sizes.base,
                       }}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
                     >
-                      {` ${storeKeeperNote} `}
+                      Note :
                     </Text>
-                  )}
-                </View>
-              )}
+
+                    {isInProgress ? (
+                      <TextInput
+                        style={innerStyle.noteInput}
+                        multiline
+                        placeholder="Write a note to the customer about this order"
+                        value={storeKeeperNote}
+                        editable
+                        onChangeText={setStoreKeeperNote}
+                      />
+                    ) : (
+                      <Text
+                        style={{
+                          fontStyle: 'italic',
+                          color: Colors.textColor,
+                          fontSize: 15,
+                        }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {` ${storeKeeperNote} `}
+                      </Text>
+                    )}
+                  </View>
+                )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -512,7 +514,7 @@ const innerStyle = ScaledSheet.create({
     borderWidth: 2,
     borderRadius: '15@s',
     borderColor: Colors.primary,
-    marginBottom: '5@vs',
+    // marginBottom: '5@vs',
   },
   addressCardDetails: {
     lineHeight: '30@vs',
@@ -520,6 +522,11 @@ const innerStyle = ScaledSheet.create({
     fontWeight: Fonts.weights.bold,
   },
   heading: {
+    fontSize: Fonts.sizes.base,
+    fontWeight: 'bold',
+    // marginBottom: '10@vs',
+  },
+  heading1: {
     fontSize: Fonts.sizes.base,
     fontWeight: 'bold',
     marginBottom: '10@vs',
@@ -587,8 +594,8 @@ const innerStyle = ScaledSheet.create({
     marginBottom: '5@vs',
   },
   toggle: {
-    width: '70@s',
-    height: '30@vs',
+    width: '80@s',
+    height: '35@vs',
     borderRadius: '20@s',
     flexDirection: 'row',
     alignItems: 'center',
@@ -643,5 +650,16 @@ const innerStyle = ScaledSheet.create({
   orderDetails: {
     color: Colors.secondary,
     fontWeight: '500',
+  },
+  totalContainer: {
+    flexDirection:"row",
+    justifyContent:"space-between",
+    alignItems:"center",
+    marginVertical:"15@s"
+  },
+  totalText: {
+    fontSize: '16@s',
+    fontWeight: 'bold',
+    color: Colors.primary,
   },
 });
