@@ -42,32 +42,22 @@ const OrderHistory = ({
     setIsRepeating(true);
 
     try {
-      // Clear the cart first
+      console.log('Before clearcartAPI:', performance.now());
       await clearCartAPI(token);
       dispatch(clearCart());
+      console.log('Before add to cart API:', performance.now());
 
-      // Extract necessary data only once
       const itemsToAdd = order.items.map(item => {
         const { itemId, unit, quantity, itemName } = item;
         const amount = quantity.toString();
         const isPkt = unit === 'PKT';
         const itemCount = isPkt ? Number(quantity) : 1;
 
-        return {
-          itemId,
-          quantity,
-          unit,
-          itemName,
-          amount,
-          itemCount,
-        };
+        return { itemId, quantity, unit, itemName, amount, itemCount };
       });
-
-      // Call the API to add all items to the cart in one go
       const response = await addToCartAPI(itemsToAdd, token);
-      safePush('ShoppingCart', { fromRepeatOrder: true });
-
-      // Map the response data into the cart structure
+      console.log('After API:', performance.now());
+      // update redux
       const cartItems = itemsToAdd.map((item, index) => {
         const addedItemId =
           response?.itemIds?.[index] || response?.id || item.itemId;
@@ -81,20 +71,16 @@ const OrderHistory = ({
           },
         };
       });
-
-      // Update Redux state with the cart items
       dispatch(setCartItems(cartItems));
+      setIsRepeating(false);
+      safePush('ShoppingCart', { fromRepeatOrder: true });
     } catch (err) {
       console.error('Repeat Order Failed:', err.message || err);
       Alert.alert(
         'Error',
         'Failed to repeat your order. Please try again later.',
       );
-    } finally {
-      setTimeout(() => {
-        setIsRepeating(false);
-      }, 700);
-    }
+    } 
   };
 
   const totalQuantity = order.items?.reduce((sum, item) => {

@@ -4,19 +4,19 @@ import { z } from 'zod';
 export const customerProfileSchema = z.object({
   name: z
     .string()
-    .min(2, 'Name must contain at least 2 characters')
+    .min(2, 'Enter valid name')
     .regex(/^[A-Za-z\s]+$/, 'Name must contain only letters'),
-  email: z.string().email('Invalid email format'),
+  email: z.string().email('Enter valid email'),
   dob: z.date({ required_error: 'Date of birth is required' }),
-  addressLine1: z.string().min(2, 'Invalid Address Line 1'),
+  addressLine1: z.string().min(2, 'Enter valid Address'),
   landmark: z.string().min(2, 'Please enter a landmark'),
   city: z
     .string()
-    .min(2, 'Invalid city name')
+    .min(2, 'Enter valid name')
     .regex(/^[A-Za-z\s]+$/, 'City must contain only letters'),
   state: z
     .string()
-    .min(2, 'Invalid state name')
+    .min(2, 'Enter valid name')
     .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
   pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
 });

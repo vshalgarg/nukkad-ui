@@ -17,7 +17,11 @@ import CartItem from '../../components/CartItem';
 
 import { useAddress } from '../../contexts/addressContext';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useAuth } from '../../contexts/authContext';
 import { getCartItemsAPI } from '../../services/customer/cartService';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,7 +48,7 @@ const ShoppingCart = () => {
   const dispatch = useDispatch();
 
   const cartItems = useSelector(state => state.cart.items);
-  const [loading, setLoading] = useState(cartItems.length === 0);
+  const [loading, setLoading] = useState(false);
 
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
@@ -58,7 +62,9 @@ const ShoppingCart = () => {
   const fetchCartItems = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('Before shopping API:', performance.now());
       const res = await getCartItemsAPI(token);
+      console.log('After API:', performance.now());
       const formattedItems = (res || []).map(item => ({
         cartItemId: item.id,
         product: {
@@ -82,6 +88,13 @@ const ShoppingCart = () => {
     fetchCartItems();
   }, [fetchCartItems]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!fromRepeatOrder) {
+        fetchCartItems();
+      }
+    }, [fetchCartItems, fromRepeatOrder]),
+  );
   const totalCount = useMemo(
     () =>
       cartItems.reduce((total, item) => {

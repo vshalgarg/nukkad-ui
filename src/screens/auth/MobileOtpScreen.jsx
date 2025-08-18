@@ -136,19 +136,26 @@ const MobileOtpScreen = () => {
 
       if (role === 'CUSTOMER') {
         if (returningUser) {
-          const cartItems = await getCartItemsAPI(token);
-          const formattedItems = (cartItems || []).map(item => ({
-            cartItemId: item.id,
-            product: {
-              id: item.itemId,
-              name: item.itemName,
-              image: item.imageUrls?.[0] || '',
-              amount: item.quantity,
-              selectedUnit: item.selectedUnit,
-              quantity: item.allUnits,
-            },
-          }));
-          dispatch(setCartItems(formattedItems));
+          try {
+            const cartItems = await getCartItemsAPI(token); // ✅ only customers
+            const formattedItems = (cartItems || []).map(item => ({
+              cartItemId: item.id,
+              product: {
+                id: item.itemId,
+                name: item.itemName,
+                image: item.imageUrls?.[0] || '',
+                amount: item.quantity,
+                selectedUnit: item.selectedUnit,
+                quantity: item.allUnits,
+              },
+            }));
+            dispatch(setCartItems(formattedItems));
+          } catch (err) {
+            console.warn(
+              'Skipping cart fetch for new/invalid customer:',
+              err.message,
+            );
+          }
           safePush('CustomerDashboard', {
             toast: JSON.stringify(returingUserToastPayload),
           });
