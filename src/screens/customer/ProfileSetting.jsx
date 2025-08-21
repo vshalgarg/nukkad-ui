@@ -211,7 +211,6 @@ const ProfileSetting = () => {
 
   const handlePress = () => {
     safePush('CustomerDashboard');
-    showToast('success', 'Profile Updated Successfully');
   };
 
   const handleDeleteAccount = () => {

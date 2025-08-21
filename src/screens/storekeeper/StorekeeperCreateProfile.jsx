@@ -7,12 +7,11 @@ import {
   Text,
   View,
 } from 'react-native';
-
 import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
 import {
   useRoute,
 } from '@react-navigation/native';
-
+import { useHeaderHeight } from '@react-navigation/elements';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import StoreImageUploader from '../../components/StoreImageUploader';
@@ -65,6 +64,7 @@ const StorekeeperCreateProfile = () => {
   const { safePush } = useSafeRouter();
   const route = useRoute();
   const { toast } = route.params || {};
+  const headerHeight = useHeaderHeight();
 
   const scrollToInput = ref => {
     if (ref?.current && scrollViewRef?.current) {
@@ -93,10 +93,8 @@ const StorekeeperCreateProfile = () => {
     console.log('hadleContinue Pressed');
     if (pressLock) return;
     pressLock = true;
-
     // isSubmittingRef.current = true;
     setIsSubmitting(true);
-
     const formData = {
       name,
       storeName,
@@ -209,7 +207,7 @@ const StorekeeperCreateProfile = () => {
             flexGrow: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingBottom: 40,
+            paddingBottom: 400,
           }}
           removeClippedSubviews
           showsVerticalScrollIndicator={false}

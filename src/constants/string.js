@@ -120,6 +120,7 @@ const strings = {
   changeQr: 'Change QR Code',
   uploadQr: 'Upload QR Code',
   noQrUploaded: 'No QR Uploaded',
+  selectQr:"Select QR To Upload",
   default: 'Default',
   setDefault: 'Set as Default',
   delete: 'Delete',

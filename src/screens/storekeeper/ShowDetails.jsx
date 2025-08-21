@@ -436,31 +436,31 @@ const ShowDetails = () => {
                     Note :
                   </Text>
 
-                  {isInProgress ? (
-                    <TextInput
-                      style={innerStyle.noteInput}
-                      multiline
-                      placeholderTextColor={Colors.secondaryText}
-                      placeholder="Write a note to the customer about this order"
-                      value={storeKeeperNote}
-                      editable
-                      onChangeText={setStoreKeeperNote}
-                    />
-                  ) : (
-                    <Text
-                      style={{
-                        fontStyle: 'italic',
-                        color: Colors.textColor,
-                        fontSize: 15,
-                      }}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {` ${storeKeeperNote} `}
-                    </Text>
-                  )}
-                </View>
-              )}
+                    {isInProgress ? (
+                      <TextInput
+                        style={innerStyle.noteInput}
+                        multiline
+                        placeholder="Write a note to the customer about this order"
+                        placeholderTextColor={Colors.secondaryText}
+                        value={storeKeeperNote}
+                        editable
+                        onChangeText={setStoreKeeperNote}
+                      />
+                    ) : (
+                      <Text
+                        style={{
+                          fontStyle: 'italic',
+                          color: Colors.textColor,
+                          fontSize: 15,
+                        }}
+                        // numberOfLines={1}
+                        // ellipsizeMode="tail"
+                      >
+                        {` ${storeKeeperNote} `}
+                      </Text>
+                    )}
+                  </View>
+                )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -563,8 +563,9 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '10@ms', // moderate scaling for border radius
     padding: '10@ms', // padding scaled
     textAlignVertical: 'top',
-    backgroundColor: Colors.white,
+    // backgroundColor: Colors.white,
     marginBottom: '10@vs',
+    
   },
 
   image: {

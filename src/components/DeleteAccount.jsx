@@ -104,8 +104,8 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
         <View style={styles.overlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.title}>Delete Account</Text>
-
-            <View style={styles.customInput}>
+            <View style={styles.wrapper}>
+              <View style={styles.customInput}>
               <View>
                 <CustomInput
                   label="Mobile Number"
@@ -134,7 +134,6 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
                 style={styles.input}
               />
             </View>
-
             <View style={styles.buttonRow}>
               <CustomButton
                 onPress={() => {
@@ -154,6 +153,10 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
                 title={loading ? 'Deleting...' : 'Delete'}
               />
             </View>
+            </View>
+            
+
+            
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -174,12 +177,19 @@ const styles = StyleSheet.create({
     width: '90%',
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 20,
+    padding: "5%",
     elevation: 4,
   },
+  wrapper:{
+     width:"100%",
+    //  backgroundColor:"green",
+  },
   customInput: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+  },
+  input:{
+    width:"100%"
   },
   title: {
     fontSize: Fonts.sizes.xxl,
@@ -203,15 +213,18 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
-    paddingHorizontal: 10,
+    marginTop: 20
   },
   cancelBtn: {
+    width:140,
+    height:42,
     backgroundColor: Colors.disabledText,
     paddingVertical: 10,
     borderColor: Colors.disabledText,
   },
   confirmBtn: {
+    width:140,
+    height:42,
     backgroundColor: Colors.reject,
     borderColor: Colors.reject,
   },
