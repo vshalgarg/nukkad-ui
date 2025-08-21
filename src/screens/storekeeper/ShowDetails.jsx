@@ -443,6 +443,7 @@ const ShowDetails = () => {
                         style={innerStyle.noteInput}
                         multiline
                         placeholder="Write a note to the customer about this order"
+                        placeholderTextColor={Colors.secondaryText}
                         value={storeKeeperNote}
                         editable
                         onChangeText={setStoreKeeperNote}
@@ -454,8 +455,8 @@ const ShowDetails = () => {
                           color: Colors.textColor,
                           fontSize: 15,
                         }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
+                        // numberOfLines={1}
+                        // ellipsizeMode="tail"
                       >
                         {` ${storeKeeperNote} `}
                       </Text>
@@ -564,8 +565,9 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '10@ms', // moderate scaling for border radius
     padding: '10@ms', // padding scaled
     textAlignVertical: 'top',
-    backgroundColor: Colors.white,
+    // backgroundColor: Colors.white,
     marginBottom: '10@vs',
+    
   },
 
   image: {
@@ -600,7 +602,7 @@ const innerStyle = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: '7@s',
+    paddingHorizontal: '8@s',
     overflow: 'hidden',
     gap: '5@s',
   },
@@ -622,15 +624,16 @@ const innerStyle = ScaledSheet.create({
   },
 
   input: {
-    width: '70@s',
-    height: '33@vs',
+    width: '80@s',
+    height: '35@vs',
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: 40,
-    // paddingHorizontal: 10,
+    paddingHorizontal: 10,
     textAlign: 'center',
     lineHeight: 20,
-    fontSize: Fonts.sizes.sm,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   rejectedText: {
     color: Colors.reject,

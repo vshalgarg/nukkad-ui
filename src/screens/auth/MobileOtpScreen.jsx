@@ -156,9 +156,11 @@ const MobileOtpScreen = () => {
               err.message,
             );
           }
-          safePush('CustomerDashboard', {
-            toast: JSON.stringify(returingUserToastPayload),
-          });
+          safePush('CustomerDashboard');
+        showToast(
+        'success',
+        `${strings.Welcome}`
+      );
         } else {
           safePush('CustomerCreateProfile', {
             toast: JSON.stringify(toastPayload),
