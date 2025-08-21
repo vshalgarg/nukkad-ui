@@ -332,7 +332,7 @@ const CustomerCreateProfile = () => {
                   <DateTimePicker
                     value={dob || new Date(2000, 0, 1)}
                     mode="date"
-                    display="default"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
                     maximumDate={new Date()}
                     onChange={handleDobChange}
                   />
