@@ -83,6 +83,7 @@ const OrderHistory = ({
     } 
   };
 
+  let TotalItems=order.items?.length
   const totalQuantity = order.items?.reduce((sum, item) => {
     return item.unit === 'PKT' ? sum + Number(item.quantity || 0) : sum + 1;
   }, 0);
@@ -137,7 +138,7 @@ const OrderHistory = ({
           </Text>
           <Text style={styles.label}>
             {strings.totalItems}{' '}
-            <Text style={styles.values}>{totalQuantity}</Text>
+            <Text style={styles.values}>{TotalItems}</Text>
           </Text>
           {(order.orderStatus === 'DISPATCHED' ||
             order.orderStatus === 'DELIVERED') && (

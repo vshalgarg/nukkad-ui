@@ -233,7 +233,7 @@ const Orders = () => {
                       </Text>
                       {(item.orderStatus === 'DELIVERED' ||
                         item.orderStatus === 'DISPATCHED') && (
-                        <Text> &#8377;{itm.price}</Text>
+                        <Text> {itm.price > 0 ? `₹${itm.price}` : "Out of Stock"}</Text>
                       )}
                     </View>
                     <View

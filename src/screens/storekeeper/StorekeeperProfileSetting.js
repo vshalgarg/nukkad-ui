@@ -23,6 +23,7 @@ import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../../styles/font';
 import { Dimensions } from 'react-native';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
+import { useLogout } from '../../hooks/useLogout'
 
 
 const { width } = Dimensions.get('screen');
@@ -101,6 +102,7 @@ const StorekeeperProfileScreen = () => {
   const { token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const { confirmLogout } = useLogout()
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     storeName: '',
@@ -324,22 +326,22 @@ const StorekeeperProfileScreen = () => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <BackButton title={strings.profileSetting} />
-      <View style={{ marginVertical: 20 }}>
+      {/* <View style={{ marginVertical: 20 }}>
         <TouchableOpacity
           style={[
-    styles.editIcon,
-    isEditing && styles.cancelButton
-  ]}
+            styles.editIcon,
+            isEditing && styles.cancelButton
+          ]}
           onPress={() => setIsEditing(!isEditing)}
         >
-            <Icon 
-    name={isEditing ? "x" : "edit"} 
-    size={23} 
-    color={isEditing ? Colors.reject : Colors.secondary} 
-  />
+          <Icon
+            name={isEditing ? "x" : "edit"}
+            size={23}
+            color={isEditing ? Colors.reject : Colors.secondary}
+          />
 
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       <ScrollView
         ref={scrollViewRef}
@@ -398,8 +400,18 @@ const StorekeeperProfileScreen = () => {
       </ScrollView>
 
       {isEditing && !keyboardVisible && (
-        <View style={styles.saveButtonContainer}>
+        <View style={styles.ButtonContainer}>
           <CustomButton title={strings.saveChanges} onPress={handleSave} />
+        </View>
+      )}
+      {!isEditing && (
+        <View style={styles.saveButtonContainer}>
+          <CustomButton title={"Edit"} onPress={() => setIsEditing(!isEditing)} />
+          <CustomButton title={"Logout"} style={{
+            backgroundColor: Colors.reject,
+            borderColor: Colors.reject,
+          }}
+            onPress={confirmLogout} />
         </View>
       )}
     </View>
@@ -449,6 +461,7 @@ const styles = ScaledSheet.create({
   container: {
     paddingHorizontal: '20@s',
     backgroundColor: Colors.white,
+    marginTop: 30
   },
   header: {
     fontSize: Fonts.sizes.lg,
@@ -465,11 +478,11 @@ const styles = ScaledSheet.create({
     borderRadius: '30@s',
   },
   cancelButton: {
-  backgroundColor: Colors.white,
-  borderWidth: '1.5@s',
-  borderColor: Colors.reject,
-  elevation: 1,
-},
+    backgroundColor: Colors.white,
+    borderWidth: '1.5@s',
+    borderColor: Colors.reject,
+    elevation: 1,
+  },
   row: {
     flexDirection: 'row',
     gap: '10@s',
@@ -545,11 +558,24 @@ const styles = ScaledSheet.create({
     color: Colors.secondary,
   },
   saveButtonContainer: {
+    flexDirection: "row",
     height: '70@vs',
+    paddingHorizontal: '20@s',
+    // width:"90%",
+    backgroundColor: Colors.white,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ButtonContainer: {
+    flexDirection: "row",
+    height: '70@vs',
+    paddingHorizontal: '20@s',
+    // width:"90%",
     backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   imageContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

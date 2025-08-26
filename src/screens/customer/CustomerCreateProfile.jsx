@@ -518,4 +518,5 @@ const localStyles = ScaledSheet.create({
     alignItems: 'center',
     marginBottom: '30@vs',
   },
+  
 });

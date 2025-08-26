@@ -100,6 +100,8 @@ const ProductPage = () => {
   }, []);
 
   const cartItems = useSelector(state => state.cart.items);
+  console.log("saaman singh",cartItems.length)
+  let totalItemsInCart=cartItems?.length
   const totalItems = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
@@ -240,7 +242,7 @@ const ProductPage = () => {
         return; // ✅ Skip full API call if cached
       }
 
-      // No cache → normal fetch
+      // No cache → normal fetch2
       const { items, total } = await getProductsByCategory(
         categoryId,
         page,
@@ -326,7 +328,7 @@ const ProductPage = () => {
       {totalItems > 0 && !keyboardVisible && (
         <View style={innerStyle.fixedBottomBanner}>
           <Text style={innerStyle.popupText}>
-            <Text>{strings.productCount(totalItems)}</Text>
+            <Text>{strings.productCount(totalItemsInCart)}</Text>
           </Text>
           <TouchableOpacity
             style={innerStyle.goToCartButton}

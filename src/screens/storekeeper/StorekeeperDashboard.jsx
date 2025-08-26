@@ -36,6 +36,7 @@ import { formatTabLabel } from '../../utils/formatTabLabel';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { ScaledSheet } from 'react-native-size-matters';
 import { showToast } from '../../utils/toastUtils.js';
+import { useDialog } from '../../contexts/DialogContext.js';
 
 
 const StorekeeperDashboard = () => {
@@ -61,6 +62,7 @@ const StorekeeperDashboard = () => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   const { toast } = route.params || {};
+  const { showDialog } = useDialog()
 
 
   const statusTabs = [
@@ -190,38 +192,63 @@ const StorekeeperDashboard = () => {
   };
 
   const handleReject = orderId => {
-    Alert.alert('Reject Order', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reject',
-        style: 'destructive',
-        onPress: async () => {
+    showDialog({
+      title: 'Reject Order',
+      message: 'Are you sure you want to reject this order?',
+      confirmText: 'Reject',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('Delivery cancelled');
+      },
+      onConfirm: async () => {
+        try {
           const payload = { orderStatus: 'CANCELLED' };
           await updateOrderStatusById(orderId, payload, token);
           dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
           const currentStatus = statusTabs[formState].statuses[0];
           setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
-        },
+        } catch (error) {
+          console.log(error);
+          showToast(
+            'error',
+            'Failed to reject order',
+            err?.message || 'Please try again',
+          );
+        }
+
       },
-    ]);
+    })
   };
 
   const handleDeliver = orderId => {
-    Alert.alert('Deliver Order', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Yes, Deliver',
-        onPress: async () => {
+    showDialog({
+      title: 'Deliver Order',
+      message: 'Are you sure you want to deliver this order?',
+      confirmText: 'Deliver',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('Delivery Delivered');
+      },
+      onConfirm: async () => {
+        try {
           const payload = { orderStatus: 'DELIVERED' };
           await updateOrderStatusById(orderId, payload, token);
           dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
           const currentStatus = statusTabs[formState].statuses[0];
           setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
-        },
+        } catch (error) {
+          console.log(error);
+          showToast(
+            'error',
+            'Failed to reject order',
+            err?.message || 'Please try again',
+          );
+        }
+
       },
-    ]);
+    })
   };
 
   const showPopup = (orderId, ref) => {
@@ -235,7 +262,7 @@ const StorekeeperDashboard = () => {
     if (!order?.items || !Array.isArray(order.items)) return 0;
     return order.items.reduce((sum, it) => {
       const price = parseFloat(it.price ?? 0) || 0;
-      return sum + price ;
+      return sum + price;
     }, 0);
   };
 
@@ -341,7 +368,7 @@ const StorekeeperDashboard = () => {
                   style={innerStyle.orderDetailsHeading}
                   numberOfLines={3}
                   ellipsizeMode="tail"
-                > 
+                >
                   Address:
                   <Text style={innerStyle.orderDetails}> {order?.address?.addressLine1}</Text>
                 </Text>

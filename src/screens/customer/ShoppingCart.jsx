@@ -48,6 +48,7 @@ const ShoppingCart = () => {
   const dispatch = useDispatch();
 
   const cartItems = useSelector(state => state.cart.items);
+  let totalItemsInCart=cartItems?.length
   const [loading, setLoading] = useState(false);
 
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -220,7 +221,7 @@ const ShoppingCart = () => {
     <View style={[{ flex: 1 }, styles.pageContainer]}>
       <BackButton
         style={innerStyle.backButton}
-        title={strings.cartTitle(totalCount)}
+        title={strings.cartTitle(totalItemsInCart)}
       />
 
       <FlatList
@@ -262,7 +263,7 @@ const ShoppingCart = () => {
             )}
 
             <Text style={[innerStyle.heading, { marginTop: 20 }]}>
-              {strings.selectedItems} ({totalCount})
+              {strings.selectedItems} ({totalItemsInCart})
             </Text>
           </>
         }

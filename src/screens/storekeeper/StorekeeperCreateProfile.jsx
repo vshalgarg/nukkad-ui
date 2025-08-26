@@ -188,7 +188,7 @@ const StorekeeperCreateProfile = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.white }}>
+    <View style={{ flex: 1 }}>
       <View style={innerStyles.createProfileStyling}>
         <Text style={[innerStyles.header, textStyles.subheading]}>
           {strings.myProfile}
@@ -207,7 +207,7 @@ const StorekeeperCreateProfile = () => {
             flexGrow: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingBottom: 400,
+            paddingBottom: 10,
           }}
           removeClippedSubviews
           showsVerticalScrollIndicator={false}
@@ -224,6 +224,7 @@ const StorekeeperCreateProfile = () => {
                   ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
+                  style={{width:"100%"}}
                   maxLength={30}
                   autoCapitalize="words"
                   onTextChange={text => {
@@ -252,6 +253,7 @@ const StorekeeperCreateProfile = () => {
                   ref={storeNameRef}
                   placeholder="Enter Store Name"
                   value={storeName}
+                  style={{width:"100%"}}
                   maxLength={30}
                   onTextChange={text => {
                     setStoreName(text);
@@ -273,6 +275,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={contactNumberRef}
                   placeholder="Enter Contact Number"
+                  style={{width:"100%"}}
                   value={contactNumber}
                   keyboardType="phone-pad"
                   maxLength={10}
@@ -299,6 +302,7 @@ const StorekeeperCreateProfile = () => {
                   ref={gstRef}
                   placeholder="Enter GSTIN Number"
                   value={gstNum}
+                  style={{width:"100%"}}
                   autoCapitalize="characters"
                   onChange={text => setGstNum(text)}
                   maxLength={15}
@@ -324,6 +328,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={address1Ref}
                   placeholder="Enter Address"
+                  style={{width:"100%"}}
                   value={addressLine1}
                   maxLength={40}
                   onTextChange={text => {
@@ -344,6 +349,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={address2Ref}
                   placeholder="Enter Address Line 2"
+                  style={{width:"100%"}}
                   value={addressLine2}
                   maxLength={40}
                   onTextChange={text =>
@@ -360,6 +366,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={landmarkRef}
                   placeholder="Enter Landmark"
+                  style={{width:"100%"}}
                   value={landmark}
                   maxLength={40}
                   onTextChange={text => {
@@ -382,6 +389,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={cityRef}
                   placeholder="Enter City"
+                  style={{width:"100%"}}
                   value={city}
                   maxLength={40}
                   onTextChange={text => {
@@ -409,6 +417,7 @@ const StorekeeperCreateProfile = () => {
                   ref={stateRef}
                   placeholder="Enter State"
                   value={state}
+                  style={{width:"100%"}}
                   maxLength={40}
                   onTextChange={text => {
                     const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
@@ -433,6 +442,7 @@ const StorekeeperCreateProfile = () => {
                   ref={pincodeRef}
                   placeholder="Enter Pincode"
                   value={pincode}
+                  style={{width:"100%"}}
                   keyboardType="number-pad"
                   maxLength={6}
                   onTextChange={text => {
@@ -453,17 +463,19 @@ const StorekeeperCreateProfile = () => {
               <Text style={innerStyles.label}>{strings.uploadStoreImage}</Text>
               <StoreImageUploader images={images} setImages={setImages} />
 
-              <View style={innerStyles.buttonWrapper}>
-                <CustomButton
-                  title={'Continue'}
-                  onPress={handleContinue}
-                // disabled={isSubmitting}
-                />
-              </View>
+              
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <View style={innerStyles.buttonWrapper}>
+                <CustomButton
+                  title={'Continue'}
+                  onPress={handleContinue}
+                  style={innerStyles.continueBtn}
+                // disabled={isSubmitting}
+                />
+              </View>
     </View>
   );
 };
@@ -487,9 +499,12 @@ const innerStyles = ScaledSheet.create({
     flex: 1,
     alignItems: 'center',
     width: '100%',
+    // backgroundColor:"black"
   },
   formContainer: {
-    maxWidth: '500@ms0.3', // smaller scaling factor to prevent extreme width
+    //maxWidth: '500@ms0.3', // smaller scaling factor to prevent extreme width
+    width: '80%',
+    // backgroundColor:'red'
   },
   label: {
     marginTop: '5@ms',
@@ -502,10 +517,17 @@ const innerStyles = ScaledSheet.create({
     color: Colors.reject,
   },
   buttonWrapper: {
-    marginTop: '30@ms',
+    // marginTop: '30@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: '40@ms',
+    marginBottom: '10@ms',
+    backgroundColor:'transparent',
+    fontSize:120
+  },
+  continueBtn: {
+    width:"80%",
+    height:50,
+    borderRadius:50
   },
 });
 export default StorekeeperCreateProfile;

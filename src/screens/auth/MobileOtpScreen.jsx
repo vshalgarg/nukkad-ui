@@ -85,7 +85,6 @@ const MobileOtpScreen = () => {
       );
     }
   };
-
   const handleSendOtp = () => {
     if (!mobile || mobile.length < 10) {
       showToast(

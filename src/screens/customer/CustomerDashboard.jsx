@@ -78,12 +78,15 @@ const CustomerDashboard = () => {
   const fetchStoreAndProfile = async () => {
     try {
       const userProfile = await getCustomerProfile(token);
+      console.log("customer profile in customerDashboard:",userProfile)
       await createProfile({
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.image || null,
         dob: userProfile.dob || '',
+        mobile:userProfile.mobileNumber || ''
+        
       });
 
       const stores = await getMyStores(token);

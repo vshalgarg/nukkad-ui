@@ -33,6 +33,7 @@ const UserToolbar = ({
   const storeName = storeData?.storeName || 'Select Store';
 
   const cartItems = useSelector(state => state.cart.items);
+  let totalItemsInCart=cartItems?.length
   const totalItems = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
@@ -82,17 +83,17 @@ const UserToolbar = ({
             <Pressable onPress={moveToCart} style={styles.iconWrapper}>
               <Feather name="shopping-cart" size={24} color="black" />
 
-              {totalItems > 0 && (
+              {totalItemsInCart > 0 && (
                 <View style={styles.cartBadge}>
                   <Text
                     style={[
-                      totalItems > 99
+                      totalItemsInCart > 99
                         ? { fontSize: Fonts.sizes.xxs }
                         : { fontSize: Fonts.sizes.xs },
                       styles.cartBadgeText,
                     ]}
                   >
-                    {totalItems > 99 ? '99+' : totalItems}
+                    {totalItemsInCart > 99 ? '99+' : totalItemsInCart}
                   </Text>
                 </View>
               )}
