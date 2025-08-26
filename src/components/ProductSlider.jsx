@@ -1,26 +1,21 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import {
-  Animated,
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import FruitBasket from '../../assets/images/fruit-basket.svg';
-import Fonts from '../styles/font';
-import Colors from '../styles/colors';
+import React, { useCallback, useRef } from 'react';
+import { Animated, Dimensions, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
+import Colors from '../styles/colors';
+import Fonts from '../styles/font';
+import { ScaledSheet } from 'react-native-size-matters';
+// import FruitBasket from '../../assets/images/fruit-basket.svg';
 
 const { width: screenWidth } = Dimensions.get('window');
+
 const peekPercent = 0.05;
 const gapPercent = 0.025;
 const itemWidth = screenWidth * 0.85;
 const sidePeek = screenWidth * peekPercent;
 const sideGap = screenWidth * gapPercent;
 const fullItemSpace = itemWidth + sideGap * 2;
-const MemoFruitBasket = React.memo(FruitBasket);
+
 const originalSlides = [
   {
     id: '1',
@@ -57,9 +52,7 @@ const AutoSlider = () => {
 
   const scrollToIndex = (index, animated = true) => {
     const x = index * fullItemSpace;
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ x, animated });
-    }
+    scrollViewRef.current?.scrollTo({ x, animated });
   };
 
   const startAutoScroll = () => {
@@ -73,49 +66,51 @@ const AutoSlider = () => {
   const stopAutoScroll = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      scrollToIndex(indexRef.current, false);
-      startAutoScroll();
-      return stopAutoScroll;
-    }, []),
-  );
-
 
   const handleScrollEnd = e => {
     const offsetX = e.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / fullItemSpace);
 
-    // Loop handling
     if (index === 0) {
       indexRef.current = originalSlides.length;
-      setTimeout(() => {
-        scrollToIndex(indexRef.current, false);
-      }, 20);
+      setTimeout(() => scrollToIndex(indexRef.current, false), 20);
     } else if (index === slides.length - 1) {
       indexRef.current = 1;
-      setTimeout(() => {
-        scrollToIndex(indexRef.current, false);
-      }, 20);
+      setTimeout(() => scrollToIndex(indexRef.current, false), 20);
     } else {
       indexRef.current = index;
     }
   };
 
+  // Ensure initial scroll position and start timer
+  useFocusEffect(
+    useCallback(() => {
+      const timeout = setTimeout(() => {
+        scrollToIndex(indexRef.current, false);
+        startAutoScroll();
+      }, 100); // Delay helps layout settle (esp. iOS)
+
+      return () => {
+        clearTimeout(timeout);
+        stopAutoScroll();
+      };
+    }, []),
+  );
+
   return (
-    <View>
+    <View style={{ height: 220 }}>
       <Animated.ScrollView
         ref={scrollViewRef}
         horizontal
-        pagingEnabled={false}
-        scrollEventThrottle={16}
+        bounces={false}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: sidePeek }}
+        scrollEventThrottle={16}
         snapToInterval={fullItemSpace}
         decelerationRate="fast"
+        contentContainerStyle={{ paddingHorizontal: sidePeek }}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
           { useNativeDriver: false },
@@ -138,12 +133,11 @@ const AutoSlider = () => {
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
-            {/* <MemoFruitBasket width={160} height={160} /> */}
+            {/* <FruitBasket width={140} height={140} />  */}
           </View>
         ))}
       </Animated.ScrollView>
 
-      {/* Indicators */}
       <View style={styles.indicatorContainer}>
         {originalSlides.map((_, i) => {
           const inputRange = [
@@ -182,28 +176,31 @@ const AutoSlider = () => {
   );
 };
 
-// ✅ Memoized to avoid unnecessary re-renders
 export default React.memo(AutoSlider);
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   slideContainer: {
-    borderRadius: 16,
+    borderRadius: '16@s',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    height: 200,
+    paddingHorizontal: '20@s',
+    height: '150@vs',
     elevation: 3,
+    shadowColor: Colors.secondary,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
   },
   textContainer: {
     flex: 1,
-    marginRight: 10,
+    marginRight: '10@s',
   },
   title: {
     color: Colors.white,
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: '8@vs',
   },
   subtitle: {
     color: Colors.white,
@@ -212,11 +209,11 @@ const styles = StyleSheet.create({
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: '10@vs',
   },
   indicatorDot: {
-    height: 4,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    height: '4@vs',
+    borderRadius: '4@s',
+    marginHorizontal: '4@s',
   },
 });

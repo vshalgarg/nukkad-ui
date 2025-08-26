@@ -134,6 +134,8 @@ const MobileOtpScreen = () => {
         title: `${strings.Welcome}`,
       };
 
+      console.log(role);
+      console.log(returningUser);
       if (role === 'CUSTOMER') {
         if (returningUser) {
           try {
@@ -213,7 +215,8 @@ const MobileOtpScreen = () => {
           <CustomInput
             isCountryCode={true}
             placeholder="Enter Mobile Number"
-            keyboardType="numeric"
+            inputAccessoryViewID="mobileAccessoryViewID"
+            keyboardType="number-pad"
             maxLength={10}
             value={mobile}
             onTextChange={text => setMobile(text.replace(/[^0-9]/g, ''))}
@@ -243,7 +246,8 @@ const MobileOtpScreen = () => {
 
           <CustomInput
             placeholder="Enter OTP"
-            keyboardType="numeric"
+            inputAccessoryViewID="otpInputAccessory"
+            keyboardType="number-pad"
             maxLength={4}
             value={otp}
             editable={otpEnabled}

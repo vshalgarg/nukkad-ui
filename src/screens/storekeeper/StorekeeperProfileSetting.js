@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
@@ -23,7 +24,6 @@ import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../../styles/font';
 import { Dimensions } from 'react-native';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-
 
 const { width } = Dimensions.get('screen');
 const profileSchema = z.object({
@@ -323,80 +323,81 @@ const StorekeeperProfileScreen = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <BackButton title={strings.profileSetting} />
-      <View style={{ marginVertical: 20 }}>
-        <TouchableOpacity
-          style={[
-    styles.editIcon,
-    isEditing && styles.cancelButton
-  ]}
-          onPress={() => setIsEditing(!isEditing)}
-        >
-            <Icon 
-    name={isEditing ? "x" : "edit"} 
-    size={23} 
-    color={isEditing ? Colors.reject : Colors.secondary} 
-  />
-
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 0 }}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
       >
-        {fieldGroups.map((group, index) => (
-          <View key={index} style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{group.title}</Text>
-            {group.fields.map(field => (
-              <React.Fragment key={field.key}>
-                {renderField(field.label, field.key)}
-              </React.Fragment>
-            ))}
-          </View>
-        ))}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
-          <View style={styles.imageContainer}>
-            {[0, 1, 2, 3].map(i => {
-              const image = profile.imageUrls[i];
-              return (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => isEditing && !image && handleImagePick(i)}
-                  style={{ position: 'relative', marginBottom: 10 }}
-                  activeOpacity={0.8}
-                >
-                  {image ? (
-                    <View>
-                      <Image source={{ uri: image }} style={styles.image} />
-                      {isEditing && (
-                        <TouchableOpacity
-                          style={styles.removeIcon}
-                          onPress={() => handleRemoveImage(i)}
-                        >
-                          <Icon name="x" size={16} color={Colors.white} />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  ) : (
-                    <View style={[styles.image, styles.emptyImage]}>
-                      <Text
-                        style={{ color: Colors.secondaryText, fontSize: 20 }}
-                      >
-                        +
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+        <BackButton title={strings.profileSetting} />
+        <View style={{ marginVertical: 20 }}>
+          <TouchableOpacity
+            style={[styles.editIcon, isEditing && styles.cancelButton]}
+            onPress={() => setIsEditing(!isEditing)}
+          >
+            <Icon
+              name={isEditing ? 'x' : 'edit'}
+              size={23}
+              color={isEditing ? Colors.reject : Colors.secondary}
+            />
+          </TouchableOpacity>
         </View>
-      </ScrollView>
 
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 0 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {fieldGroups.map((group, index) => (
+            <View key={index} style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>{group.title}</Text>
+              {group.fields.map(field => (
+                <React.Fragment key={field.key}>
+                  {renderField(field.label, field.key)}
+                </React.Fragment>
+              ))}
+            </View>
+          ))}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
+            <View style={styles.imageContainer}>
+              {[0, 1, 2, 3].map(i => {
+                const image = profile.imageUrls[i];
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => isEditing && !image && handleImagePick(i)}
+                    style={{ position: 'relative', marginBottom: 10 }}
+                    activeOpacity={0.8}
+                  >
+                    {image ? (
+                      <View>
+                        <Image source={{ uri: image }} style={styles.image} />
+                        {isEditing && (
+                          <TouchableOpacity
+                            style={styles.removeIcon}
+                            onPress={() => handleRemoveImage(i)}
+                          >
+                            <Icon name="x" size={16} color={Colors.white} />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    ) : (
+                      <View style={[styles.image, styles.emptyImage]}>
+                        <Text
+                          style={{ color: Colors.secondaryText, fontSize: 20 }}
+                        >
+                          +
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
       {isEditing && !keyboardVisible && (
         <View style={styles.saveButtonContainer}>
           <CustomButton title={strings.saveChanges} onPress={handleSave} />
@@ -410,10 +411,16 @@ const StorekeeperProfileScreen = () => {
       return (
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>
-          <CustomInput value={profile[key]} editable={false}   {...(!isEditing ? {} : {
-            style: { borderColor: Colors.disabledText },
-            color: Colors.disabledText
-          })} />
+          <CustomInput
+            value={profile[key]}
+            editable={false}
+            {...(!isEditing
+              ? {}
+              : {
+                  style: { borderColor: Colors.disabledText },
+                  color: Colors.disabledText,
+                })}
+          />
         </View>
       );
     }
@@ -430,6 +437,18 @@ const StorekeeperProfileScreen = () => {
               placeholder={label}
               maxLength={maxLengths[key]}
               onBlur={() => validateSingleField(key, profile[key])}
+              keyboardType={
+                key === 'contactNumber' || key === 'pincode'
+                  ? 'number-pad'
+                  : 'default'
+              }
+              inputAccessoryViewID={
+                key === 'contactNumber'
+                  ? 'DoneAccessory'
+                  : key === 'pincode'
+                  ? 'pincode'
+                  : null
+              }
             />
             {fieldErrors[key] ? (
               <Text style={styles.errorText}>{fieldErrors[key]}</Text>
@@ -465,11 +484,11 @@ const styles = ScaledSheet.create({
     borderRadius: '30@s',
   },
   cancelButton: {
-  backgroundColor: Colors.white,
-  borderWidth: '1.5@s',
-  borderColor: Colors.reject,
-  elevation: 1,
-},
+    backgroundColor: Colors.white,
+    borderWidth: '1.5@s',
+    borderColor: Colors.reject,
+    elevation: 1,
+  },
   row: {
     flexDirection: 'row',
     gap: '10@s',

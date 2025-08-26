@@ -11,6 +11,8 @@ import {
   StyleSheet,
   View,
   Text,
+  TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { Camera } from 'react-native-camera-kit';
 import { showToast } from '../utils/toastUtils';
@@ -20,7 +22,7 @@ import useBackHandlerControl from '../hooks/useBackHandlerControl';
 
 const QRScannerBox = forwardRef(({ onScan }, ref) => {
   useBackHandlerControl({ blockBack: true });
-  const [hasPermission, setHasPermission] = useState(Platform.OS === 'ios');
+  const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
 
   const cameraRef = useRef();
@@ -28,10 +30,11 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
   useImperativeHandle(ref, () => ({
     stopCamera: () => {
       console.log('stopCamera called');
-      
+      // Add pause/stop logic if needed
     },
   }));
 
+  // Reset scan lock after 1s
   useEffect(() => {
     if (scanned) {
       const timer = setTimeout(() => setScanned(false), 1000);
@@ -39,6 +42,7 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
     }
   }, [scanned]);
 
+  // Request permissions
   useEffect(() => {
     const requestCameraPermission = async () => {
       if (Platform.OS === 'android') {
@@ -62,6 +66,26 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
           console.warn(err);
           showToast('error', 'Failed to request permission');
         }
+      } else {
+        try {
+          const authorized =
+            await Camera.checkDeviceCameraAuthorizationStatus();
+          console.log(authorized);
+
+          if (authorized) {
+            setHasPermission(true);
+          } else {
+            const granted = await Camera.requestDeviceCameraAuthorization();
+            if (granted) {
+              setHasPermission(true);
+            } else {
+              showToast('error', 'Camera permission denied');
+            }
+          }
+        } catch (err) {
+          console.warn('iOS permission error:', err);
+          showToast('error', 'Failed to request permission');
+        }
       }
     };
 
@@ -83,6 +107,12 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
         <Text style={styles.permissionText}>
           Camera permission is required to scan QR codes.
         </Text>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => Linking.openSettings()}
+        >
+          <Text style={styles.settingsButtonText}>Open Settings</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -92,6 +122,7 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
       <Camera
         ref={cameraRef}
         style={StyleSheet.absoluteFillObject}
+        cameraType="back"
         scanBarcode={true}
         onReadCode={handleBarcodeScanned}
       />
@@ -103,8 +134,7 @@ export default QRScannerBox;
 
 const styles = StyleSheet.create({
   cameraBox: {
-    height: '100%',
-    width: '100%',
+    flex: 1,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -119,5 +149,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: Colors.secondaryText,
     fontSize: Fonts.sizes.base,
+    marginBottom: 16,
+  },
+  settingsButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  settingsButtonText: {
+    color: Colors.white,
+    fontSize: Fonts.sizes.base,
+    fontWeight: '600',
   },
 });

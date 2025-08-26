@@ -9,9 +9,7 @@ import {
 } from 'react-native';
 
 import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
-import {
-  useRoute,
-} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
@@ -29,11 +27,10 @@ import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
-
 let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
 
 const StorekeeperCreateProfile = () => {
-  useBackHandlerControl({ blockBack: true })
+  useBackHandlerControl({ blockBack: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [name, setName] = useState('');
@@ -178,7 +175,7 @@ const StorekeeperCreateProfile = () => {
   ]);
 
   useEffect(() => {
-    console.log(toast)
+    console.log(toast);
     if (toast) {
       try {
         const parsedToast = JSON.parse(toast);
@@ -209,14 +206,11 @@ const StorekeeperCreateProfile = () => {
             flexGrow: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingBottom: 40,
           }}
-          removeClippedSubviews
           showsVerticalScrollIndicator={false}
         >
           <View style={innerStyles.centerContainer}>
             <View style={[innerStyles.formContainer, { marginTop: 30 }]}>
-
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>
                   {strings.storekeeperName}{' '}
@@ -236,19 +230,22 @@ const StorekeeperCreateProfile = () => {
                         ...prev,
                         name:
                           cleaned.trim().length >= 2 &&
-                            /^[A-Za-z\s]+$/.test(cleaned)
+                          /^[A-Za-z\s]+$/.test(cleaned)
                             ? false
                             : true,
                       }));
                     }
                   }}
                   isError={errors.name}
+                  returnKeyType="next"
+                  onSubmitEditing={() => storeNameRef.current?.focus()}
                 />
               </View>
 
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>
-                  {strings.storeName} <Text style={innerStyles.mandatory}>*</Text>
+                  {strings.storeName}{' '}
+                  <Text style={innerStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={storeNameRef}
@@ -265,6 +262,8 @@ const StorekeeperCreateProfile = () => {
                     }
                   }}
                   isError={errors.storeName}
+                  returnKeyType="next"
+                  onSubmitEditing={() => contactNumberRef.current?.focus()}
                 />
               </View>
 
@@ -276,7 +275,8 @@ const StorekeeperCreateProfile = () => {
                   ref={contactNumberRef}
                   placeholder="Enter Contact Number"
                   value={contactNumber}
-                  keyboardType="phone-pad"
+                  keyboardType="number-pad"
+                  inputAccessoryViewID="contactnumber"
                   maxLength={10}
                   onTextChange={text => {
                     const cleaned = text.replace(/\D/g, '');
@@ -291,7 +291,6 @@ const StorekeeperCreateProfile = () => {
                   isError={errors.contactNumber}
                 />
               </View>
-
 
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>
@@ -315,6 +314,8 @@ const StorekeeperCreateProfile = () => {
                     }
                   }}
                   isError={errors.gstNum}
+                  returnKeyType="next"
+                  onSubmitEditing={() => address1Ref.current?.focus()}
                 />
               </View>
 
@@ -339,6 +340,8 @@ const StorekeeperCreateProfile = () => {
                     }
                   }}
                   isError={errors.addressLine1}
+                  returnKeyType="next"
+                  onSubmitEditing={() => address2Ref.current?.focus()}
                 />
               </View>
               <View style={innerStyles.inputContainer}>
@@ -351,13 +354,15 @@ const StorekeeperCreateProfile = () => {
                   onTextChange={text =>
                     setAddressLine2(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
                   }
+                  returnKeyType="next"
+                  onSubmitEditing={() => landmarkRef.current?.focus()}
                 />
               </View>
 
-
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>
-                  {strings.landmark} <Text style={innerStyles.mandatory}>*</Text>
+                  {strings.landmark}{' '}
+                  <Text style={innerStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
                   ref={landmarkRef}
@@ -374,6 +379,8 @@ const StorekeeperCreateProfile = () => {
                     }
                   }}
                   isError={errors.landmark}
+                  returnKeyType="next"
+                  onSubmitEditing={() => cityRef.current?.focus()}
                 />
               </View>
 
@@ -399,9 +406,10 @@ const StorekeeperCreateProfile = () => {
                     }
                   }}
                   isError={errors.city}
+                  returnKeyType="next"
+                  onSubmitEditing={() => stateRef.current?.focus()}
                 />
               </View>
-
 
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>
@@ -425,6 +433,8 @@ const StorekeeperCreateProfile = () => {
                     }
                   }}
                   isError={errors.state}
+                  returnKeyType="next"
+                  onSubmitEditing={() => pincodeRef.current?.focus()}
                 />
               </View>
               <View style={innerStyles.inputContainer}>
@@ -436,6 +446,7 @@ const StorekeeperCreateProfile = () => {
                   placeholder="Enter Pincode"
                   value={pincode}
                   keyboardType="number-pad"
+                  inputAccessoryViewID="pincode"
                   maxLength={6}
                   onTextChange={text => {
                     const cleaned = text.replace(/\D/g, '');
@@ -451,7 +462,6 @@ const StorekeeperCreateProfile = () => {
                 />
               </View>
 
-
               <Text style={innerStyles.label}>{strings.uploadStoreImage}</Text>
               <StoreImageUploader images={images} setImages={setImages} />
 
@@ -459,7 +469,7 @@ const StorekeeperCreateProfile = () => {
                 <CustomButton
                   title={'Continue'}
                   onPress={handleContinue}
-                // disabled={isSubmitting}
+                  // disabled={isSubmitting}
                 />
               </View>
             </View>

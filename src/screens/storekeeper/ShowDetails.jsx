@@ -14,6 +14,8 @@ import {
   View,
   ScrollView,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -88,7 +90,8 @@ const OrderItem = memo(
               placeholder="Set Price"
               placeholderTextColor={Colors.secondaryText}
               style={innerStyle.input}
-              keyboardType="numeric"
+              keyboardType="number-pad"
+              inputAccessoryViewID="price"
               value={price?.toString()}
               maxLength={4}
               editable={!outOfStock}
@@ -348,123 +351,120 @@ const ShowDetails = () => {
     <View style={[styles.pageContainer, { flex: 1 }]}>
       <BackButton title="Order Details" />
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      <KeyboardAwareScrollView
+        // contentContainerStyle={{ paddingBottom: 10 }}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={Platform.OS === 'ios' ? 20 : 0}
+        enableOnAndroid={true}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 100 }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{ padding: 20 }}>
-              <View>
-                <Text style={innerStyle.heading1}>Delivery Address</Text>
-                <View style={innerStyle.AddressCard}>
-                  <View style={innerStyle.rowBetween}>
-                    <Text style={innerStyle.addressCardDetails}>
-                      {`${strings.customer}`}
-                      {order?.address?.name}
-                    </Text>
-                    {(isInProgress || isDispatched) && (
-                      <TouchableOpacity
-                        ref={dotRef}
-                        onPress={() => {
-                          dotRef.current?.measure(
-                            (fx, fy, width, height, px, py) => {
-                              setPopupPosition({
-                                x: px + width - 160,
-                                y: py + height + 5,
-                              });
-                              setShowPopup(true);
-                            },
-                          );
-                        }}
-                      >
-                        <Entypo
-                          name="dots-three-vertical"
-                          size={18}
-                          color={Colors.secondary}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View>
-                    <Text style={innerStyle.addressCardDetails}>
-                      {`${strings.mobile}:`} {order?.address?.mobileNumber}
-                    </Text>
-                  </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ padding: 20 }}>
+            <View>
+              <Text style={innerStyle.heading1}>Delivery Address</Text>
+              <View style={innerStyle.AddressCard}>
+                <View style={innerStyle.rowBetween}>
                   <Text style={innerStyle.addressCardDetails}>
-                    {strings.address}
-                    {order?.address?.addressLine1},{order?.address?.landmark}
+                    {`${strings.customer}`}
+                    {order?.address?.name}
                   </Text>
-                </View>
-                <View style={innerStyle.totalContainer}>
-                  <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
-                  <View>
-                    <Text style={innerStyle.totalText}>
-                      Total: ₹{totalAmount.toFixed(2)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              {parsedItems.map(item => {
-                const itemId = item.itemId || item.id || item.productId;
-                return (
-                  <OrderItem
-                    key={itemId}
-                    item={item}
-                    price={prices[itemId]}
-                    isEditable={!isDelivered && !isDispatched && !isRejected}
-                    onPriceChange={handlePriceChange}
-                    outOfStock={outOfStockMap[itemId]}
-                    onToggleOutOfStock={handleToggleOutOfStock}
-                  />
-                );
-              })}
-
-              {(isInProgress ||
-                ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
-                <View style={{ marginTop: 10 }}>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: Fonts.sizes.base,
-                    }}
-                  >
-                    Note :
-                  </Text>
-
-                  {isInProgress ? (
-                    <TextInput
-                      style={innerStyle.noteInput}
-                      multiline
-                      placeholderTextColor={Colors.secondaryText}
-                      placeholder="Write a note to the customer about this order"
-                      value={storeKeeperNote}
-                      editable
-                      onChangeText={setStoreKeeperNote}
-                    />
-                  ) : (
-                    <Text
-                      style={{
-                        fontStyle: 'italic',
-                        color: Colors.textColor,
-                        fontSize: 15,
+                  {(isInProgress || isDispatched) && (
+                    <TouchableOpacity
+                      ref={dotRef}
+                      onPress={() => {
+                        dotRef.current?.measure(
+                          (fx, fy, width, height, px, py) => {
+                            setPopupPosition({
+                              x: px + width - 160,
+                              y: py - 2 * height,
+                            });
+                            setShowPopup(true);
+                          },
+                        );
                       }}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
                     >
-                      {` ${storeKeeperNote} `}
-                    </Text>
+                      <Entypo
+                        name="dots-three-vertical"
+                        size={18}
+                        color={Colors.secondary}
+                      />
+                    </TouchableOpacity>
                   )}
                 </View>
-              )}
+                <View>
+                  <Text style={innerStyle.addressCardDetails}>
+                    {`${strings.mobile}:`} {order?.address?.mobileNumber}
+                  </Text>
+                </View>
+                <Text style={innerStyle.addressCardDetails}>
+                  {strings.address}
+                  {order?.address?.addressLine1},{order?.address?.landmark}
+                </Text>
+              </View>
+              <View style={innerStyle.totalContainer}>
+                <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
+                <View>
+                  <Text style={innerStyle.totalText}>
+                    Total: ₹{totalAmount.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
             </View>
-          </TouchableWithoutFeedback>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            {parsedItems.map(item => {
+              const itemId = item.itemId || item.id || item.productId;
+              return (
+                <OrderItem
+                  key={itemId}
+                  item={item}
+                  price={prices[itemId]}
+                  isEditable={!isDelivered && !isDispatched && !isRejected}
+                  onPriceChange={handlePriceChange}
+                  outOfStock={outOfStockMap[itemId]}
+                  onToggleOutOfStock={handleToggleOutOfStock}
+                />
+              );
+            })}
+
+            {(isInProgress ||
+              ((isDispatched || isDelivered) && storeKeeperNote?.trim())) && (
+              <View style={{ marginTop: 10 }}>
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: Fonts.sizes.base,
+                  }}
+                >
+                  Note :
+                </Text>
+
+                {isInProgress ? (
+                  <TextInput
+                    style={innerStyle.noteInput}
+                    multiline
+                    placeholderTextColor={Colors.secondaryText}
+                    placeholder="Write a note to the customer about this order"
+                    value={storeKeeperNote}
+                    editable
+                    onChangeText={setStoreKeeperNote}
+                  />
+                ) : (
+                  <Text
+                    style={{
+                      fontStyle: 'italic',
+                      color: Colors.textColor,
+                      fontSize: 15,
+                    }}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {` ${storeKeeperNote} `}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAwareScrollView>
 
       {(isInProgress || isDispatched) && !isKeyboardVisible && (
         <View style={innerStyle.fixedButtonWrapper}>
@@ -531,6 +531,14 @@ const innerStyle = ScaledSheet.create({
     marginBottom: '10@vs',
   },
   card: {
+    // Android shadow
+    elevation: 2,
+    // Add iOS shadow for parity
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    // rest styles
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -538,19 +546,19 @@ const innerStyle = ScaledSheet.create({
     padding: '10@s',
     borderRadius: '10@s',
     marginBottom: '10@vs',
-    elevation: 2,
     height: '90@vs',
   },
+
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   fixedButtonWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    // position: 'absolute',
+    // bottom: 0,
+    // left: 0,
+    // right: 0,
     backgroundColor: Colors.white,
     paddingVertical: '10@vs',
     borderTopWidth: 1,
@@ -564,7 +572,7 @@ const innerStyle = ScaledSheet.create({
     padding: '10@ms', // padding scaled
     textAlignVertical: 'top',
     backgroundColor: Colors.white,
-    marginBottom: '10@vs',
+    // marginBottom: '50@vs',
   },
 
   image: {
@@ -628,9 +636,9 @@ const innerStyle = ScaledSheet.create({
     borderRadius: 40,
     paddingHorizontal: 10,
     textAlign: 'center',
-    lineHeight: 20,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+    // lineHeight: 20,
+    // includeFontPadding: false,
+    // textAlignVertical: 'center',
   },
   rejectedText: {
     color: Colors.reject,

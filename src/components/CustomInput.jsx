@@ -1,10 +1,21 @@
 import React, { forwardRef } from 'react';
-import { Text, TextInput, View, Dimensions } from 'react-native';
+import {
+  InputAccessoryView,
+  Keyboard,
+  Text,
+  TextInput,
+  View,
+  Dimensions,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import Flag from '../../assets/images/flag.svg';
 import Colors from '../styles/colors.js';
 import Fonts from '../styles/font.js';
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
 const CustomInput = forwardRef(function CustomInput(
   {
     isCountryCode,
@@ -12,7 +23,7 @@ const CustomInput = forwardRef(function CustomInput(
     fixedPrefix = '',
     onTextChange,
     maxLength,
-    keyboardType,
+    keyboardType = 'default',
     autoCapitalize,
     style,
     autoCorrect,
@@ -20,6 +31,7 @@ const CustomInput = forwardRef(function CustomInput(
     isError = false,
     editable = true,
     autoFocus,
+    inputAccessoryViewID, // default ID for InputAccessoryView
     ...props
   },
   ref,
@@ -32,6 +44,13 @@ const CustomInput = forwardRef(function CustomInput(
     const newText = fixedPrefix + text;
     onTextChange(newText);
   };
+
+  const actualKeyboardType = keyboardType || 'default';
+  // Show Done button only on iOS and when keyboardType is number-pad
+  const showDoneButton =
+    Platform.OS === 'ios' &&
+    actualKeyboardType === 'number-pad' &&
+    inputAccessoryViewID;
 
   return (
     <View style={styles.wrapper}>
@@ -60,18 +79,35 @@ const CustomInput = forwardRef(function CustomInput(
           placeholder={placeholder}
           placeholderTextColor={Colors.secondaryText}
           maxLength={maxLength ? maxLength - fixedPrefix.length : undefined}
-          keyboardType={keyboardType}
+          keyboardType={actualKeyboardType}
           autoCapitalize={autoCapitalize}
           autoCorrect={autoCorrect}
           style={styles.input}
           autoFocus={autoFocus}
           underlineColorAndroid="transparent"
           editable={editable}
+          inputAccessoryViewID={
+            showDoneButton ? inputAccessoryViewID : undefined
+          }
         />
       </View>
+
+      {showDoneButton && (
+        <InputAccessoryView nativeID={inputAccessoryViewID}>
+          <View style={styles.accessory}>
+            <TouchableOpacity
+              onPress={Keyboard.dismiss}
+              style={styles.doneButton}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
     </View>
   );
 });
+
 export default CustomInput;
 
 const styles = ScaledSheet.create({
@@ -122,5 +158,21 @@ const styles = ScaledSheet.create({
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     textAlignVertical: 'center',
+  },
+  accessory: {
+    backgroundColor: Colors.white,
+    alignItems: 'flex-end',
+    padding: '4@ms',
+    borderTopWidth: 0.2,
+    borderColor: Colors.secondary,
+  },
+  doneButton: {
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@vs',
+  },
+  doneButtonText: {
+    color: Colors.primary,
+    fontSize: Fonts.sizes.base,
+    fontWeight: '600',
   },
 });

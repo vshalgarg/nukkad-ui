@@ -2,28 +2,21 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  StyleSheet,
   Modal,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import DropDownPicker from 'react-native-dropdown-picker';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import {
-  fetchOrderHistory,
-} from '../../services/common/OrderHistoryService';
-import { useAuth } from '../../contexts/authContext';
-import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 
 const FilterModal = ({
   visible,
-  setOrders,
   onClose,
   dateFrom,
   onApplyFilter,
@@ -50,19 +43,13 @@ const FilterModal = ({
       year: 'numeric',
     });
   };
-  const { token } = useAuth();
-  const handleClearFilter = async () => {
-    try {
-      setDateFrom('');
-      setDateTo('');
-      setMaxPrice('');
-      setMinPrice('');
-      setSelectedStatus('');
-    } catch (err) {
-      console.error('Failed to clear filter:', err);
-      Alert.alert('Error', 'Something went wrong while clearing filters.');
-    }
-  };
+
+  const screenWidth = Dimensions.get('window').width;
+
+  const [iosDatePickerModalVisible, setIosDatePickerModalVisible] =
+    useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
+
   const [open, setOpen] = useState(false);
 
   const [statusItems, setStatusItems] = useState([
@@ -73,19 +60,22 @@ const FilterModal = ({
     { label: 'Cancelled', value: 'CANCELLED' },
   ]);
 
-  const handleDateChange = (event, selectedDate) => {
+  const openDatePicker = pickerType => {
+    setActivePicker(pickerType);
+    if (Platform.OS === 'ios') {
+      setTempDate(
+        pickerType === 'from' ? dateFrom || new Date() : dateTo || new Date(),
+      );
+      setFilterModalVisible(false);
+      setIosDatePickerModalVisible(true);
+    } else {
+      setShowDatePicker(true);
+    }
+  };
+
+  const handleDateChangeAndroid = (event, selectedDate) => {
     setShowDatePicker(false);
     if (event.type !== 'set') return;
-
-    const today = new Date();
-    const maxToDate = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      23,
-      59,
-      59,
-    );
 
     if (activePicker === 'from') {
       setDateFrom(selectedDate);
@@ -95,7 +85,7 @@ const FilterModal = ({
         Alert.alert('Invalid Date', "'To' date cannot be before 'From' date.");
         return;
       }
-      if (selectedDate > maxToDate) {
+      if (selectedDate > new Date()) {
         Alert.alert('Invalid Date', "'To' date cannot be in the future.");
         return;
       }
@@ -103,51 +93,70 @@ const FilterModal = ({
     }
   };
 
-  const screenWidth = Dimensions.get('window').width;
-  const applyFilter = () => {
-    const today = new Date();
-    const maxToDate = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      23,
-      59,
-      59,
-      999,
-    );
+  const handleIosDateConfirm = () => {
+    if (activePicker === 'from') {
+      setDateFrom(tempDate);
+      if (dateTo && tempDate > dateTo) setDateTo(null);
+    } else {
+      if (dateFrom && tempDate < dateFrom) {
+        Alert.alert('Invalid Date', "'To' date cannot be before 'From' date.");
+        return;
+      }
+      if (tempDate > new Date()) {
+        Alert.alert('Invalid Date', "'To' date cannot be in the future.");
+        return;
+      }
+      setDateTo(tempDate);
+    }
+    setIosDatePickerModalVisible(false);
+    setFilterModalVisible(true);
+  };
 
+  const handleIosDateCancel = () => {
+    setIosDatePickerModalVisible(false);
+    setFilterModalVisible(true);
+  };
+
+  const handleClearFilter = () => {
+    setDateFrom('');
+    setDateTo('');
+    setMaxPrice('');
+    setMinPrice('');
+    setSelectedStatus('');
+  };
+
+  const applyFilter = () => {
     if (dateFrom && dateTo && dateTo < dateFrom) {
       Alert.alert('Invalid Date', "'To' date must be after 'From' date.");
       return;
     }
-
-    if (dateTo && dateTo > maxToDate) {
+    if (dateTo && dateTo > new Date()) {
       Alert.alert('Invalid Date', "'To' date cannot be in the future.");
       return;
     }
-
     setFilterModalVisible(false);
-    if (typeof onApplyFilter === 'function') {
-      onApplyFilter();
-    }
+    if (typeof onApplyFilter === 'function') onApplyFilter();
   };
 
   const CustomMarker = ({ currentValue }) => (
     <View style={styles.markerContainer}>
-      <Text style={styles.labelText}>₹{currentValue}</Text>
+      <Text numberOfLines={1} style={styles.labelText}>
+        ₹{currentValue}
+      </Text>
       <View style={styles.marker} />
     </View>
   );
+
   return (
     <>
       <Modal
         visible={visible}
-        animationType="slide"
+        animationType="none"
         transparent
         onRequestClose={onClose}
       >
         <View style={styles.overlay}>
-          <View style={styles.container}>
+          <View style={styles.modalContainer}>
             <View
               style={{
                 flexDirection: 'row',
@@ -155,30 +164,22 @@ const FilterModal = ({
                 alignItems: 'center',
               }}
             >
-              <Text style={styles.title}>{strings.filterOrders}</Text>
-              {applyFilter && (
-                <TouchableOpacity onPress={handleClearFilter}>
-                  <Text style={styles.subtitle}>{strings.clear}</Text>
-                </TouchableOpacity>
-              )}
+              <Text style={styles.title}>Filter Orders</Text>
+              <TouchableOpacity onPress={handleClearFilter}>
+                <Text style={styles.subtitle}>Clear</Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
               style={styles.dateSelect}
-              onPress={() => {
-                setActivePicker('from');
-                setShowDatePicker(true);
-              }}
+              onPress={() => openDatePicker('from')}
             >
               <Text style={styles.dateLabel}>From: {formatDate(dateFrom)}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.dateSelect}
-              onPress={() => {
-                setActivePicker('to');
-                setShowDatePicker(true);
-              }}
+              onPress={() => openDatePicker('to')}
             >
               <Text style={styles.dateLabel}>To: {formatDate(dateTo)}</Text>
             </TouchableOpacity>
@@ -198,9 +199,7 @@ const FilterModal = ({
                   borderColor: Colors.borderColor,
                   marginBottom: open ? 180 : 20,
                 }}
-                dropDownContainerStyle={{
-                  borderColor: Colors.borderColor,
-                }}
+                dropDownContainerStyle={{ borderColor: Colors.borderColor }}
                 textStyle={{
                   color: Colors.secondary,
                   fontSize: Fonts.sizes.base,
@@ -208,49 +207,55 @@ const FilterModal = ({
                 zIndex={1000}
               />
             </View>
-            {selectedStatus === 'DISPATCHED' ||
-            selectedStatus === 'DELIVERED' ? (
-              <>
-                <Text style={styles.sectionTitle}>{strings.priceRange}</Text>
 
-                <MultiSlider
-                  values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
-                  min={0}
-                  max={5000}
-                  sliderLength={screenWidth - 50}
-                  customMarker={e => (
-                    <CustomMarker currentValue={e.currentValue} />
-                  )}
-                  step={500}
-                  onValuesChangeFinish={([min, max]) => {
-                    setMinPrice(min.toString());
-                    setMaxPrice(max.toString());
-                  }}
-                  selectedStyle={{ backgroundColor: Colors.primary }}
-                  markerStyle={{
-                    backgroundColor: Colors.primary,
-                    height: 20,
-                    width: 20,
-                  }}
-                />
+            {(selectedStatus === 'DISPATCHED' ||
+              selectedStatus === 'DELIVERED') && (
+              <>
+                <Text style={styles.sectionTitle}>Price Range</Text>
+                <View style={styles.sliderContainer}>
+                  <MultiSlider
+                    values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
+                    min={0}
+                    max={5000}
+                    sliderLength={screenWidth - 70}
+                    customMarker={e => (
+                      <CustomMarker currentValue={e.currentValue} />
+                    )}
+                    step={500}
+                    onValuesChangeFinish={([min, max]) => {
+                      setMinPrice(min.toString());
+                      setMaxPrice(max.toString());
+                    }}
+                    selectedStyle={{ backgroundColor: Colors.primary }}
+                    markerStyle={{
+                      backgroundColor: Colors.primary,
+                      height: 20,
+                      width: 20,
+                    }}
+                  />
+                </View>
               </>
-            ) : (
-              <View />
             )}
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                <Text style={styles.buttonText}>{strings.cancel}</Text>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => {
+                  onClose();
+                  handleClearFilter();
+                }}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalBtn} onPress={applyFilter}>
-                <Text style={styles.buttonText}>{strings.apply}</Text>
+                <Text style={styles.buttonText}>Apply</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {showDatePicker && (
+      {Platform.OS !== 'ios' && showDatePicker && (
         <DateTimePicker
           value={
             activePicker === 'from'
@@ -260,8 +265,72 @@ const FilterModal = ({
           mode="date"
           display="default"
           maximumDate={new Date()}
-          onChange={handleDateChange}
+          onChange={handleDateChangeAndroid}
         />
+      )}
+
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={iosDatePickerModalVisible}
+          transparent
+          animationType="none"
+          onRequestClose={handleIosDateCancel}
+        >
+          <View style={styles.overlay}>
+            <View
+              style={[
+                styles.container,
+                {
+                  borderRadius: 0,
+                  marginTop: 'auto',
+                  justifyContent: 'center',
+                },
+              ]}
+            >
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                maximumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) setTempDate(selectedDate);
+                }}
+                style={{ backgroundColor: 'white' }}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  width: '100%',
+                  justifyContent: 'space-around',
+                  paddingVertical: 10,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={handleIosDateCancel}
+                  style={{ padding: 10 }}
+                >
+                  <Text style={{ color: Colors.secondary, fontSize: 18 }}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleIosDateConfirm}
+                  style={{ padding: 10 }}
+                >
+                  <Text
+                    style={{
+                      color: Colors.primary,
+                      fontSize: 18,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Confirm
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </>
   );
@@ -275,11 +344,18 @@ const styles = ScaledSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  container: {
+  modalContainer: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: '20@s',
     borderTopRightRadius: '20@s',
     padding: '20@s',
+    elevation: 10,
+  },
+
+  container: {
+    backgroundColor: Colors.white,
+    flexDirection: 'column',
+    alignItems: 'center',
     elevation: 10,
   },
   title: {
@@ -294,23 +370,33 @@ const styles = ScaledSheet.create({
     marginBottom: '16@vs',
     color: Colors.secondary,
   },
+  sliderContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '10@vs',
+    marginBottom: '10@vs',
+  },
+
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: '-20@vs',
-  },
-  labelText: {
-    marginBottom: '4@vs',
-    fontSize: '12@s',
-    fontWeight: '500',
-    color: '#333',
+    marginTop: -Fonts.sizes.sm,
+    width: 55,
   },
   marker: {
     backgroundColor: Colors.primary,
-    height: '20@s',
-    width: '20@s',
+    height: '15@s',
+    width: '15@s',
     borderRadius: '10@s',
   },
+  labelText: {
+    fontSize: Fonts.sizes.sm,
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'center',
+    flexShrink: 1,
+  },
+
   dateSelect: {
     borderWidth: 1,
     borderColor: Colors.borderColor,
@@ -333,33 +419,6 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: '8@s',
-  },
-  statusBtn: {
-    paddingVertical: '8@vs',
-    paddingHorizontal: '14@s',
-    borderRadius: '8@s',
-    borderWidth: 1,
-    borderColor: Colors.borderColor,
-    marginRight: '8@s',
-    marginBottom: '8@vs',
-  },
-  statusText: {
-    color: Colors.secondary,
-    fontSize: Fonts.sizes.sm,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: '10@vs',
-  },
-  priceInput: {
-    borderWidth: 1,
-    borderColor: Colors.borderColor,
-    borderRadius: '8@s',
-    padding: '8@s',
-    width: '80@s',
-    textAlign: 'center',
-    backgroundColor: '#fff',
   },
   modalButtons: {
     flexDirection: 'row',

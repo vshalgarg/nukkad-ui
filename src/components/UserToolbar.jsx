@@ -34,7 +34,7 @@ const UserToolbar = ({
 
   const cartItems = useSelector(state => state.cart.items);
   const totalItems = cartItems.reduce((total, item) => {
-    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
+    const isPacket = item.product.selectedUnit === 'pkt';
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
 
@@ -157,14 +157,14 @@ const styles = ScaledSheet.create({
     right: '-10@ms',
     backgroundColor: Colors.reject,
     borderRadius: '12@ms',
-    minWidth: '22@ms',
+    width: '22@ms',
     height: '22@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: '4@ms',
   },
   cartBadgeText: {
     color: Colors.white,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

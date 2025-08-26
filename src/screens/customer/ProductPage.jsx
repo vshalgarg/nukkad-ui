@@ -7,6 +7,10 @@ import {
   View,
   ActivityIndicator,
   RefreshControl,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
+  InputAccessoryView,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
@@ -289,39 +293,46 @@ const ProductPage = () => {
           handleSearch(newQuery);
         }}
       />
-
-      <FlashList
-        data={groupedResults}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderCategory}
-        estimatedItemSize={230}
-        ListEmptyComponent={renderEmpty}
-        ListFooterComponent={renderFooter}
-        onEndReached={loadMoreProducts}
-        onEndReachedThreshold={0.2}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingBottom: totalItems > 0 ? 100 : 20,
-          paddingTop: 10,
-          minHeight: keyboardVisible ? '100%' : undefined,
-        }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled={true}
-        drawDistance={2}
-        progressViewOffset={totalItems > 0 ? 60 : 0}
-        extraData={currentPage} // Ensure re-render when page changes
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-        refreshControl={
-          <RefreshControl
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? height * 0.069 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <FlashList
+            data={groupedResults}
+            keyExtractor={item => item.id.toString()}
+            renderItem={renderCategory}
+            estimatedItemSize={230}
+            ListEmptyComponent={renderEmpty}
+            ListFooterComponent={renderFooter}
+            onEndReached={loadMoreProducts}
+            onEndReachedThreshold={0.2}
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingBottom: totalItems > 0 ? 100 : 20,
+              paddingTop: 10,
+              minHeight: keyboardVisible ? '100%' : undefined,
+            }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled={true}
+            drawDistance={2}
+            progressViewOffset={totalItems > 0 ? 60 : 0}
+            extraData={currentPage} // Ensure re-render when page changes
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[Colors.primary]}
+                tintColor={Colors.primary}
+              />
+            }
           />
-        }
-      />
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
 
       {totalItems > 0 && !keyboardVisible && (
         <View style={innerStyle.fixedBottomBanner}>

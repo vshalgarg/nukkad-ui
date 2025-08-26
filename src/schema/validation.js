@@ -7,7 +7,8 @@ export const customerProfileSchema = z.object({
     .min(2, 'Enter valid name')
     .regex(/^[A-Za-z\s]+$/, 'Name must contain only letters'),
   email: z.string().email('Enter valid email'),
-  dob: z.date({ required_error: 'Date of birth is required' }),
+  dob: z.date('DOB is Required'),
+
   addressLine1: z.string().min(2, 'Enter valid Address'),
   landmark: z.string().min(2, 'Please enter a landmark'),
   city: z
@@ -53,7 +54,6 @@ export const storekeeperProfileSchema = z.object({
     .min(2, 'State must contain at least 2 characters')
     .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
   pincode: z.string().regex(/^\d{6}$/, 'Pincode must be exactly 6 digits'),
-
 });
 
 const addressSchema = z.object({
@@ -141,6 +141,6 @@ export const validateAddressData = data => {
   return {
     isValid: false,
     fieldErrors,
-    message: messages[0], 
+    message: messages[0],
   };
 };

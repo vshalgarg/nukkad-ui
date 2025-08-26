@@ -2,6 +2,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -43,13 +45,10 @@ const ShoppingCart = () => {
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
 
-  let pressLock = false;
-
   const dispatch = useDispatch();
 
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(false);
-
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
   const { storeData } = useStore();
@@ -95,17 +94,17 @@ const ShoppingCart = () => {
       }
     }, [fetchCartItems, fromRepeatOrder]),
   );
+
   const totalCount = useMemo(
     () =>
       cartItems.reduce((total, item) => {
         const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
-
         return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
       }, 0),
     [cartItems],
   );
 
-  const handleAddAddress = async () => {
+  const handleAddAddress = () => {
     setMode('add');
     setAddressData(null);
     safePush('AddressForm');
@@ -167,11 +166,11 @@ const ShoppingCart = () => {
     try {
       const res = await placeOrder(payload, token);
       dispatch(clearCart());
-      // You could also emit an event or update state so PlaceOrder screen shows success
+      // Optionally notify success in PlaceOrder screen
     } catch (error) {
       console.error('Error placing order:', error);
       showToast('error', error.message || 'Failed to place order');
-      // Optionally navigate back or show retry in PlaceOrder screen
+      // Optionally handle retry
     } finally {
       setOrderInProgress(false);
     }
@@ -195,6 +194,7 @@ const ShoppingCart = () => {
       </View>
     );
   }
+
   if (cartItems.length === 0) {
     return (
       <View style={styles.pageContainer}>
@@ -217,12 +217,15 @@ const ShoppingCart = () => {
   }
 
   return (
-    <View style={[{ flex: 1 }, styles.pageContainer]}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[{ flex: 1 }, styles.pageContainer]}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0} // adjust offset if needed
+    >
       <BackButton
         style={innerStyle.backButton}
         title={strings.cartTitle(totalCount)}
       />
-
       <FlatList
         data={cartItems}
         keyExtractor={(item, index) =>
@@ -233,9 +236,11 @@ const ShoppingCart = () => {
             item={item}
             openDropdownId={openDropdownId}
             setOpenDropdownId={setOpenDropdownId}
+            inputAccessoryViewID="qty"
           />
         )}
         contentContainerStyle={{ padding: Fonts.sizes.base }}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
           <>
             <Text style={innerStyle.heading}>{strings.deliveryAddress}</Text>
@@ -251,7 +256,14 @@ const ShoppingCart = () => {
                 showChangeAddress={true}
               />
             ) : (
-              <Pressable onPress={handleAddAddress}>
+              <Pressable
+                onPress={handleAddAddress}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginVertical: 10,
+                }}
+              >
                 <Ionicons
                   name="add-circle-outline"
                   size={24}
@@ -281,7 +293,7 @@ const ShoppingCart = () => {
           </>
         }
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -290,7 +302,7 @@ export default ShoppingCart;
 const innerStyle = StyleSheet.create({
   heading: {
     fontSize: Fonts.sizes.base,
-    fontWeight: '800',
+    fontWeight: '700',
     marginBottom: 8,
   },
   buttonText: {
@@ -319,5 +331,8 @@ const innerStyle = StyleSheet.create({
     color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
+  },
+  backButton: {
+    marginBottom: 10,
   },
 });

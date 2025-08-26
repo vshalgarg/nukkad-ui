@@ -30,6 +30,8 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { validateCustomerProfile } from '../../schema/validation';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import DatePicker from '../../components/DatePicker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 let pressLock = false;
 
@@ -37,7 +39,6 @@ const CustomerCreateProfile = () => {
   useBackHandlerControl({ blockBack: true });
   const [name, setName] = useState('');
   const [dob, setDob] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
@@ -51,7 +52,8 @@ const CustomerCreateProfile = () => {
 
   const nameRef = useRef();
   const emailRef = useRef();
-  const addressRef = useRef();
+  const address1ref = useRef();
+  const address2ref = useRef();
   const landmarkRef = useRef();
   const cityRef = useRef();
   const stateRef = useRef();
@@ -80,27 +82,13 @@ const CustomerCreateProfile = () => {
   }, [params]);
 
   const scrollToInput = ref => {
-    if (ref?.current && scrollViewRef?.current) {
-      const inputHandle = findNodeHandle(ref.current);
-      const scrollHandle = findNodeHandle(scrollViewRef.current);
-
-      if (inputHandle && scrollHandle) {
-        InteractionManager.runAfterInteractions(() => {
-          UIManager.measureLayout(
-            inputHandle,
-            scrollHandle,
-            error => {
-              console.log('measureLayout error:', error);
-            },
-            (x, y) => {
-              scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
-              ref.current.focus?.(); // safer optional chaining
-            },
-          );
-        });
-      }
+    if (ref?.current && scrollViewRef?.current?.scrollToFocusedInput) {
+      scrollViewRef.current.scrollToFocusedInput(ref.current, 80);
+    } else {
+      ref?.current?.focus?.();
     }
   };
+
   const formatDateYYYYMMDD = date => {
     if (!(date instanceof Date) || isNaN(date)) return null;
     const year = date.getFullYear();
@@ -109,25 +97,25 @@ const CustomerCreateProfile = () => {
     return `${year}-${month}-${day}`;
   };
 
-  const handleDobChange = (event, selectedDate) => {
-    setShowDatePicker(false);
+  // const handleDobChange = (event, selectedDate) => {
+  //   setShowDatePicker(false);
 
-    if (event.type === 'dismissed') return; // prevent setting date if dismissed
+  //   if (event.type === 'dismissed') return; // prevent setting date if dismissed
 
-    const currentDate = selectedDate || dob;
-    const today = new Date();
+  //   const currentDate = selectedDate || dob;
+  //   const today = new Date();
 
-    // Optional: Validate that DOB is not in the future and user is at least 13 years old
-    const age = today.getFullYear() - currentDate.getFullYear();
-    const isFutureDate = currentDate > today;
+  //   // Optional: Validate that DOB is not in the future and user is at least 13 years old
+  //   const age = today.getFullYear() - currentDate.getFullYear();
+  //   const isFutureDate = currentDate > today;
 
-    if (isFutureDate || age < 13) {
-      setErrors(prev => ({ ...prev, dob: true }));
-    } else {
-      setDob(currentDate);
-      setErrors(prev => ({ ...prev, dob: false }));
-    }
-  };
+  //   if (isFutureDate || age < 13) {
+  //     setErrors(prev => ({ ...prev, dob: true }));
+  //   } else {
+  //     setDob(currentDate);
+  //     setErrors(prev => ({ ...prev, dob: false }));
+  //   }
+  // };
 
   const handleContinue = async () => {
     if (pressLock) return;
@@ -156,7 +144,7 @@ const CustomerCreateProfile = () => {
 
       if (fieldErrors.name) scrollToInput(nameRef);
       else if (fieldErrors.email) scrollToInput(emailRef);
-      else if (fieldErrors.addressLine1) scrollToInput(addressRef);
+      else if (fieldErrors.addressLine1) scrollToInput(address1ref);
       else if (fieldErrors.landmark) scrollToInput(landmarkRef);
       else if (fieldErrors.city) scrollToInput(cityRef);
       else if (fieldErrors.state) scrollToInput(stateRef);
@@ -219,23 +207,22 @@ const CustomerCreateProfile = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <View style={localStyles.createProfileStyling}>
-        <Text style={[localStyles.header, textStyles.subheading]}>
-          {strings.myProfile}
-        </Text>
-      </View>
-
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: Colors.white }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0} // adjust if you have header/navbar
       >
+        <View style={localStyles.createProfileStyling}>
+          <Text style={[localStyles.header, textStyles.subheading]}>
+            {strings.myProfile}
+          </Text>
+        </View>
+
         <ScrollView
+          ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          removeClippedSubviews={true}
           showsVerticalScrollIndicator={false}
-          ref={scrollViewRef}
         >
           <View style={styles.pageContainer}>
             <View style={localStyles.centerContainer}>
@@ -264,6 +251,8 @@ const CustomerCreateProfile = () => {
                   }}
                   autoCapitalize="words"
                   isError={errors.name}
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailRef.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>
@@ -300,50 +289,16 @@ const CustomerCreateProfile = () => {
                   }}
                   maxLength={38}
                   isError={errors.email}
+                  returnKeyType="next"
+                  onSubmitEditing={() => address1ref.current?.focus()}
                 />
-
-                <Text style={localStyles.label}>
-                  {strings.dob} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
-                <Pressable onPress={() => setShowDatePicker(true)}>
-                  <View
-                    style={[
-                      localStyles.dobInput,
-                      errors.dob && { borderColor: Colors.reject },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        fontSize: Fonts.sizes.base,
-                        color: dob ? Colors.secondary : Colors.disabledText,
-                      }}
-                    >
-                      {dob
-                        ? dob.toLocaleDateString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                        : 'Select Date of Birth'}
-                    </Text>
-                  </View>
-                </Pressable>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={dob || new Date(2000, 0, 1)}
-                    mode="date"
-                    display="default"
-                    maximumDate={new Date()}
-                    onChange={handleDobChange}
-                  />
-                )}
 
                 <Text style={localStyles.label}>
                   {strings.addressLine1}
                   <Text style={localStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
-                  ref={addressRef}
+                  ref={address1ref}
                   value={addressLine1}
                   placeholder="Enter Your Address"
                   maxLength={38}
@@ -358,16 +313,21 @@ const CustomerCreateProfile = () => {
                     }
                   }}
                   isError={errors.addressLine1}
+                  returnKeyType="next"
+                  onSubmitEditing={() => address2ref.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>{strings.addressLine2}</Text>
                 <CustomInput
+                  ref={address2ref}
                   value={addressLine2}
                   placeholder="Enter Address Line 2"
                   onTextChange={text =>
                     setAddressLine2(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
                   }
                   maxLength={38}
+                  returnKeyType="next"
+                  onSubmitEditing={() => landmarkRef.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>
@@ -389,6 +349,8 @@ const CustomerCreateProfile = () => {
                   }}
                   maxLength={20}
                   isError={errors.landmark}
+                  returnKeyType="next"
+                  onSubmitEditing={() => cityRef.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>
@@ -410,6 +372,8 @@ const CustomerCreateProfile = () => {
                   }}
                   maxLength={20}
                   isError={errors.city}
+                  returnKeyType="next"
+                  onSubmitEditing={() => stateRef.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>
@@ -431,6 +395,8 @@ const CustomerCreateProfile = () => {
                   }}
                   maxLength={20}
                   isError={errors.state}
+                  returnKeyType="next"
+                  onSubmitEditing={() => pincodeRef.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>
@@ -441,6 +407,7 @@ const CustomerCreateProfile = () => {
                   value={pincode}
                   placeholder="Enter Pincode"
                   keyboardType="number-pad"
+                  inputAccessoryViewID="pincode"
                   maxLength={6}
                   onTextChange={text => {
                     const cleaned = text.replace(/\D/g, '');
@@ -454,6 +421,28 @@ const CustomerCreateProfile = () => {
                   }}
                   isError={errors.pincode}
                 />
+                <Text style={localStyles.label}>
+                  {strings.dob} <Text style={localStyles.mandatory}>*</Text>
+                </Text>
+                <View
+                  style={[
+                    localStyles.dobInput,
+                    errors.dob && {
+                      borderColor: Colors.reject,
+                      borderWidth: 1.5,
+                    },
+                  ]}
+                >
+                  <DatePicker
+                    dob={dob}
+                    setDob={date => {
+                      setDob(date);
+                      if (date instanceof Date && !isNaN(date.getTime())) {
+                        setErrors(prev => ({ ...prev, dob: false }));
+                      }
+                    }}
+                  />
+                </View>
 
                 <View style={localStyles.buttonWrapper}>
                   <CustomButton
