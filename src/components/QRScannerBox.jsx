@@ -22,15 +22,15 @@ import useBackHandlerControl from '../hooks/useBackHandlerControl';
 
 const QRScannerBox = forwardRef(({ onScan }, ref) => {
   useBackHandlerControl({ blockBack: true });
+
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
-
   const cameraRef = useRef();
 
   useImperativeHandle(ref, () => ({
     stopCamera: () => {
       console.log('stopCamera called');
-      // Add pause/stop logic if needed
+      // No direct stop method in CameraKit → unmount <Camera /> to stop
     },
   }));
 
@@ -44,6 +44,8 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
 
   // Request permissions
   useEffect(() => {
+    let isMounted = true;
+
     const requestCameraPermission = async () => {
       if (Platform.OS === 'android') {
         try {
@@ -63,33 +65,52 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
             showToast('error', 'Camera permission denied');
           }
         } catch (err) {
-          console.warn(err);
+          console.warn('Android permission error:', err);
           showToast('error', 'Failed to request permission');
         }
       } else {
+        // iOS
         try {
-          const authorized =
-            await Camera.checkDeviceCameraAuthorizationStatus();
-          console.log(authorized);
+          let status;
+          try {
+            status = await Camera.checkDeviceCameraAuthorizationStatus();
+            console.log('Camera status:', status);
+          } catch (err) {
+            console.warn('checkDeviceCameraAuthorizationStatus threw:', err);
+            // fallback → treat as undetermined
+            status = -1;
+          }
 
-          if (authorized) {
+          if (status === true) {
             setHasPermission(true);
-          } else {
-            const granted = await Camera.requestDeviceCameraAuthorization();
-            if (granted) {
-              setHasPermission(true);
-            } else {
+          } else if (status === -1) {
+            try {
+              console.log('About to request camera auth');
+              const granted = await Camera.requestDeviceCameraAuthorization();
+              console.log('Request result:', granted);
+              setHasPermission(granted);
+              if (!granted) {
+                showToast('error', 'Camera permission denied');
+              }
+            } catch (err) {
+              console.warn('requestDeviceCameraAuthorization threw:', err);
               showToast('error', 'Camera permission denied');
             }
+          } else {
+            showToast('error', 'Camera permission denied');
           }
         } catch (err) {
-          console.warn('iOS permission error:', err);
+          console.warn('Unexpected iOS permission error:', err);
           showToast('error', 'Failed to request permission');
         }
       }
     };
 
     requestCameraPermission();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleBarcodeScanned = event => {
