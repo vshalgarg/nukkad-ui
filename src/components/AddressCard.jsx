@@ -36,15 +36,23 @@ const AddressCard = ({
 
           <View style={styles.addressLines}>
             <Text style={styles.secondaryText}>
-              {[item.addressLine1, item.addressLine2, item.landmark]
+              {[item.addressLine1, item.addressLine2]
                 .filter(Boolean)
-                .join(', ')}
+                .map(line => line.trim() + ',')
+                .join(' ')}
+            </Text>
+
+            <Text style={styles.secondaryText} numberOfLines={2}>
+              {[item.landmark, item.city]
+                .filter(Boolean)
+                .map(line => line.trim() + ',')
+                .join(' ')}
+            </Text>
+
+            <Text style={styles.secondaryText} numberOfLines={2}>
+              {[item.state, item.pincode].filter(Boolean).join(' - ')}
             </Text>
           </View>
-
-          <Text style={styles.cityLine} numberOfLines={2}>
-            {item.city}, {item.state} - {item.pincode}
-          </Text>
         </View>
 
         <View style={styles.actionContainer}>
@@ -132,17 +140,12 @@ const styles = ScaledSheet.create({
   addressLines: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: '4@s',
     marginBottom: '4@vs',
+    paddingRight: '4@s',
   },
   secondaryText: {
     fontSize: Fonts.sizes.sm,
     color: Colors.secondaryText,
-  },
-  cityLine: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.secondaryText,
-    marginTop: '2@vs',
   },
   actionContainer: {
     height: 'auto',
@@ -151,8 +154,10 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-around',
   },
   btnContainer: {
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'flex-end',
+    flex: 1,
+    alignItems: 'stretch',
   },
   editDeleteRow: {
     flexDirection: 'row',

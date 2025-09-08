@@ -18,6 +18,7 @@ export const StoreProvider = ({ children }) => {
 
       if (jsonValue) {
         const parsedStore = JSON.parse(jsonValue);
+        // console.log(parseddata)
         setStoreData(parsedStore);
         console.log(' Loaded selected store from AsyncStorage:', parsedStore);
       }

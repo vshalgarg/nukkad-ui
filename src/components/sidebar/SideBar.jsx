@@ -1,5 +1,5 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -13,22 +13,21 @@ import {
   View,
 } from 'react-native';
 import Share from 'react-native-share';
-
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import { useDialog } from '../../contexts/DialogContext.js';
+import { showToast } from '../../utils/toastUtils.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ProfileImage from '../../../assets/images/ProfileImage.svg';
 import { useProfile } from '../../contexts/profileContext.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
-
 import { useDispatch } from 'react-redux';
 import { clearCart } from '../../store/cartSlice.js';
 import { resetUser } from '../../store/userSlice.js';
-
 import { useAddress } from '../../contexts/addressContext.js';
 import { useStore } from '../../contexts/storeContext.js';
 import Fonts from '../../styles/font.js';
 import Colors from '../../styles/colors.js';
 import { persistor } from '../../store/store.js';
-import { setLoggingOut } from '../../utils/logoutState.js';
 import { useAuth } from '../../contexts/authContext.js';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext.js';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -45,11 +44,13 @@ const SideBar = ({ isVisible, onClose }) => {
   const imageUri = profile?.image;
   const name = `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();
   const email = profile?.email ?? '';
+  const mobile = profile?.mobileNumber || profile?.mobile;
 
   const dispatch = useDispatch();
   const { resetProfile } = useProfile();
   const { resetAddress } = useAddress();
   const { resetStore } = useStore();
+  const { showDialog } = useDialog();
 
   useEffect(() => {
     Animated.timing(slideAnimation, {
@@ -74,7 +75,7 @@ const SideBar = ({ isVisible, onClose }) => {
       Share.open({
         title: 'Share App',
         message:
-          'Check out this app: https://play.google.com/store/apps/details?id=com.your.app',
+          'Start Shopping On Nukkad App: https://play.google.com/store/apps/details?id=com.your.app',
       });
     }
   };
@@ -86,6 +87,8 @@ const SideBar = ({ isVisible, onClose }) => {
       console.warn('Failed to open URL:', url, error);
     }
   };
+  let refer =
+    userRole === 'CUSTOMER' ? 'Refer a Store' : 'Refer to another Store';
   const baseMenuItems = [
     ...(userRole !== 'STOREKEEPER'
       ? [
@@ -96,15 +99,15 @@ const SideBar = ({ isVisible, onClose }) => {
       : []),
     // { name: 'Notifications', icon: 'notifications' },
     // { name: 'Settings', icon: 'settings-sharp' },
-    { name: 'Refer a Store', icon: 'share-social-sharp' },
+    { name: `${refer}`, icon: 'share-social-sharp' },
     { name: 'Refer Store to Customer', icon: 'share-social-sharp' },
-    { name: 'Help and Support', icon: 'help-circle'},
+    { name: 'Help and Support', icon: 'help-circle' },
     { name: 'Privacy Policy', icon: 'shield-half' },
     { name: 'Terms & Conditions', icon: 'document' },
     ...(userRole !== 'STOREKEEPER'
       ? [{ name: 'Rate Store', icon: 'star' }]
       : []),
-    { name: 'Logout', icon: 'log-out' },
+    // { name: 'Logout', icon: 'log-out' },
   ];
 
   const roleBasedItem =
@@ -147,7 +150,7 @@ const SideBar = ({ isVisible, onClose }) => {
 
   const handleOptionClick = async menuName => {
     onClose();
-    if (menuName === 'Refer a Store') {
+    if (menuName === 'Refer a Store' || menuName === 'Refer to another Store') {
       await sharePlayStoreLink();
       return;
     }
@@ -157,36 +160,43 @@ const SideBar = ({ isVisible, onClose }) => {
       return;
     }
 
-    if (menuName === 'Logout') {
-      Alert.alert('Logout', 'Are you sure you want to logout?', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoggingOut(true); // ✅ Prevents back confirmation
-              await persistor.purge();
-              await AsyncStorage.removeItem('authToken');
-              await AsyncStorage.removeItem('userRole');
-              await AsyncStorage.removeItem('storekeeperProfile');
-              await AsyncStorage.clear();
-              dispatch(clearCart());
-              dispatch(resetUser());
-              resetProfile();
-              resetAddress();
-              resetStore();
-              safeReplace('Home');
-            } catch (error) {
-              console.error('Logout failed:', error);
-            } finally {
-              setTimeout(() => setLoggingOut(false), 100);
-            }
-          },
-        },
-      ]);
-      return;
-    }
+    // if (menuName === 'Logout') {
+    //   showDialog({
+    //     title: 'Logout',
+    //     message: 'Are you sure you want to Logout?',
+    //     confirmText: 'Logout',
+    //     cancelText: 'Cancel',
+    //     onCancel: () => {
+    //       console.log('Logout cancelled');
+    //     },
+    //     onConfirm: async () => {
+    //       try {
+    //         setLoggingOut(true); // ✅ Prevents back confirmation
+    //         await persistor.purge();
+    //         await AsyncStorage.removeItem('authToken');
+    //         await AsyncStorage.removeItem('userRole');
+    //         await AsyncStorage.removeItem('storekeeperProfile');
+    //         await AsyncStorage.clear();
+    //         dispatch(clearCart());
+    //         dispatch(resetUser());
+    //         resetProfile();
+    //         resetAddress();
+    //         resetStore();
+    //         safeReplace('Home');
+    //       } catch (error) {
+    //         console.error('Logout failed:', error);
+    //         showToast(
+    //           'error',
+    //           'Failed Logout',
+    //           err?.message || 'Please try again',
+    //         );
+    //       } finally {
+    //         setTimeout(() => setLoggingOut(false), 100);
+    //       }
+    //     },
+
+    //   })
+    // }
 
     const routeName = getRouteForMenuItem(menuName, userRole);
     if (routeName) {
@@ -216,9 +226,12 @@ const SideBar = ({ isVisible, onClose }) => {
                 resizeMode="cover"
               />
             ) : (
-              <View style={{ overflow: 'hidden', borderRadius: 30 }}>
-                <ProfileImage height={60} width={60} />
-              </View>
+              //  (
+              //   <View style={{ overflow: 'hidden', borderRadius: 30 }}>
+              //     <ProfileImage height={60} width={60} />
+              //   </View>
+              // )
+              <EvilIcons name="user" color="#000" size={70} />
             )}
 
             <View style={styles.profileTextContainer}>
@@ -236,7 +249,7 @@ const SideBar = ({ isVisible, onClose }) => {
               >
                 {userRole === 'STOREKEEPER'
                   ? storekeeperProfile?.storeName
-                  : email}
+                  : mobile}
               </Text>
             </View>
           </View>
@@ -317,14 +330,14 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: '20@vs',
-    gap: '10@s',
+    // gap: '10@s',
     width: '100%',
+    // backgroundColor: 'red',
   },
   details: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '90%',
-    gap: '5@s',
   },
   profileImage: {
     width: '60@s',

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Feather';
-import Colors from '../styles/colors'; 
+import Colors from '../styles/colors';
 import { ScaledSheet } from 'react-native-size-matters';
 
 const MAX_IMAGES = 4;
@@ -123,6 +123,7 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    paddingBlock: '10@vs',
   },
   image: {
     width: '60@s',
@@ -155,4 +156,3 @@ const styles = ScaledSheet.create({
 });
 
 export default StoreImageUploader;
-                                                                                                      

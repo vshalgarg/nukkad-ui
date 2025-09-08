@@ -10,7 +10,7 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
-  InputAccessoryView,
+  Dimensions,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
@@ -26,29 +26,45 @@ import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import Fonts from '../../styles/font.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import strings from '../../constants/string.js';
-import { Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height } = Dimensions.get('screen');
+
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
 const ProductPage = () => {
   useBackHandlerControl({ confirmBack: false });
+
   const navigation = useNavigation();
   const route = useRoute();
   const { safePush } = useSafeRouter();
   const search = route?.params?.search || '';
   const categoryId = route?.params?.categoryId;
   const categoryName = route?.params?.categoryName;
+
   const [searchQuery, setSearchQuery] = useState(search);
   const [groupedResults, setGroupedResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const PAGE_SIZE = 10;
+
+  const cartItems = useSelector(state => state.cart.items);
+  const totalItemsInCart = cartItems?.length;
+  const totalItems = cartItems.reduce((total, item) => {
+    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
+    return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
+  }, 0);
 
   const renderCategory = useCallback(
     ({ item: category }) => (
@@ -60,24 +76,27 @@ const ProductPage = () => {
     [],
   );
 
-  const renderEmpty = useCallback(
-    () =>
+  const renderEmpty = useCallback(() => {
+    if (searchQuery.length > 0 && searchQuery.length < 3) {
+      return (
+        <View style={innerStyle.noItemContainer}>
+          <Text style={styles.hintText}>
+            Type at least 3 characters to search
+          </Text>
+        </View>
+      );
+    }
+
+    return (
       !searching && (
         <View style={innerStyle.noItemContainer}>
-          <Text
-            style={{
-              textAlign: 'center',
-              color: Colors.secondaryText,
-              fontSize: Fonts.sizes.base,
-              padding: 15,
-            }}
-          >
+          <Text style={styles.hintText}>
             No products found. Try searching for something else
           </Text>
         </View>
-      ),
-    [searching],
-  );
+      )
+    );
+  }, [searching, searchQuery]);
 
   const renderFooter = useCallback(
     () =>
@@ -90,45 +109,63 @@ const ProductPage = () => {
   );
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
+    );
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
+    );
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
   }, []);
 
-  const cartItems = useSelector(state => state.cart.items);
-  const totalItems = cartItems.reduce((total, item) => {
-    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
-    return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
-  }, 0);
+  // ✅ Actual search logic
+  const handleSearch = async (keyword, page = 0) => {
+    if (!keyword.trim()) return;
+    setSearching(true);
+    try {
+      const response = await searchProducts(keyword, page, PAGE_SIZE);
+      const items = response?.items || [];
+      if (items.length > 0) {
+        setGroupedResults([{ id: 'search', items }]);
+      } else {
+        setGroupedResults([]);
+      }
+      setTotalPages(Math.ceil(response.total / PAGE_SIZE) || 1);
+      setCurrentPage(page);
+    } catch (err) {
+      console.error('Search failed:', err.message);
+      setGroupedResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // ✅ Debounced search
+  const debouncedSearch = useCallback(
+    debounce(query => {
+      if (query.length >= 3) {
+        handleSearch(query);
+      } else {
+        setGroupedResults([]);
+      }
+    }, 400),
+    [],
+  );
 
   useEffect(() => {
-    if (categoryId) {
-      fetchCategoryProducts(0);
+    if (!categoryId) {
+      debouncedSearch(searchQuery);
     }
-  }, [categoryId]);
-
-  useEffect(() => {
-    if (search && !categoryId) {
-      setSearchQuery(search);
-      handleSearch(search);
-    }
-  }, [search, categoryId]);
+  }, [searchQuery, categoryId]);
 
   const loadMoreProducts = async () => {
     if (currentPage >= totalPages - 1 || loadingMore) return;
-
     setLoadingMore(true);
     try {
       const nextPage = currentPage + 1;
-
       if (categoryId) {
         const { items, total } = await getProductsByCategory(
           categoryId,
@@ -137,10 +174,8 @@ const ProductPage = () => {
         );
         if (items?.length) {
           setGroupedResults(prev => {
-            // Create a deep copy to ensure state updates
             const newState = JSON.parse(JSON.stringify(prev));
             if (newState.length > 0) {
-              // Filter out any potential duplicates
               const existingIds = new Set(
                 newState[0].items.map(item => item.id),
               );
@@ -154,7 +189,7 @@ const ProductPage = () => {
           setCurrentPage(nextPage);
           setTotalPages(Math.ceil(total / PAGE_SIZE));
         }
-      } else if (searchQuery) {
+      } else if (searchQuery.length >= 3) {
         const { items, total } = await searchProducts(
           searchQuery,
           nextPage,
@@ -185,29 +220,6 @@ const ProductPage = () => {
     }
   };
 
-  const handleSearch = async (keyword, page = 0) => {
-    if (!keyword.trim()) return;
-    setSearching(true);
-    try {
-      const response = await searchProducts(keyword, page, PAGE_SIZE);
-      const items = response?.items || [];
-
-      if (items.length > 0) {
-        setGroupedResults([{ id: 'search', items }]);
-      } else {
-        setGroupedResults([]); // ✅ triggers ListEmptyComponent
-      }
-
-      setTotalPages(Math.ceil(response.total / PAGE_SIZE) || 1);
-      setCurrentPage(page);
-    } catch (err) {
-      console.error('Search failed:', err.message);
-      setGroupedResults([]); // also show empty
-    } finally {
-      setSearching(false);
-    }
-  };
-
   const fetchCategoryProducts = async (page = 0) => {
     setSearching(true);
     try {
@@ -215,12 +227,11 @@ const ProductPage = () => {
       const cached = await AsyncStorage.getItem(cacheKey);
       const cachedData = cached ? JSON.parse(cached) : null;
 
-      if (cachedData && cachedData.items?.length > 0) {
+      if (cachedData?.items?.length > 0) {
         setGroupedResults([cachedData]);
         setTotalPages(Math.ceil(cachedData.total / PAGE_SIZE) || 1);
         setCurrentPage(page);
 
-        // Background check for updates
         getProductsByCategory(categoryId, 0, PAGE_SIZE)
           .then(({ items, total }) => {
             if (total > cachedData.total) {
@@ -241,10 +252,9 @@ const ProductPage = () => {
           );
 
         setSearching(false);
-        return; // ✅ Skip full API call if cached
+        return;
       }
 
-      // No cache → normal fetch
       const { items, total } = await getProductsByCategory(
         categoryId,
         page,
@@ -268,12 +278,18 @@ const ProductPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (categoryId) {
+      fetchCategoryProducts(0);
+    }
+  }, [categoryId]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       if (categoryId) {
         await fetchCategoryProducts(0);
-      } else if (searchQuery) {
+      } else if (searchQuery.length >= 3) {
         await handleSearch(searchQuery, 0);
       }
     } catch (err) {
@@ -285,14 +301,16 @@ const ProductPage = () => {
 
   return (
     <View style={[styles.pageContainer, { flex: 1, backgroundColor: 'white' }]}>
-      <UserToolbar hideNotification={true} hideMenu={true} />
+      <UserToolbar hideNotification hideMenu />
       <SearchContainer
         query={searchQuery}
         onSearchSubmit={newQuery => {
           setSearchQuery(newQuery);
           handleSearch(newQuery);
         }}
+        autoSearchOnThreeLetters={true} // enable auto search after 3 letters here
       />
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -316,10 +334,10 @@ const ProductPage = () => {
             }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            nestedScrollEnabled={true}
+            nestedScrollEnabled
             drawDistance={2}
             progressViewOffset={totalItems > 0 ? 60 : 0}
-            extraData={currentPage} // Ensure re-render when page changes
+            extraData={currentPage}
             refreshing={refreshing}
             onRefresh={handleRefresh}
             refreshControl={
@@ -337,7 +355,7 @@ const ProductPage = () => {
       {totalItems > 0 && !keyboardVisible && (
         <View style={innerStyle.fixedBottomBanner}>
           <Text style={innerStyle.popupText}>
-            <Text>{strings.productCount(totalItems)}</Text>
+            {strings.productCount(totalItemsInCart)}
           </Text>
           <TouchableOpacity
             style={innerStyle.goToCartButton}
@@ -394,6 +412,12 @@ const innerStyle = StyleSheet.create({
     color: Colors.white,
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
+  },
+  hintText: {
+    textAlign: 'center',
+    color: Colors.secondaryText,
+    fontSize: Fonts.sizes.base,
+    padding: 15,
   },
 });
 

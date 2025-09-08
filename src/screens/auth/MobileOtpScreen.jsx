@@ -85,7 +85,6 @@ const MobileOtpScreen = () => {
       );
     }
   };
-
   const handleSendOtp = () => {
     if (!mobile || mobile.length < 10) {
       showToast(
@@ -158,9 +157,8 @@ const MobileOtpScreen = () => {
               err.message,
             );
           }
-          safePush('CustomerDashboard', {
-            toast: JSON.stringify(returingUserToastPayload),
-          });
+          safePush('CustomerDashboard');
+          showToast('success', `${strings.Welcome}`);
         } else {
           safePush('CustomerCreateProfile', {
             toast: JSON.stringify(toastPayload),
@@ -177,6 +175,8 @@ const MobileOtpScreen = () => {
         } else {
           safePush('StorekeeperCreateProfile', {
             toast: JSON.stringify(toastPayload),
+            mobile,
+            role,
           });
         }
       }
@@ -225,18 +225,6 @@ const MobileOtpScreen = () => {
 
           <Text
             style={[
-              localStyles.sendOtpText,
-              sendOtpClicked
-                ? localStyles.sendOtpDisabled
-                : localStyles.sendOtpEnabled,
-            ]}
-            onPress={!sendOtpClicked ? handleSendOtp : null}
-          >
-            {strings.sendOtp}
-          </Text>
-
-          <Text
-            style={[
               localStyles.otpPrompt,
               !otpEnabled && { borderColor: Colors.disabledText, opacity: 0.2 },
             ]}
@@ -260,7 +248,14 @@ const MobileOtpScreen = () => {
           />
 
           <View style={localStyles.resendContainer}>
-            <Text>{strings.havnotReceivedOtp}</Text>
+            <Text
+              style={[
+                localStyles.haventReceivedText,
+                (!canResend || !sendOtpClicked) && localStyles.textDisabled,
+              ]}
+            >
+              {strings.havnotReceivedOtp}
+            </Text>
             <Pressable
               onPress={handleResendOtp}
               disabled={!canResend || !sendOtpClicked}
@@ -271,7 +266,7 @@ const MobileOtpScreen = () => {
                   canResend && sendOtpClicked
                     ? localStyles.resendEnabled
                     : sendOtpClicked
-                    ? localStyles.resendWaiting // <-- New intermediate style
+                    ? localStyles.resendWaiting
                     : localStyles.resendDisabled,
                 ]}
               >
@@ -283,27 +278,26 @@ const MobileOtpScreen = () => {
               </Text>
             </Pressable>
           </View>
-
-          <View style={localStyles.policyContainer}>
-            <Text style={localStyles.policyText}>
-              {strings.agreeTo}
-              <Text
-                onPress={() =>
-                  Linking.openURL('https://policies.google.com/terms?hl=en-US')
-                }
-                style={localStyles.underline}
-              >
-                {strings.termsAndConditions}
-              </Text>
-            </Text>
-          </View>
         </View>
         <View style={localStyles.loginBtn}>
           <CustomButton
-            onPress={handleLogin}
-            title={strings.login}
-            disabled={!otpEnabled}
+            onPress={sendOtpClicked ? handleLogin : handleSendOtp}
+            title={sendOtpClicked ? strings.login : strings.sendOtp}
+            disabled={sendOtpClicked ? !otpEnabled : mobile.length !== 10}
           />
+        </View>
+        <View style={localStyles.policyContainer}>
+          <Text style={localStyles.policyText}>
+            {strings.agreeTo}
+            <Text
+              onPress={() =>
+                Linking.openURL('https://policies.google.com/terms?hl=en-US')
+              }
+              style={localStyles.underline}
+            >
+              {strings.termsAndConditions}
+            </Text>
+          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -351,7 +345,7 @@ const localStyles = ScaledSheet.create({
     fontWeight: '500',
     color: Colors.secondaryText,
     textAlign: 'center',
-    marginBottom: '12@vs',
+    marginBlock: '12@vs',
   },
   resendContainer: {
     flexDirection: 'row',
@@ -373,7 +367,7 @@ const localStyles = ScaledSheet.create({
     opacity: 0.2,
   },
   resendWaiting: {
-    color: Colors.disabled,
+    color: Colors.disabledText,
     opacity: 0.6,
   },
   policyContainer: {
@@ -391,8 +385,16 @@ const localStyles = ScaledSheet.create({
     color: Colors.secondary,
   },
   loginBtn: {
-    marginTop: '40@vs',
+    marginBlock: '20@vs',
     width: '100%',
     alignItems: 'center',
+  },
+  haventReceivedText: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.secondary,
+  },
+  textDisabled: {
+    color: Colors.disabledText,
+    opacity: 0.2,
   },
 });

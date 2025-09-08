@@ -159,7 +159,14 @@ export default function MyStores() {
               numberOfLines={3}
               ellipsizeMode="tail"
             >
-              {[item.addressLine1, item.addressLine2, item.landmark, item.city]
+              {[
+                item.addressLine1,
+                item.addressLine2,
+                item.landmark,
+                item.city,
+                item?.country,
+                item?.pincode,
+              ]
                 .filter(Boolean)
                 .join(', ')}
             </Text>
@@ -377,10 +384,17 @@ const innerStyle = ScaledSheet.create({
   },
 
   btnContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: '20@vs',
-    marginBottom: '20@vs',
+    backgroundColor: Colors.white,
+    padding: '10',
+    paddingHorizontal: '30',
+    borderTopWidth: 1,
+    borderColor: Colors.borderColor,
   },
 });

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -177,17 +176,22 @@ const PaymentOptions = () => {
                   <Ionicons
                     name="qr-code-outline"
                     size={60}
-                    color={Colors.borderColor}
+                    color={Colors.secondary}
                   />
                   <Text style={innerStyle.placeholderText}>
-                    {strings.noQrUploaded}
+                    {strings.selectQr}
                   </Text>
                 </TouchableOpacity>
               )}
 
               <TouchableOpacity
-                style={innerStyle.uploadBtn}
+                style={[
+                  innerStyle.uploadBtn,
+                  !previewImages[index] &&
+                    !qr?.qrImageUrl && { backgroundColor: Colors.borderColor },
+                ]}
                 onPress={() => handleUploadImage(index, qr)}
+                disabled={!previewImages[index] && !qr?.qrImageUrl}
               >
                 <Feather name="upload" size={16} color={Colors.white} />
                 <Text style={innerStyle.uploadBtnText}>
@@ -286,8 +290,8 @@ const innerStyle = ScaledSheet.create({
   qrImageContainer: {
     position: 'relative',
     alignSelf: 'center',
-    justifyContent:"center",
-    alignItems:"center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: '14@ms',
     width: '200@ms',
     height: '200@ms',
@@ -323,7 +327,7 @@ const innerStyle = ScaledSheet.create({
   placeholderText: {
     marginTop: '8@ms',
     fontSize: Fonts.sizes.sm,
-    color: Colors.borderColor,
+    color: Colors.secondary,
   },
   uploadBtn: {
     flexDirection: 'row',

@@ -24,9 +24,12 @@ import { ScaledSheet } from 'react-native-size-matters';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
+import StateDropdown from '../../components/StateDropdown';
+import CityDropdown from '../../components/CityDropdown';
 
 const AddressForm = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null); // 'state' | 'city' | null
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => {
@@ -170,11 +173,13 @@ const AddressForm = () => {
         firstErrorMessage = 'Please enter city.';
         firstInvalidRef = cityRef;
       }
-    } else if (!/^[a-zA-Z\s]+$/.test(trimmedCity)) {
-      newErrors.city = true;
+    }
+
+    if (!trimmedState) {
+      newErrors.state = true;
       if (!firstErrorMessage) {
-        firstErrorMessage = 'City can only contain letters and spaces.';
-        firstInvalidRef = cityRef;
+        firstErrorMessage = 'Please enter state.';
+        firstInvalidRef = stateRef;
       }
     }
 
@@ -352,30 +357,51 @@ const AddressForm = () => {
             />
           </View>
 
+          {/* StateS */}
+          <View>
+            <Text style={formStyles.label}>
+              {strings.state} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <StateDropdown
+              selectedState={state}
+              onSelectState={val => {
+                setState(val);
+                setCity(''); // Reset city if state changes
+                setErrors(prev => ({
+                  ...prev,
+                  state: prev.state ? !val : false,
+                  city: false, // reset city error if any
+                }));
+              }}
+              error={errors.state}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="state"
+            />
+          </View>
+
           {/* City */}
           <View>
             <Text style={formStyles.label}>
               {strings.city} <Text style={formStyles.mandatory}>*</Text>
             </Text>
-            <CustomInput
-              ref={cityRef}
-              placeholder="Enter Your City"
-              value={city}
-              maxLength={20}
-              autoCapitalize="sentences"
-              onTextChange={text => {
-                setCity(text);
-                if (errors.city && text.trim().length > 0) {
-                  setErrors(prev => ({ ...prev, city: false }));
-                }
+            <CityDropdown
+              selectedState={state}
+              selectedCity={city}
+              onSelectCity={val => {
+                setCity(val);
+                setErrors(prev => ({
+                  ...prev,
+                  city: prev.city ? !val : false,
+                }));
               }}
-              isError={errors.city}
+              error={errors.city}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="city"
             />
-          </View>
 
-          {/* State */}
-          <View>
-            <Text style={formStyles.label}>
+            {/* <Text style={formStyles.label}>
               {strings.state} <Text style={formStyles.mandatory}>*</Text>
             </Text>
             <CustomInput
@@ -391,9 +417,25 @@ const AddressForm = () => {
                 }
               }}
               isError={errors.state}
-            />
+            /> */}
           </View>
-
+          {/* <Text style={formStyles.label}>
+              {strings.city} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={cityRef}
+              placeholder="Enter Your City"
+              value={city}
+              maxLength={20}
+              autoCapitalize="sentences"
+              onTextChange={text => {
+                setCity(text);
+                if (errors.city && text.trim().length > 0) {
+                  setErrors(prev => ({ ...prev, city: false }));
+                }
+              }}
+              isError={errors.city}
+            /> */}
           {/* Pincode */}
           <View>
             <Text style={formStyles.label}>
@@ -417,11 +459,11 @@ const AddressForm = () => {
               isError={errors.pincode}
             />
           </View>
-          <View style={formStyles.buttonContainer}>
-            <CustomButton title={strings.continue} onPress={handleContinue} />
-          </View>
         </View>
       </KeyboardAwareScrollView>
+      <View style={formStyles.buttonContainer}>
+        <CustomButton title={strings.continue} onPress={handleContinue} />
+      </View>
       {/* </TouchableWithoutFeedback> */}
     </View>
   );
@@ -431,11 +473,10 @@ export default AddressForm;
 
 const formStyles = ScaledSheet.create({
   scrollContent: {
-    paddingBottom: '20@vs',
     backgroundColor: Colors.white,
   },
   centerContainer: {
-    flex: 1,
+    flexGrow: 1,
     marginTop: '15@vs',
     paddingHorizontal: '20@s',
     justifyContent: 'flex-start',
@@ -453,9 +494,8 @@ const formStyles = ScaledSheet.create({
     color: Colors.reject,
   },
   buttonContainer: {
-    marginTop: '40@vs',
+    paddingVertical: '10@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: '30@vs',
   },
 });

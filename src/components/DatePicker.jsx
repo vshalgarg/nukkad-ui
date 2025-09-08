@@ -8,6 +8,7 @@ import {
   Modal,
   Platform,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Colors from '../styles/colors';
@@ -18,11 +19,13 @@ const DatePicker = ({ dob, setDob, error }) => {
   const [tempDate, setTempDate] = useState(dob || new Date(2000, 0, 1));
 
   const handleConfirm = () => {
+    Keyboard.dismiss();
     setDob(tempDate);
     setShowPicker(false);
   };
 
   const handleCancel = () => {
+    Keyboard.dismiss();
     setShowPicker(false);
     setTempDate(dob || new Date(2000, 0, 1));
   };
@@ -103,7 +106,7 @@ export default DatePicker;
 
 const styles = StyleSheet.create({
   dobInput: {
-    height: 40,
+    height: '40@vs',
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: Colors.inputBorder,

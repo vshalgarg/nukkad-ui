@@ -152,7 +152,18 @@ const CartItem = ({ item, openDropdownId, setOpenDropdownId }) => {
                 }
                 style={styles.unitSelector}
               >
-                <Text style={styles.unitText}>{selectedUnit || 'Unit'}</Text>
+                <View style={styles.unitRow}>
+                  <Text style={styles.unitText}>{selectedUnit || 'Unit'}</Text>
+                  <MaterialIcons
+                    name={
+                      isDropdownOpen
+                        ? 'keyboard-arrow-up'
+                        : 'keyboard-arrow-down'
+                    }
+                    size={18}
+                    color={Colors.secondary}
+                  />
+                </View>
               </Pressable>
             )}
 
@@ -244,19 +255,26 @@ const styles = ScaledSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: '8@ms',
-    paddingHorizontal: '7@ms',
+    paddingHorizontal: '5@ms',
     paddingVertical: '8@ms',
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     width: '55@ms',
     height: '38@ms',
   },
+  unitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+
   unitText: {
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
     color: Colors.secondary,
-    marginRight: 6,
   },
   dropdown: {
     position: 'absolute',

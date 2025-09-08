@@ -46,11 +46,13 @@ const CustomInput = forwardRef(function CustomInput(
   };
 
   const actualKeyboardType = keyboardType || 'default';
+
+  // Show Done button only on iOS and when keyboardType is number-pad
   // Show Done button only on iOS and when keyboardType is number-pad
   const showDoneButton =
     Platform.OS === 'ios' &&
     actualKeyboardType === 'number-pad' &&
-    inputAccessoryViewID;
+    !!inputAccessoryViewID;
 
   return (
     <View style={styles.wrapper}>
@@ -134,7 +136,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.secondary,
-    borderRadius: '50@ms',
+    borderRadius: 50,
     height: '40@vs',
     paddingHorizontal: '15@ms',
     backgroundColor: Colors.white,

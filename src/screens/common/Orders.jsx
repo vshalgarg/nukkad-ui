@@ -233,7 +233,11 @@ const Orders = () => {
                       </Text>
                       {(item.orderStatus === 'DELIVERED' ||
                         item.orderStatus === 'DISPATCHED') && (
-                        <Text> &#8377;{itm.price}</Text>
+                        <Text>
+                          {itm.price == null || isNaN(itm.price)
+                            ? 'Out of Stock'
+                            : `₹${itm.price}`}
+                        </Text>
                       )}
                     </View>
                     <View

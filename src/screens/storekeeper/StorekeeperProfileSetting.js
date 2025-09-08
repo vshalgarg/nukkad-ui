@@ -24,7 +24,9 @@ import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../../styles/font';
 import { Dimensions } from 'react-native';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-
+import { useLogout } from '../../hooks/useLogout';
+import CityDropdown from '../../components/CityDropdown';
+import StateDropdown from '../../components/StateDropdown';
 const { width } = Dimensions.get('screen');
 const profileSchema = z.object({
   name: z
@@ -48,22 +50,22 @@ const profileSchema = z.object({
     .string()
     .min(1, 'Address is required')
     .max(100, "Address can't be more that 100 characters"),
-  addressLine2: z
-    .string()
-    .min(1, 'Address is required')
-    .max(100, "Address can't be more that 100 characters"),
+  // addressLine2: z
+  //   .string()
+  //   .min(1, 'Address is required')
+  //   .max(100, "Address can't be more that 100 characters"),
   landmark: z
     .string()
     .min(1, 'Landmark is required')
     .max(200, "Landmark can't be more that 100 characters"),
-  city: z
-    .string()
-    .min(1, 'City is required')
-    .max(30, "City can't be more that 30 characters"),
-  state: z
-    .string()
-    .min(1, 'State is required')
-    .max(30, "State can't be more that 30 characters"),
+  // city: z
+  //   .string()
+  //   .min(1, 'City is required')
+  //   .max(30, "City can't be more that 30 characters"),
+  // state: z
+  //   .string()
+  //   .min(1, 'State is required')
+  //   .max(30, "State can't be more that 30 characters"),
   pincode: z
     .string()
     .min(6, 'Pincode must be 6 digits long')
@@ -88,8 +90,8 @@ const fieldGroups = [
       { label: 'Address Line 1', key: 'addressLine1' },
       { label: 'Address Line 2', key: 'addressLine2' },
       { label: 'Landmark', key: 'landmark' },
-      { label: 'City', key: 'city' },
       { label: 'State', key: 'state' },
+      { label: 'City', key: 'city' },
       { label: 'Pincode', key: 'pincode' },
     ],
   },
@@ -100,7 +102,13 @@ const StorekeeperProfileScreen = () => {
     useStorekeeperProfile();
   const { token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  const { confirmLogout } = useLogout();
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     storeName: '',
@@ -173,11 +181,11 @@ const StorekeeperProfileScreen = () => {
   const scrollToError = firstErrorKey => {
     const fieldRef = fieldRefs[firstErrorKey]?.current;
     if (fieldRef) {
-      fieldRef.focus();
+      a = fieldRef.focus();
       // For scrolling, we'll use a simpler approach
-      fieldRef.measure((x, y, width, height, pageX, pageY) => {
-        scrollViewRef.current?.scrollTo({ y: pageY - 100, animated: true });
-      });
+      // fieldRef.measure((x, y, width, height, pageX, pageY) => {
+      //   scrollViewRef.current?.scrollTo({ y: a - 50, animated: true });
+      // });s
     }
   };
   useEffect(() => {
@@ -199,11 +207,35 @@ const StorekeeperProfileScreen = () => {
   useEffect(() => {
     if (storekeeperProfile) {
       setProfile({ ...storekeeperProfile });
+      setSelectedState(storekeeperProfile.state || '');
+      setSelectedCity(storekeeperProfile.city || '');
     }
   }, [storekeeperProfile]);
 
+  const handleStateChange = value => {
+    setSelectedState(value);
+    setSelectedCity(''); // reset city on state change
+    setFieldErrors(prev => ({
+      ...prev,
+      state: '',
+      city: '',
+    }));
+  };
+
+  const handleCityChange = value => {
+    setSelectedCity(value);
+    setFieldErrors(prev => ({
+      ...prev,
+      city: '',
+    }));
+  };
   const handleChange = (key, value) => {
     setProfile(prev => ({ ...prev, [key]: value }));
+    setFieldErrors(prev => ({
+      ...prev,
+      [key]: '',
+    }));
+
     if (isEditing) {
       validateSingleField(key, value);
     }
@@ -211,7 +243,6 @@ const StorekeeperProfileScreen = () => {
 
   const validateSingleField = (key, value) => {
     try {
-      // Create a subset of your schema for just this field
       const fieldSchema = profileSchema.pick({ [key]: true });
       fieldSchema.parse({ [key]: value });
       setFieldErrors(prev => ({ ...prev, [key]: '' }));
@@ -220,11 +251,11 @@ const StorekeeperProfileScreen = () => {
       if (error instanceof z.ZodError) {
         const errorMessage = error.errors[0].message;
         setFieldErrors(prev => ({ ...prev, [key]: errorMessage }));
-        return false;
       }
       return false;
     }
   };
+
   const handleImagePick = index => {
     const options = {
       mediaType: 'photo',
@@ -252,16 +283,19 @@ const StorekeeperProfileScreen = () => {
     });
   };
   const handleSave = async () => {
-    // Validate all fields first
     let isValid = true;
     let firstErrorKey = null;
     const fieldsToValidate = Object.keys(fieldErrors);
 
+    const tempProfile = {
+      ...profile,
+      state: selectedState,
+      city: selectedCity,
+    };
+
     fieldsToValidate.forEach(key => {
-      if (!validateSingleField(key, profile[key])) {
-        if (!firstErrorKey) {
-          firstErrorKey = key;
-        }
+      if (!validateSingleField(key, tempProfile[key])) {
+        if (!firstErrorKey) firstErrorKey = key;
         isValid = false;
       }
     });
@@ -271,7 +305,6 @@ const StorekeeperProfileScreen = () => {
       return;
     }
 
-    // Rest of your save logic remains the same
     const allowedFields = [
       'name',
       'storeName',
@@ -288,7 +321,7 @@ const StorekeeperProfileScreen = () => {
     ];
 
     const filteredProfile = allowedFields.reduce((acc, key) => {
-      acc[key] = profile[key];
+      acc[key] = tempProfile[key];
       return acc;
     }, {});
 
@@ -308,6 +341,7 @@ const StorekeeperProfileScreen = () => {
       });
     }
   };
+
   const maxLengths = {
     name: 30,
     storeName: 30,
@@ -326,21 +360,25 @@ const StorekeeperProfileScreen = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <BackButton title={strings.profileSetting} />
-        <View style={{ marginVertical: 20 }}>
-          <TouchableOpacity
-            style={[styles.editIcon, isEditing && styles.cancelButton]}
-            onPress={() => setIsEditing(!isEditing)}
-          >
-            <Icon
-              name={isEditing ? 'x' : 'edit'}
-              size={23}
-              color={isEditing ? Colors.reject : Colors.secondary}
-            />
-          </TouchableOpacity>
-        </View>
+        {/* <View style={{ marginVertical: 20 }}>
+        <TouchableOpacity
+          style={[
+            styles.editIcon,
+            isEditing && styles.cancelButton
+          ]}
+          onPress={() => setIsEditing(!isEditing)}
+        >
+          <Icon
+            name={isEditing ? "x" : "edit"}
+            size={23}
+            color={isEditing ? Colors.reject : Colors.secondary}
+          />
+
+        </TouchableOpacity>
+      </View> */}
 
         <ScrollView
           ref={scrollViewRef}
@@ -399,8 +437,24 @@ const StorekeeperProfileScreen = () => {
         </ScrollView>
       </KeyboardAvoidingView>
       {isEditing && !keyboardVisible && (
-        <View style={styles.saveButtonContainer}>
+        <View style={styles.ButtonContainer}>
           <CustomButton title={strings.saveChanges} onPress={handleSave} />
+        </View>
+      )}
+      {!isEditing && (
+        <View style={styles.saveButtonContainer}>
+          <CustomButton
+            title={'Edit'}
+            onPress={() => setIsEditing(!isEditing)}
+          />
+          <CustomButton
+            title={'Logout'}
+            style={{
+              backgroundColor: Colors.reject,
+              borderColor: Colors.reject,
+            }}
+            onPress={confirmLogout}
+          />
         </View>
       )}
     </View>
@@ -425,6 +479,54 @@ const StorekeeperProfileScreen = () => {
       );
     }
 
+    if (key === 'state') {
+      return (
+        <View style={styles.inputContainer} key={key}>
+          <Text style={styles.label}>{label}</Text>
+          {isEditing ? (
+            <StateDropdown
+              selectedState={selectedState}
+              onSelectState={handleStateChange}
+              error={!!fieldErrors.state}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="state"
+            />
+          ) : (
+            <CustomInput value={selectedState} editable={false} />
+          )}
+          {fieldErrors.state && (
+            <Text style={styles.errorText}>{fieldErrors.state}</Text>
+          )}
+        </View>
+      );
+    }
+
+    if (key === 'city') {
+      return (
+        <View style={styles.inputContainer} key={key}>
+          <Text style={styles.label}>{label}</Text>
+          {isEditing ? (
+            <CityDropdown
+              selectedState={selectedState}
+              selectedCity={selectedCity}
+              onSelectCity={handleCityChange}
+              error={!!fieldErrors.city}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="city"
+            />
+          ) : (
+            <CustomInput value={selectedCity} editable={false} />
+          )}
+          {fieldErrors.city && (
+            <Text style={styles.errorText}>{fieldErrors.city}</Text>
+          )}
+        </View>
+      );
+    }
+
+    // Default: render normal text input
     return (
       <View style={styles.inputContainer} key={key}>
         <Text style={styles.label}>{label}</Text>
@@ -468,6 +570,7 @@ const styles = ScaledSheet.create({
   container: {
     paddingHorizontal: '20@s',
     backgroundColor: Colors.white,
+    marginTop: 30,
   },
   header: {
     fontSize: Fonts.sizes.lg,
@@ -564,11 +667,27 @@ const styles = ScaledSheet.create({
     color: Colors.secondary,
   },
   saveButtonContainer: {
-    height: '70@vs',
+    flexDirection: 'row',
+    // height: '70@vs',
+    paddingVertical: '10@vs',
+
+    paddingHorizontal: '20@s',
+    // width:"90%",
+    backgroundColor: Colors.white,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ButtonContainer: {
+    flexDirection: 'row',
+    // height: '70@vs',
+    paddingVertical: '10@vs',
+    paddingHorizontal: '20@s',
+    // width:"90%",
     backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   imageContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

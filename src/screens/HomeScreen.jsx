@@ -78,7 +78,7 @@ const localStyles = ScaledSheet.create({
     fontSize: Fonts.sizes.xxl,
     marginBottom: '20@vs',
     fontWeight: 'bold',
-    color: Colors.primaryText,
+    color: Colors.secondary,
     textAlign: 'center',
   },
   buttonContainer: {

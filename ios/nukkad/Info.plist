@@ -32,9 +32,9 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required to scan QR codes</string>
+	<string>App needs access to your camera to scan QR codes</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>App needs to access you location</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>App needs access to your photo library to upload store images.</string>
 	<key>RCTNewArchEnabled</key>
@@ -47,6 +47,10 @@
 		<string>AntDesign.ttf</string>
 		<string>FontAwesome.ttf</string>
 		<string>MaterialIcons.ttf</string>
+		<string>EvilIcons.ttf</string>
+		<string>FontAwesome5_Brands.ttf</string>
+  		<string>FontAwesome5_Regular.ttf</string>
+  		<string>FontAwesome5_Solid.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

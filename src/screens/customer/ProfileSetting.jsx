@@ -17,9 +17,9 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import CameraIcon from '../../../assets/images/Camera.svg';
 import ProfileImage from '../../../assets/images/ProfileImage.svg';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 import { useProfile } from '../../contexts/profileContext';
@@ -36,6 +36,10 @@ import { useAddress } from '../../contexts/addressContext';
 import { useStore } from '../../contexts/storeContext';
 import { useDispatch } from 'react-redux';
 import { ScaledSheet } from 'react-native-size-matters';
+import { useDialog } from '../../contexts/DialogContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistor } from '../../store/store.js';
+import { useLogout } from '../../hooks/useLogout.jsx';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const formatDate = date => {
@@ -50,10 +54,13 @@ const ProfileSetting = () => {
   const scrollRef = useRef();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const firstNameRef = useRef(null);
-  const { resetProfile } = useProfile();
-  const { resetAddress } = useAddress();
-  const { resetStore } = useStore();
+  // const { resetProfile } = useProfile();
+  // const { resetAddress } = useAddress();
+  // const { resetStore } = useStore();
   const dispatch = useDispatch();
+  // const { showDialog } = useDialog();
+  const { confirmLogout } = useLogout();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const { safePush } = useSafeRouter();
   const { token, role } = useAuth();
@@ -67,7 +74,6 @@ const ProfileSetting = () => {
     role: role || '',
     dob: '',
   });
-
   const [DOB, setDOB] = useState('');
   const [dobDate, setDobDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
@@ -123,6 +129,21 @@ const ProfileSetting = () => {
     fetchProfile();
     return () => {
       isMounted = false;
+    };
+  }, []);
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => setKeyboardVisible(true),
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setKeyboardVisible(false),
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
     };
   }, []);
 
@@ -219,7 +240,6 @@ const ProfileSetting = () => {
 
   const handlePress = () => {
     safePush('CustomerDashboard');
-    showToast('success', 'Profile Updated Successfully');
   };
 
   const handleDeleteAccount = () => {
@@ -227,30 +247,67 @@ const ProfileSetting = () => {
     setShowDeleteModal(true);
   };
 
-  const cancelEdit = () => {
-    setIsEditing(false);
-    setProfile({
-      firstName: profileData?.firstName || '',
-      lastName: profileData?.lastName || '',
-      email: profileData?.email || '',
-      image: profileData?.image || '',
-      role: profileData?.role || role || '',
-      dob: profileData?.dob || '',
-      mobileNumber: profileData?.mobileNumber,
-    });
+  // const handleLogout = () => {
+  //   showDialog({
+  //     title: 'Logout',
+  //     message: 'Are you sure you want to Logout?',
+  //     confirmText: 'Logout',
+  //     cancelText: 'Cancel',
+  //     onCancel: () => {
+  //       console.log('Logout cancelled');
+  //     },
+  //     onConfirm: async () => {
+  //       try {
+  //         setLoggingOut(true); // ✅ Prevents back confirmation
+  //         await persistor.purge();
+  //         await AsyncStorage.removeItem('authToken');
+  //         await AsyncStorage.removeItem('userRole');
+  //         await AsyncStorage.removeItem('storekeeperProfile');
+  //         await AsyncStorage.clear();
+  //         dispatch(clearCart());
+  //         dispatch(resetUser());
+  //         resetProfile();
+  //         resetAddress();
+  //         resetStore();
+  //         safeReplace('Home');
+  //       } catch (error) {
+  //         console.error('Logout failed:', error);
+  //         showToast(
+  //           'error',
+  //           'Failed Logout',
+  //           err?.message || 'Please try again',
+  //         );
+  //       } finally {
+  //         setTimeout(() => setLoggingOut(false), 100);
+  //       }
+  //     },
+  //   });
+  // };
 
-    if (profileData?.dob) {
-      setDOB(formatDate(profileData.dob));
-      setDobDate(new Date(profileData.dob));
-    }
-  };
+  // const cancelEdit = () => {
+  //   setIsEditing(false);
+  //   setProfile({
+  //     firstName: profileData?.firstName || '',
+  //     lastName: profileData?.lastName || '',
+  //     email: profileData?.email || '',
+  //     image: profileData?.image || '',
+  //     role: profileData?.role || role || '',
+  //     dob: profileData?.dob || '',
+  //     mobileNumber: profileData?.mobileNumber,
+  //   });
+
+  //   if (profileData?.dob) {
+  //     setDOB(formatDate(profileData.dob));
+  //     setDobDate(new Date(profileData.dob));
+  //   }
+  // };
 
   return (
     <KeyboardAwareScrollView
       style={{ flex: 1, backgroundColor: Colors.white }}
-      contentContainerStyle={{ flexGrow: 1 }}
+      // contentContainerStyle={{ flexGrow: 1 }}
       enableOnAndroid={true}
-      extraScrollHeight={Platform.OS === 'ios' ? 10 : 20}
+      extraScrollHeight={Platform.OS === 'ios' ? 0 : 20}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       // keyboardOpeningTime={0}
@@ -273,9 +330,12 @@ const ProfileSetting = () => {
                       onLoad={handleImageLoad}
                     />
                   ) : (
-                    <View style={[innerStyle.image]}>
-                      <ProfileImage height={150} width={150} />
-                    </View>
+                    //(
+                    //   <View style={[innerStyle.image]}>
+                    //     <ProfileImage height={150} width={150} />
+                    //   </View>
+                    // )
+                    <EvilIcons name="user" color="#000" size={160} />
                   )}
                 </TouchableOpacity>
               )}
@@ -287,27 +347,6 @@ const ProfileSetting = () => {
                 >
                   <CameraIcon style={innerStyle.cameraIcon} />
                 </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={innerStyle.editButtonWrapper}>
-              {!isEditing ? (
-                <Pressable
-                  onPress={() => {
-                    setIsEditing(true);
-                    scrollRef.current?.scrollTo({ y: 0, animated: true });
-
-                    InteractionManager.runAfterInteractions(() => {
-                      firstNameRef.current?.focus();
-                    });
-                  }}
-                >
-                  <FontAwesome name="edit" size={28} color="black" />
-                </Pressable>
-              ) : (
-                <Pressable onPress={cancelEdit}>
-                  <Text style={innerStyle.cancelText}>{strings.cancel}</Text>
-                </Pressable>
               )}
             </View>
           </View>
@@ -325,7 +364,12 @@ const ProfileSetting = () => {
                     style={innerStyle.halfInput}
                     value={profile.firstName}
                     onChangeText={val => {
+                      // Only keep letters
                       let cleanText = val.replace(/[^A-Za-z]/g, '');
+
+                      // Optional: capitalize first letter
+                      // cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
+
                       if (cleanText !== profile.firstName) {
                         handleChange('firstName', cleanText);
                       }
@@ -336,7 +380,9 @@ const ProfileSetting = () => {
                     style={innerStyle.halfInput}
                     value={profile.lastName}
                     onChangeText={val => {
+                      // Allow only letters and spaces
                       const cleanText = val.replace(/[^A-Za-z ]/g, '');
+
                       if (cleanText !== profile.lastName) {
                         handleChange('lastName', cleanText);
                       }
@@ -409,7 +455,7 @@ const ProfileSetting = () => {
             </View>
           </View>
 
-          {isEditing && (
+          {isEditing && !keyboardVisible ? (
             <View style={innerStyle.buttonContainer}>
               <CustomButton
                 title="Save Changes"
@@ -427,8 +473,31 @@ const ProfileSetting = () => {
                 />
               )}
             </View>
+          ) : (
+            !keyboardVisible && (
+              <View style={innerStyle.buttonContainer}>
+                <CustomButton
+                  title="Edit"
+                  onPress={() => {
+                    setIsEditing(true);
+                    scrollRef.current?.scrollTo({ y: 0, animated: true });
+                    setTimeout(() => {
+                      firstNameRef.current?.focus();
+                    }, 100);
+                  }}
+                />
+                <CustomButton
+                  title="Logout"
+                  style={{
+                    backgroundColor: Colors.reject,
+                    borderColor: Colors.reject,
+                  }}
+                  onPress={confirmLogout}
+                  // loading={isSaving}
+                />
+              </View>
+            )
           )}
-
           <DeleteAccount
             visible={showDeleteModal}
             onCancel={() => setShowDeleteModal(false)}
@@ -437,8 +506,6 @@ const ProfileSetting = () => {
             }}
             phoneNumber={profileData?.mobileNumber}
           />
-
-          {/* iOS Modal Date Picker */}
           {isEditing && Platform.OS === 'ios' && (
             <Modal
               visible={showPicker}
@@ -544,7 +611,7 @@ const innerStyle = ScaledSheet.create({
     width: '120@s',
     height: '120@s',
     borderRadius: '65@s',
-    resizeMode: 'contain',
+    resizeMode: 'cover',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',

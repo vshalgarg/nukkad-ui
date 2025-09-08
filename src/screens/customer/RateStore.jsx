@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: Fonts.sizes.lg + 2,
     fontWeight: 'bold',
-    color: Colors.primaryText,
+    color: Colors.primary,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 20,

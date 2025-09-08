@@ -9,17 +9,17 @@ export const customerProfileSchema = z.object({
   email: z.string().email('Enter valid email'),
   dob: z.date('DOB is Required'),
 
-  addressLine1: z.string().min(2, 'Enter valid Address'),
-  landmark: z.string().min(2, 'Please enter a landmark'),
-  city: z
-    .string()
-    .min(2, 'Enter valid name')
-    .regex(/^[A-Za-z\s]+$/, 'City must contain only letters'),
-  state: z
-    .string()
-    .min(2, 'Enter valid name')
-    .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
-  pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+  // addressLine1: z.string().min(2, 'Enter valid Address'),
+  // landmark: z.string().min(2, 'Please enter a landmark'),
+  // city: z
+  //   .string()
+  //   .min(2, 'Enter valid name')
+  //   .regex(/^[A-Za-z\s]+$/, 'City must contain only letters'),
+  // state: z
+  //   .string()
+  //   .min(2, 'Enter valid name')
+  //   .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
+  // pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
 });
 
 export const storekeeperProfileSchema = z.object({
@@ -45,14 +45,7 @@ export const storekeeperProfileSchema = z.object({
     .regex(/^[a-zA-Z0-9\s,\/-]*$/, 'Invalid characters in address')
     .optional(),
   landmark: z.string().min(2, 'Landmark must contain at least 2 characters'),
-  city: z
-    .string()
-    .min(2, 'City must contain at least 2 characters')
-    .regex(/^[A-Za-z\s]+$/, 'City must contain only letters'),
-  state: z
-    .string()
-    .min(2, 'State must contain at least 2 characters')
-    .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
+
   pincode: z.string().regex(/^\d{6}$/, 'Pincode must be exactly 6 digits'),
 });
 

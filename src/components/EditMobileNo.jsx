@@ -1,5 +1,5 @@
 // components/Edit.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -7,41 +7,41 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-} from "react-native";
-import { showToast } from "../utils/toastUtils";
-import Colors from "../styles/colors";
-import Fonts from "../styles/font";
+} from 'react-native';
+import { showToast } from '../utils/toastUtils';
+import Colors from '../styles/colors';
+import Fonts from '../styles/font';
 
 const Edit = ({ visible, onClose, currentmobile, onVerified }) => {
-  const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setMobile(currentmobile);
-      setOtp("");
+      setOtp('');
       setOtpSent(false);
     }
   }, [visible]);
 
   const sendOtp = () => {
     if (!/^\d{10}$/.test(mobile)) {
-      showToast("error", "Enter valid 10-digit number");
+      showToast('error', 'Enter valid 10-digit number');
       return;
     }
-    
+
     setOtpSent(true);
-    showToast("success", "OTP sent to " + mobile);
+    showToast('success', 'OTP sent to ' + mobile);
   };
 
   const verifyOtp = () => {
-    if (otp === "123456") {
+    if (otp === '123456') {
       onVerified(mobile);
-      showToast("success", "mobile number updated successfully");
+      showToast('success', 'mobile number updated successfully');
       onClose();
     } else {
-      showToast("error", "Invalid OTP");
+      showToast('error', 'Invalid OTP');
     }
   };
 
@@ -85,7 +85,9 @@ const Edit = ({ visible, onClose, currentmobile, onVerified }) => {
               style={[styles.button, styles.cancel]}
               onPress={onClose}
             >
-              <Text style={[styles.buttonText, { color: Colors.secondary }]}>Cancel</Text>
+              <Text style={[styles.buttonText, { color: Colors.secondary }]}>
+                Cancel
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -100,32 +102,32 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: Colors.secondary,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContainer: {
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 20,
-    width: "85%",
+    width: '85%',
     elevation: 5,
   },
   title: {
     fontSize: Fonts.sizes.lg,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 15,
-    textAlign: "center",
+    textAlign: 'center',
   },
   input: {
     borderColor: Colors.borderColor,
     borderWidth: 1,
-    borderRadius:25,
+    borderRadius: 25,
     paddingHorizontal: 12,
     marginBottom: 15,
   },
   buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   button: {
     backgroundColor: Colors.primary,
@@ -133,13 +135,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     flex: 1,
     marginHorizontal: 5,
-    alignItems: "center",
+    alignItems: 'center',
   },
   cancel: {
     backgroundColor: Colors.white,
   },
   buttonText: {
     color: Colors.white,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });

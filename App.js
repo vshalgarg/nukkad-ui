@@ -23,6 +23,9 @@ import { toastConfig } from './src/utils/toastConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SearchProvider } from './src/contexts/searchContext';
 
+import { DialogProvider } from './src/contexts/DialogContext';
+import GlobalDialog from './src/components/GlobalDialog';
+
 // messaging().setBackgroundMessageHandler(async remoteMessage => {
 //   await notifee.displayNotification({
 //     title: remoteMessage.data?.title || 'New Message',
@@ -143,19 +146,22 @@ export default function App() {
       <AuthProvider>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
-            <StorekeeperProfileProvider>
-              <ProfileProvider>
-                <SearchProvider>
-                  <AddressProvider>
-                    <StoreProvider>
-                      <StorekeeperAddressProvider>
-                        <AppContent />
-                      </StorekeeperAddressProvider>
-                    </StoreProvider>
-                  </AddressProvider>
-                </SearchProvider>
-              </ProfileProvider>
-            </StorekeeperProfileProvider>
+            <DialogProvider>
+              <StorekeeperProfileProvider>
+                <ProfileProvider>
+                  <SearchProvider>
+                    <AddressProvider>
+                      <StoreProvider>
+                        <StorekeeperAddressProvider>
+                          <AppContent />
+                          <GlobalDialog />
+                        </StorekeeperAddressProvider>
+                      </StoreProvider>
+                    </AddressProvider>
+                  </SearchProvider>
+                </ProfileProvider>
+              </StorekeeperProfileProvider>
+            </DialogProvider>
           </PersistGate>
         </Provider>
       </AuthProvider>

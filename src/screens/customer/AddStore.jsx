@@ -1,69 +1,87 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
   View,
-  BackHandler,
+  Text,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
-  InteractionManager,
   Keyboard,
+  Dimensions,
+  StyleSheet,
 } from 'react-native';
-import {
-  useNavigation,
-  useFocusEffect,
-  useRoute,
-} from '@react-navigation/native';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { InteractionManager } from 'react-native';
 
 import CustomButton from '../../components/CustomButton';
-import QRScannerBox from '../../components/QRScannerBox.jsx';
-import { useStore } from '../../contexts/storeContext';
-import Colors from '../../styles/colors';
-import globalStyles from '../../styles/globalStyles';
-import Fonts from '../../styles/font';
 import CustomInput from '../../components/CustomInput';
-import { showToast } from '../../utils/toastUtils';
-import { useSafeRouter } from '../../hooks/useSafeRouter';
-import { addCustomerStore } from '../../services/customer/addStoreService.js';
-import textStyles from '../../styles/textStyles.js';
-import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
-import strings from '../../constants/string.js';
-import { ScaledSheet } from 'react-native-size-matters';
+import QRScannerBox from '../../components/QRScannerBox';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
+import { useDialog } from '../../contexts/DialogContext';
+import { useStore } from '../../contexts/storeContext';
+import { useSafeRouter } from '../../hooks/useSafeRouter';
+import useBackHandlerControl from '../../hooks/useBackHandlerControl';
+import { addCustomerStore } from '../../services/customer/addStoreService';
+
+import { showToast } from '../../utils/toastUtils';
+import globalStyles from '../../styles/globalStyles';
+import textStyles from '../../styles/textStyles';
+import Colors from '../../styles/colors';
+import Fonts from '../../styles/font';
+import strings from '../../constants/string';
+
+const { height } = Dimensions.get('window');
 const STORAGE_KEY = '@scanned_stores';
 
 export default function AddStore() {
   useBackHandlerControl({ blockBack: true });
-  const [storeId, setStoreID] = useState('');
-  const [showScanner, setShowScanner] = useState(true);
 
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { saveStore } = useStore();
-  const { safePush } = useSafeRouter();
+  const [storeId, setStoreID] = useState('');
+  const [showScanner, setShowScanner] = useState(true);
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [pendingId, setPendingId] = useState('');
+  const [pendingStore, setPendingStore] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const scannerRef = useRef();
   const isScanningRef = useRef(false);
-  const isMountedRef = useRef(true); // ✅ declare ref
+  const isMountedRef = useRef(true);
 
-  // ✅ handle mount/unmount
+  const { saveStore } = useStore();
+  const { safePush } = useSafeRouter();
+  const { showDialog } = useDialog();
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
   }, []);
+
   useEffect(() => {
-    Keyboard.dismiss(); // 👈 Hides the keyboard when screen mounts
+    Keyboard.dismiss();
   }, []);
+
+  const stopCameraAndNavigate = callback => {
+    callback?.();
+    InteractionManager.runAfterInteractions(() => {
+      if (!isMountedRef.current) return;
+      try {
+        scannerRef.current?.stopCamera?.();
+      } catch (e) {
+        console.warn(' stopCamera failed silently', e);
+      } finally {
+        if (isMountedRef.current) setShowScanner(false);
+      }
+    });
+  };
 
   const persistStoreIfNew = async store => {
     if (!store?.storekeeperId) return;
-
     const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
     const savedStores = jsonValue ? JSON.parse(jsonValue) : [];
 
@@ -79,86 +97,21 @@ export default function AddStore() {
     }
   };
 
-  const stopCameraAndNavigate = callback => {
-    callback?.();
-
-    InteractionManager.runAfterInteractions(() => {
-      if (!isMountedRef.current) return;
-
-      try {
-        scannerRef.current?.stopCamera?.();
-      } catch (e) {
-        console.warn(' stopCamera failed silently', e);
-      } finally {
-        if (isMountedRef.current) setShowScanner(false);
-      }
-    });
-  };
-
-  const handleQrCodeScanner = async e => {
-    if (isScanningRef.current) return;
-    isScanningRef.current = true;
-
+  const callAddStoreApi = async id => {
     try {
-      let storeQrId;
-
-      try {
-        const parsedData = JSON.parse(e.data);
-        storeQrId = parsedData?.storeQrId;
-      } catch (err) {
-        storeQrId = e.data;
-      }
-
-      if (!storeQrId) {
-        showToast('error', strings.invalidQr, strings.invalidQr2);
-        return;
-      }
-
-      const store = await addCustomerStore(storeQrId);
-      console.log('store messages', store.message);
-
-      if (!store?.storekeeperId) {
-        stopCameraAndNavigate(() => safePush('CustomerDashboard'));
-        return;
-      }
-
-      await persistStoreIfNew(store);
-
-      const toastPayload = {
-        type: 'success',
-        title: store.message || strings.addedStoreSuccessfully,
-      };
-
-      saveStore(store);
-      await AsyncStorage.setItem('@selected_store', JSON.stringify(store));
-      stopCameraAndNavigate(() =>
-        safePush('CustomerDashboard', {
-          toast: JSON.stringify(toastPayload),
-        }),
-      );
-    } catch (err) {
-      console.error('QR Scan Error:', err);
-      const message =
-        err?.response?.data?.message || err.message || 'Invalid QR';
-      showToast('error', strings.failedToAddStore, message);
-    } finally {
-      isScanningRef.current = false;
+      return await addCustomerStore(id);
+    } catch (error) {
+      throw error;
     }
   };
 
-  const handleAddStore = async () => {
-    const id = storeId.trim().toUpperCase();
-
+  const handleAddStore = async id => {
+    setIsSubmitting(true);
     try {
-      const store = await addCustomerStore(id);
+      const store = await callAddStoreApi(id);
       await persistStoreIfNew(store);
       saveStore(store);
       await AsyncStorage.setItem('@selected_store', JSON.stringify(store));
-
-      if (!store?.storekeeperId) {
-        stopCameraAndNavigate(() => navigation.navigate('CustomerDashboard'));
-        return;
-      }
 
       const toastPayload = {
         type: 'success',
@@ -174,125 +127,199 @@ export default function AddStore() {
       const message =
         err?.response?.data?.message || err.message || 'Store addition failed';
       showToast('error', strings.failedToAddStore, message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const handleQrCodeScanner = async e => {
+    if (isScanningRef.current) return;
+    isScanningRef.current = true;
+
+    try {
+      let storeQrId;
+      try {
+        const parsedData = JSON.parse(e.data);
+        storeQrId = parsedData?.storeQrId;
+      } catch {
+        storeQrId = e.data;
+      }
+
+      if (!storeQrId) {
+        showToast('error', strings.invalidQr, strings.invalidQr2);
+        return;
+      }
+
+      const store = await callAddStoreApi(storeQrId);
+      setPendingId(storeQrId);
+      setPendingStore(store.storeName);
+      setDialogOpen(true);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err.message || 'Invalid QR';
+      showToast('error', strings.failedToAddStore, message);
+    } finally {
+      isScanningRef.current = false;
+      setIsSubmitting(false);
+    }
+  };
+
+  const onPressAddStore = async () => {
+    const id = storeId.trim().toUpperCase();
+    if (!id) {
+      showToast('error', 'Missing Store ID', 'Please enter a valid Store ID.');
+      return;
+    }
+
+    try {
+      const store = await callAddStoreApi(id);
+      setPendingId(id);
+      setPendingStore(store?.storeName);
+      Keyboard.dismiss();
+      setDialogOpen(true);
+    } catch (error) {
+      showToast('error', strings.failedToAddStore, error?.message);
+    }
+  };
+
   const handleSkip = () => {
-    stopCameraAndNavigate(() => {
-      navigation.navigate('CustomerDashboard');
-    });
+    stopCameraAndNavigate(() => navigation.navigate('CustomerDashboard'));
+  };
+
+  const handleConfirm = () => {
+    setDialogOpen(false);
+    if (!pendingId || isSubmitting) return;
+    handleAddStore(pendingId);
+  };
+
+  const handleCancel = () => {
+    setDialogOpen(false);
   };
 
   return (
     <View style={globalStyles.pageContainer}>
-      <View style={{ height: 80 }}>
-        <Text
-          style={[
-            textStyles.subheading,
-            {
-              textAlign: 'center',
-              marginTop: '5%',
-              textAlignVertical: 'center',
-            },
-          ]}
-        >
-          {strings.addStore}
-        </Text>
+      <View style={styles.header}>
+        <Text style={textStyles.subheading}>{strings.addStore}</Text>
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <ScrollView keyboardShouldPersistTaps="handled">
-          <View style={innerStyle.container}>
-            <Text style={innerStyle.text}>{strings.addStoreViaQR}</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.text}>{strings.addStoreViaQR}</Text>
 
-            {showScanner && (
-              <View style={innerStyle.cameraBox}>
-                <QRScannerBox ref={scannerRef} onScan={handleQrCodeScanner} />
-              </View>
-            )}
-
-            <Text style={innerStyle.orText}>Or</Text>
-
-            <View style={innerStyle.manual}>
-              <View style={innerStyle.StoreIdContainer}>
-                <Text style={innerStyle.label}>
-                  {strings.addStoreViaNumber}
-                </Text>
-                <CustomInput
-                  style={innerStyle.inputArea}
-                  placeholder="Add Store Id"
-                  value={storeId}
-                  onTextChange={setStoreID}
-                  fixedPrefix="STR"
-                  keyboardType="phone-pad"
-                  maxLength={14}
-                />
-              </View>
+          {showScanner && (
+            <View style={styles.cameraBox}>
+              <QRScannerBox ref={scannerRef} onScan={handleQrCodeScanner} />
             </View>
+          )}
+
+          <Text style={styles.orText}>Or</Text>
+
+          <View style={styles.manualInput}>
+            <Text style={styles.label}>{strings.addStoreViaNumber}</Text>
+            <CustomInput
+              style={styles.inputArea}
+              placeholder="Add Store Id"
+              value={storeId}
+              onTextChange={setStoreID}
+              fixedPrefix="NKS"
+              maxLength={14}
+              keyboardType="number-pad"
+              inputAccessoryViewID="StoreId"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={innerStyle.btnContainer}>
-        <CustomButton title={strings.addStore} onPress={handleAddStore} />
+      {/* Fixed button bar at the bottom */}
+      <View style={styles.btnContainer}>
+        <CustomButton
+          title={strings.addStore}
+          onPress={onPressAddStore}
+          disabled={isSubmitting}
+        />
         <CustomButton title={strings.skip} onPress={handleSkip} />
       </View>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDialogOpen}
+        message={
+          <View style={{ marginVertical: 20 }}>
+            <Text style={{ fontWeight: 'bold', marginBottom: 5, fontSize: 16 }}>
+              Store Name: {pendingStore || '-'}
+            </Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
+              StoreKeeperId: {pendingId || '-'}
+            </Text>
+          </View>
+        }
+        cancel="Skip"
+        confirm="Add"
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </View>
   );
 }
 
-const { height } = Dimensions.get('window');
 const boxHeight = height / 3;
 
-const innerStyle = ScaledSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
+const styles = StyleSheet.create({
+  header: {
+    height: 80,
     justifyContent: 'center',
-    gap: '10@s',
-    paddingBottom: `${height * 0.15}@vs`,
+    alignItems: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingBottom: 40,
   },
   text: {
     fontWeight: '600',
     fontSize: Fonts.sizes.base,
-    marginBottom: '10@vs',
+    marginVertical: 10,
   },
   cameraBox: {
     height: boxHeight,
     width: boxHeight,
     borderWidth: 4,
     borderColor: Colors.primary,
-    borderRadius: '12@s',
-    marginBottom: '5%',
+    borderRadius: 12,
+    marginBottom: 30,
     overflow: 'hidden',
-    zIndex: 1,
   },
   orText: {
     fontWeight: '700',
     fontSize: Fonts.sizes.xxl,
+    marginVertical: 10,
   },
-  manual: {
-    width: '100%',
-    paddingHorizontal: '15%',
-    marginTop: '5%',
-  },
-  StoreIdContainer: {
-    width: '100%',
-    justifyContent: 'center',
+  manualInput: {
+    width: '80%',
     alignItems: 'center',
+    marginTop: 10,
   },
-
   label: {
     textAlign: 'center',
     fontSize: Fonts.sizes.base,
-    marginBottom: '15@vs',
+    marginBottom: 15,
+  },
+  inputArea: {
+    width: '100%',
   },
   btnContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: '20@vs',
+    paddingVertical: 10,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
   },
 });

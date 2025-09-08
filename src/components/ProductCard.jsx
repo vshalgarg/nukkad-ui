@@ -198,7 +198,7 @@ const ProductCard = ({
                     style={{
                       color: Colors.primary,
                       fontWeight: '600',
-                      fontSize: Fonts.sizes.xs,
+                      fontSize: Fonts.sizes.base,
                     }}
                   >
                     Done

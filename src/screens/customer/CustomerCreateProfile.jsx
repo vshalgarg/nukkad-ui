@@ -31,7 +31,8 @@ import { validateCustomerProfile } from '../../schema/validation';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import DatePicker from '../../components/DatePicker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import StateDropdown from '../../components/StateDropdown';
+import CityDropdown from '../../components/CityDropdown';
 
 let pressLock = false;
 
@@ -48,6 +49,8 @@ const CustomerCreateProfile = () => {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [errors, setErrors] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null); // 'state' | 'city' | null
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const nameRef = useRef();
@@ -144,11 +147,11 @@ const CustomerCreateProfile = () => {
 
       if (fieldErrors.name) scrollToInput(nameRef);
       else if (fieldErrors.email) scrollToInput(emailRef);
-      else if (fieldErrors.addressLine1) scrollToInput(address1ref);
-      else if (fieldErrors.landmark) scrollToInput(landmarkRef);
-      else if (fieldErrors.city) scrollToInput(cityRef);
-      else if (fieldErrors.state) scrollToInput(stateRef);
-      else if (fieldErrors.pincode) scrollToInput(pincodeRef);
+      // else if (fieldErrors.addressLine1) scrollToInput(address1ref);
+      // else if (fieldErrors.landmark) scrollToInput(landmarkRef);
+      // else if (fieldErrors.city) scrollToInput(cityRef);
+      // else if (fieldErrors.state) scrollToInput(stateRef);
+      // else if (fieldErrors.pincode) scrollToInput(pincodeRef);
 
       pressLock = false;
       return;
@@ -208,7 +211,11 @@ const CustomerCreateProfile = () => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: Colors.white }}
+        style={{
+          flex: 1,
+          backgroundColor: Colors.white,
+          marginBottom: '100@vs',
+        }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0} // adjust if you have header/navbar
       >
@@ -221,8 +228,12 @@ const CustomerCreateProfile = () => {
         <ScrollView
           ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+          }}
           showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={false}
         >
           <View style={styles.pageContainer}>
             <View style={localStyles.centerContainer}>
@@ -293,10 +304,7 @@ const CustomerCreateProfile = () => {
                   onSubmitEditing={() => address1ref.current?.focus()}
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.addressLine1}
-                  <Text style={localStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={localStyles.label}>{strings.addressLine1}</Text>
                 <CustomInput
                   ref={address1ref}
                   value={addressLine1}
@@ -330,10 +338,7 @@ const CustomerCreateProfile = () => {
                   onSubmitEditing={() => landmarkRef.current?.focus()}
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.landmark}{' '}
-                  <Text style={localStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={localStyles.label}>{strings.landmark} </Text>
                 <CustomInput
                   ref={landmarkRef}
                   value={landmark}
@@ -353,55 +358,46 @@ const CustomerCreateProfile = () => {
                   onSubmitEditing={() => cityRef.current?.focus()}
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.city} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={cityRef}
-                  placeholder="Enter City"
-                  value={city}
-                  onTextChange={text => {
-                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
-                    setCity(cleaned);
+                <Text style={localStyles.label}>{strings.state}</Text>
+                <StateDropdown
+                  selectedState={state}
+                  onSelectState={val => {
+                    setState(val);
+                    setCity('');
                     if (isSubmitting) {
                       setErrors(prev => ({
                         ...prev,
-                        city: cleaned.trim().length >= 2 ? false : true,
+                        state: val ? false : true,
+                        city: true,
                       }));
                     }
                   }}
-                  maxLength={20}
-                  isError={errors.city}
-                  returnKeyType="next"
-                  onSubmitEditing={() => stateRef.current?.focus()}
+                  error={errors.state}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dropdownKey="state"
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.state} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={stateRef}
-                  placeholder="Enter State"
-                  value={state}
-                  onTextChange={text => {
-                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
-                    setState(cleaned);
+                <Text style={localStyles.label}>{strings.city}</Text>
+                <CityDropdown
+                  selectedState={state}
+                  selectedCity={city}
+                  onSelectCity={val => {
+                    setCity(val);
                     if (isSubmitting) {
                       setErrors(prev => ({
                         ...prev,
-                        state: cleaned.trim().length >= 2 ? false : true,
+                        city: val ? false : true,
                       }));
                     }
                   }}
-                  maxLength={20}
-                  isError={errors.state}
-                  returnKeyType="next"
-                  onSubmitEditing={() => pincodeRef.current?.focus()}
+                  // error={errors.city}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dropdownKey="city"
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.pincode} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={localStyles.label}>{strings.pincode}</Text>
                 <CustomInput
                   ref={pincodeRef}
                   value={pincode}
@@ -436,6 +432,7 @@ const CustomerCreateProfile = () => {
                   <DatePicker
                     dob={dob}
                     setDob={date => {
+                      Keyboard.dismiss();
                       setDob(date);
                       if (date instanceof Date && !isNaN(date.getTime())) {
                         setErrors(prev => ({ ...prev, dob: false }));
@@ -443,18 +440,14 @@ const CustomerCreateProfile = () => {
                     }}
                   />
                 </View>
-
-                <View style={localStyles.buttonWrapper}>
-                  <CustomButton
-                    title={strings.continue}
-                    onPress={handleContinue}
-                  />
-                </View>
               </View>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <View style={localStyles.buttonWrapper}>
+        <CustomButton title={strings.continue} onPress={handleContinue} />
+      </View>
     </View>
   );
 };
@@ -493,7 +486,7 @@ const localStyles = ScaledSheet.create({
   },
   dobInput: {
     height: '40@vs',
-    paddingHorizontal: '12@s',
+    paddingHorizontal: '20@s',
     borderWidth: 1,
     borderColor: Colors.inputBorder,
     borderRadius: '50@s',
@@ -502,9 +495,8 @@ const localStyles = ScaledSheet.create({
     justifyContent: 'center',
   },
   buttonWrapper: {
-    marginTop: '40@vs',
+    paddingVertical: '10@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: '30@vs',
   },
 });
