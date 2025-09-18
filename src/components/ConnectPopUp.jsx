@@ -15,7 +15,7 @@ import { ScaledSheet } from 'react-native-size-matters';
 
 const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
   if (!visible) return null;
-
+  console.log(position);
   const phoneNumber = phone || '9999999999';
 
   const handleCall = () => {
@@ -75,8 +75,6 @@ const styles = ScaledSheet.create({
   },
   popupMenu: {
     position: 'absolute',
-    top: '60@ms',
-    right: '5@ms',
     backgroundColor: Colors.white,
     borderRadius: '8@ms',
     borderColor: Colors.borderColor,
@@ -84,6 +82,7 @@ const styles = ScaledSheet.create({
     elevation: 5,
     width: '140@ms',
   },
+
   popupItem: {
     paddingHorizontal: '16@ms',
     paddingVertical: '8@ms',

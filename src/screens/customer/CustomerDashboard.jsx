@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -6,12 +6,15 @@ import {
   FlatList,
   Text,
 } from 'react-native';
+import { PanResponder } from 'react-native';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import CategoryGridLayout from '../../components/category/CategoriesGridLayout.jsx';
 import ProductSlider from '../../components/ProductSlider.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
 import UserToolbar from '../../components/UserToolbar.jsx';
+import SideBar from '../../components/sidebar/SideBar'; // <-- import Sidebar here
 import styles from '../../styles/globalStyles.js';
 import { getAllCategories } from '../../services/customer/categoriesService.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
@@ -29,7 +32,7 @@ const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
 
   const route = useRoute();
-  const { toast } = route.params || {}; // ✅ only keep toast param
+  const { toast } = route.params || {}; // only keep toast param
   const { createProfile } = useProfile();
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
@@ -37,6 +40,7 @@ const CustomerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
   const { saveStore } = useStore();
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     if (toast) {
@@ -59,6 +63,19 @@ const CustomerDashboard = () => {
     })();
   }, []);
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx > 50) {
+          setSidebarVisible(true);
+        }
+      },
+    }),
+  ).current;
+
   const fetchCategories = useCallback(async () => {
     try {
       const response = await getAllCategories();
@@ -78,12 +95,14 @@ const CustomerDashboard = () => {
   const fetchStoreAndProfile = async () => {
     try {
       const userProfile = await getCustomerProfile(token);
+      console.log('customer profile in customerDashboard:', userProfile);
       await createProfile({
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.image || null,
         dob: userProfile.dob || '',
+        mobile: userProfile.mobileNumber || '',
       });
 
       const stores = await getMyStores(token);
@@ -192,8 +211,10 @@ const CustomerDashboard = () => {
   };
 
   return (
-    <SafeAreaView style={styles.pageContainer}>
+    <SafeAreaView style={styles.pageContainer} {...panResponder.panHandlers}>
+      {/* UserToolbar can also control sidebar visibility but here sidebar is controlled by swipe */}
       <UserToolbar />
+
       {loading && categories.length === 0 ? (
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
@@ -218,6 +239,12 @@ const CustomerDashboard = () => {
           contentContainerStyle={{ paddingBottom: 40 }}
         />
       )}
+
+      {/* Sidebar controlled by swipe */}
+      <SideBar
+        isVisible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+      />
     </SafeAreaView>
   );
 };

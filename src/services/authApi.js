@@ -32,25 +32,32 @@ export const sendOtp = async (mobileNumber, role = null) => {
 };
 
 // Verify OTP
-export const verifyOtp = async (mobileNumber, otp) => {
-  const FcmToken = await AsyncStorage.getItem('FcmToken');
-  const payload = { mobileNumber, otp, deviceToken: FcmToken };
+// Verify OTP
+export const verifyOtp = async ({ mobile, firebaseToken }) => {
+  const FcmToken = '1234567890';
+
+  const payload = {
+    mobileNumber: mobile,
+    token: firebaseToken,
+    deviceToken: FcmToken,
+  };
+
   console.log('📤 Verifying OTP with payload:', payload);
 
   try {
     const response = await api.post(
-      '/nukkad/api/otp/v1/otp/verify/login',
+      '/auth/api/v1/verify/firebase/token',
       payload,
     );
 
-    console.log(' Verify OTP API Success:', {
+    console.log('✅ Verify OTP API Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error(' Verify OTP API Error:', {
+    console.error('❌ Verify OTP API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

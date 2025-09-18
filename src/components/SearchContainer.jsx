@@ -1,29 +1,49 @@
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  Pressable,
-  TouchableOpacity,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../styles/colors';
-import { useSafeRouter } from '../hooks/useSafeRouter';
 import strings from '../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../styles/font';
 import { SearchContext } from '../contexts/searchContext';
 
-const SearchContainer = ({ query, onSearchSubmit }) => {
-  const { safePush } = useSafeRouter();
+const SearchContainer = ({
+  query,
+  onSearchSubmit,
+  autoSearchOnThreeLetters = false,
+}) => {
   const { queryInput, setQueryInput } = useContext(SearchContext);
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
 
+  // Sync incoming query prop into context state
   useEffect(() => {
     setQueryInput(query || '');
   }, [query]);
+
+  // If autoSearchOnThreeLetters is enabled, trigger search automatically with debounce
+  useEffect(() => {
+    if (!autoSearchOnThreeLetters) return;
+
+    if (debounceTimeout) clearTimeout(debounceTimeout);
+
+    if (queryInput.length >= 3) {
+      const timeout = setTimeout(() => {
+        onSearchSubmit?.(queryInput);
+      }, 500); // 500ms debounce
+
+      setDebounceTimeout(timeout);
+    } else if (queryInput.length === 0) {
+      onSearchSubmit?.('');
+    }
+
+    return () => {
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+    };
+  }, [queryInput, autoSearchOnThreeLetters]);
+
   const handleClear = () => {
     setQueryInput('');
-    if (onSearchSubmit) onSearchSubmit('');
+    onSearchSubmit?.('');
   };
 
   return (
@@ -38,16 +58,16 @@ const SearchContainer = ({ query, onSearchSubmit }) => {
 
         <TextInput
           style={styles.queryInput}
-          placeholder={`${strings.searchPlaceholder}`}
+          placeholder={strings.searchPlaceholder}
           placeholderTextColor={Colors.secondaryText}
           value={queryInput}
           onChangeText={setQueryInput}
           onSubmitEditing={() => {
-            if (onSearchSubmit) onSearchSubmit(queryInput);
+            onSearchSubmit?.(queryInput);
           }}
           returnKeyType="search"
         />
-        {queryInput && (
+        {queryInput.length > 0 && (
           <TouchableOpacity onPress={handleClear}>
             <Entypo name="cross" size={20} color={Colors.secondaryText} />
           </TouchableOpacity>
@@ -81,6 +101,7 @@ const styles = ScaledSheet.create({
   },
   queryInput: {
     width: '80%',
+    paddingInline: '4@s',
     backgroundColor: Colors.white,
     color: Colors.secondary,
     fontSize: Fonts.sizes.sm,

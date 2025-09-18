@@ -1,5 +1,5 @@
 // No change in imports
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Pressable,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -33,6 +34,7 @@ const RateStore = () => {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
   const [showThankYou, setShowThankYou] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const feedbackRef = useRef(null);
   const navigation = useNavigation();
 
@@ -40,6 +42,18 @@ const RateStore = () => {
 
   const { token } = useAuth();
   const { storeData } = useStore();
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const storeName = storeData?.storeName;
   const handleSubmitReview = async () => {
@@ -135,14 +149,15 @@ const RateStore = () => {
           <Text style={styles.wordCount}>
             {feedback.length} {strings.characters}
           </Text>
-
+        </View>
+        {!isKeyboardVisible && (
           <View style={styles.btnContainer}>
             <CustomButton
               title={strings.submitReview}
               onPress={handleSubmitReview}
             />
           </View>
-        </View>
+        )}
 
         <Modal transparent visible={showThankYou} animationType="fade">
           <View style={styles.modalOverlay}>
@@ -163,6 +178,8 @@ const RateStore = () => {
 
 export default RateStore;
 
+const screenHeight = Dimensions.get('screen').height;
+
 const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
@@ -170,13 +187,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 24,
-    marginTop: '5%',
+    paddingHorizontal: 24,
+    marginTop: screenHeight * 0.1,
   },
   heading: {
     fontSize: Fonts.sizes.lg + 2,
     fontWeight: 'bold',
-    color: Colors.primaryText,
+    color: Colors.primary,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 20,
@@ -207,8 +224,17 @@ const styles = StyleSheet.create({
     color: Colors.secondaryText,
   },
   btnContainer: {
-    marginTop: '15%',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,
+    padding: '10',
+    borderTopWidth: 1,
+    borderColor: Colors.borderColor,
   },
   modalOverlay: {
     flex: 1,

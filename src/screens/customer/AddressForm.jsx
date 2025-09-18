@@ -21,24 +21,17 @@ import Colors from '../../styles/colors';
 import { useRef } from 'react';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
+import StateDropdown from '../../components/StateDropdown';
+import CityDropdown from '../../components/CityDropdown';
+import useKeyboardStatus from '../../hooks/useKeyboardStatus';
 
 const AddressForm = () => {
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+  const isKeyboardVisible = useKeyboardStatus();
 
   const {
     mode,
@@ -80,8 +73,13 @@ const AddressForm = () => {
               console.log('measureLayout error:', error);
             },
             (x, y) => {
-              scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
-              ref.current.focus?.(); // safer optional chaining
+              scrollViewRef.current
+                .getScrollResponder()
+                .scrollTo({ y: y - 40, animated: true });
+
+              setTimeout(() => {
+                ref.current.focus?.();
+              }, 300);
             },
           );
         });
@@ -164,11 +162,13 @@ const AddressForm = () => {
         firstErrorMessage = 'Please enter city.';
         firstInvalidRef = cityRef;
       }
-    } else if (!/^[a-zA-Z\s]+$/.test(trimmedCity)) {
-      newErrors.city = true;
+    }
+
+    if (!trimmedState) {
+      newErrors.state = true;
       if (!firstErrorMessage) {
-        firstErrorMessage = 'City can only contain letters and spaces.';
-        firstInvalidRef = cityRef;
+        firstErrorMessage = 'Please enter state.';
+        firstInvalidRef = stateRef;
       }
     }
 
@@ -230,204 +230,238 @@ const AddressForm = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={keyboardVisible ? 100 : 0}
+      {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
+      <KeyboardAwareScrollView
+        ref={scrollViewRef}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={formStyles.scrollContent}
+        enableOnAndroid={true}
+        extraScrollHeight={Platform.OS === 'ios' ? 0 : 0}
+        showsVerticalScrollIndicator={false}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            ref={scrollViewRef}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={formStyles.scrollContent}
-            keyboardDismissMode="interactive"
-          >
-            <BackButton
-              title={
-                mode === 'add'
-                  ? 'Add Delivery Address'
-                  : 'Edit Delivery Address'
-              }
+        <BackButton
+          title={
+            mode === 'add' ? 'Add Delivery Address' : 'Edit Delivery Address'
+          }
+        />
+
+        <View style={formStyles.centerContainer}>
+          <View>
+            <Text style={formStyles.label}>
+              {strings.name} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={nameRef}
+              placeholder="Enter Your Name"
+              value={name}
+              maxLength={30}
+              onFocus={() => setOpenDropdown(null)}
+              onTextChange={text => {
+                setName(text);
+
+                setErrors(prev => ({
+                  ...prev,
+                  name: prev.name && text.trim().length > 0 ? false : prev.name,
+                }));
+              }}
+              autoCapitalize="words"
+              isError={errors.name}
+            />
+          </View>
+          <View>
+            <Text style={formStyles.label}>
+              {strings.mobile} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={mobileRef}
+              placeholder="Enter Your Contact Number"
+              value={mobile}
+              maxLength={10}
+              onFocus={() => setOpenDropdown(null)}
+              keyboardType="number-pad"
+              inputAccessoryViewID="monilenum"
+              onTextChange={text => {
+                const cleaned = text.replace(/\D/g, '');
+                setMobile(cleaned);
+
+                setErrors(prev => ({
+                  ...prev,
+                  mobile:
+                    prev.mobile && cleaned.length === 10 ? false : prev.mobile,
+                }));
+              }}
+              isError={errors.mobile}
+            />
+          </View>
+
+          {/* Address Line 1 */}
+          <View>
+            <Text style={formStyles.label}>
+              {strings.addressLine1} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              placeholder="Enter Your Address Line 1"
+              ref={address1Ref}
+              value={address1}
+              maxLength={32}
+              onFocus={() => setOpenDropdown(null)}
+              autoCapitalize="sentences"
+              onTextChange={text => {
+                setAddress1(text);
+                if (errors.address1 && text.trim().length > 0) {
+                  setErrors(prev => ({ ...prev, address1: false }));
+                }
+              }}
+              isError={errors.address1}
+            />
+          </View>
+
+          {/* Address Line 2 */}
+          <View>
+            <Text style={formStyles.label}>{strings.addressLine2}</Text>
+            <CustomInput
+              placeholder="Enter Your Address Line 2"
+              value={address2}
+              maxLength={32}
+              onFocus={() => setOpenDropdown(null)}
+              autoCapitalize="sentences"
+              onTextChange={setAddress2}
+            />
+          </View>
+
+          {/* Landmark */}
+          <View>
+            <Text style={formStyles.label}>
+              {strings.landmark} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={landmarkRef}
+              placeholder="Enter Your Landmark"
+              value={landmark}
+              maxLength={20}
+              onFocus={() => setOpenDropdown(null)}
+              autoCapitalize="sentences"
+              onTextChange={text => {
+                setLandmark(text);
+                if (errors.landmark && text.trim().length > 0) {
+                  setErrors(prev => ({ ...prev, landmark: false }));
+                }
+              }}
+              isError={errors.landmark}
+            />
+          </View>
+
+          {/* StateS */}
+          <View>
+            <Text style={formStyles.label}>
+              {strings.state} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <StateDropdown
+              selectedState={state}
+              onSelectState={val => {
+                setState(val);
+                setCity(''); // Reset city if state changes
+                setErrors(prev => ({
+                  ...prev,
+                  state: prev.state ? !val : false,
+                  city: false, // reset city error if any
+                }));
+              }}
+              error={errors.state}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="state"
+            />
+          </View>
+
+          {/* City */}
+          <View>
+            <Text style={formStyles.label}>
+              {strings.city} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CityDropdown
+              selectedState={state}
+              selectedCity={city}
+              onSelectCity={val => {
+                setCity(val);
+                setErrors(prev => ({
+                  ...prev,
+                  city: prev.city ? !val : false,
+                }));
+              }}
+              error={errors.city}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="city"
             />
 
-            <View style={formStyles.centerContainer}>
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.name} <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={nameRef}
-                  placeholder="Enter Your Name"
-                  value={name}
-                  maxLength={30}
-                  onTextChange={text => {
-                    setName(text);
-
-                    setErrors(prev => ({
-                      ...prev,
-                      name:
-                        prev.name && text.trim().length > 0 ? false : prev.name,
-                    }));
-                  }}
-                  autoCapitalize="words"
-                  isError={errors.name}
-                />
-              </View>
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.mobile} <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={mobileRef}
-                  placeholder="Enter Your Contact Number"
-                  value={mobile}
-                  maxLength={10}
-                  keyboardType="phone-pad"
-                  onTextChange={text => {
-                    const cleaned = text.replace(/\D/g, '');
-                    setMobile(cleaned);
-
-                    setErrors(prev => ({
-                      ...prev,
-                      mobile:
-                        prev.mobile && cleaned.length === 10
-                          ? false
-                          : prev.mobile,
-                    }));
-                  }}
-                  isError={errors.mobile}
-                />
-              </View>
-
-              {/* Address Line 1 */}
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.addressLine1}{' '}
-                  <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  placeholder="Enter Your Address Line 1"
-                  ref={address1Ref}
-                  value={address1}
-                  maxLength={32}
-                  autoCapitalize="sentences"
-                  onTextChange={text => {
-                    setAddress1(text);
-                    if (errors.address1 && text.trim().length > 0) {
-                      setErrors(prev => ({ ...prev, address1: false }));
-                    }
-                  }}
-                  isError={errors.address1}
-                />
-              </View>
-
-              {/* Address Line 2 */}
-              <View>
-                <Text style={formStyles.label}>{strings.addressLine2}</Text>
-                <CustomInput
-                  placeholder="Enter Your Address Line 2"
-                  value={address2}
-                  maxLength={32}
-                  autoCapitalize="sentences"
-                  onTextChange={setAddress2}
-                />
-              </View>
-
-              {/* Landmark */}
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.landmark} <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={landmarkRef}
-                  placeholder="Enter Your Landmark"
-                  value={landmark}
-                  maxLength={20}
-                  autoCapitalize="sentences"
-                  onTextChange={text => {
-                    setLandmark(text);
-                    if (errors.landmark && text.trim().length > 0) {
-                      setErrors(prev => ({ ...prev, landmark: false }));
-                    }
-                  }}
-                  isError={errors.landmark}
-                />
-              </View>
-
-              {/* City */}
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.city} <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={cityRef}
-                  placeholder="Enter Your City"
-                  value={city}
-                  maxLength={20}
-                  autoCapitalize="sentences"
-                  onTextChange={text => {
-                    setCity(text);
-                    if (errors.city && text.trim().length > 0) {
-                      setErrors(prev => ({ ...prev, city: false }));
-                    }
-                  }}
-                  isError={errors.city}
-                />
-              </View>
-
-              {/* State */}
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.state} <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={stateRef}
-                  placeholder="Enter Your State"
-                  value={state}
-                  maxLength={20}
-                  autoCapitalize="sentences"
-                  onTextChange={text => {
-                    setState(text);
-                    if (errors.state && text.trim().length > 0) {
-                      setErrors(prev => ({ ...prev, state: false }));
-                    }
-                  }}
-                  isError={errors.state}
-                />
-              </View>
-
-              {/* Pincode */}
-              <View>
-                <Text style={formStyles.label}>
-                  {strings.pincode} <Text style={formStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={pincodeRef}
-                  placeholder="Enter Your Pincode"
-                  value={pincode}
-                  maxLength={6}
-                  keyboardType="number-pad"
-                  onTextChange={text => {
-                    const cleaned = text.replace(/\D/g, '');
-                    setPincode(cleaned);
-                    if (errors.pincode && cleaned.length === 6) {
-                      setErrors(prev => ({ ...prev, pincode: false }));
-                    }
-                  }}
-                  isError={errors.pincode}
-                />
-              </View>
-              <View style={formStyles.buttonContainer}>
-                <CustomButton
-                  title={strings.continue}
-                  onPress={handleContinue}
-                />
-              </View>
-            </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+            {/* <Text style={formStyles.label}>
+              {strings.state} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={stateRef}
+              placeholder="Enter Your State"
+              value={state}
+              maxLength={20}
+              autoCapitalize="sentences"
+              onTextChange={text => {
+                setState(text);
+                if (errors.state && text.trim().length > 0) {
+                  setErrors(prev => ({ ...prev, state: false }));
+                }
+              }}
+              isError={errors.state}
+            /> */}
+          </View>
+          {/* <Text style={formStyles.label}>
+              {strings.city} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={cityRef}
+              placeholder="Enter Your City"
+              value={city}
+              maxLength={20}
+              autoCapitalize="sentences"
+              onTextChange={text => {
+                setCity(text);
+                if (errors.city && text.trim().length > 0) {
+                  setErrors(prev => ({ ...prev, city: false }));
+                }
+              }}
+              isError={errors.city}
+            /> */}
+          {/* Pincode */}
+          <View>
+            <Text style={formStyles.label}>
+              {strings.pincode} <Text style={formStyles.mandatory}>*</Text>
+            </Text>
+            <CustomInput
+              ref={pincodeRef}
+              placeholder="Enter Your Pincode"
+              value={pincode}
+              maxLength={6}
+              onFocus={() => setOpenDropdown(null)}
+              keyboardType="number-pad"
+              inputAccessoryViewID="pincode"
+              input
+              onTextChange={text => {
+                const cleaned = text.replace(/\D/g, '');
+                setPincode(cleaned);
+                if (errors.pincode && cleaned.length === 6) {
+                  setErrors(prev => ({ ...prev, pincode: false }));
+                }
+              }}
+              isError={errors.pincode}
+            />
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
+      {!isKeyboardVisible && (
+        <View style={formStyles.buttonContainer}>
+          <CustomButton title={strings.continue} onPress={handleContinue} />
+        </View>
+      )}
+      {/* </TouchableWithoutFeedback> */}
     </View>
   );
 };
@@ -436,13 +470,10 @@ export default AddressForm;
 
 const formStyles = ScaledSheet.create({
   scrollContent: {
-    flexGrow: 1,
-    paddingBottom: '20@vs',
-    justifyContent: 'flex-start',
     backgroundColor: Colors.white,
   },
   centerContainer: {
-    flex: 1,
+    flexGrow: 1,
     marginTop: '15@vs',
     paddingHorizontal: '20@s',
     justifyContent: 'flex-start',
@@ -460,9 +491,8 @@ const formStyles = ScaledSheet.create({
     color: Colors.reject,
   },
   buttonContainer: {
-    marginTop: '40@vs',
+    paddingVertical: '10@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: '30@vs',
   },
 });

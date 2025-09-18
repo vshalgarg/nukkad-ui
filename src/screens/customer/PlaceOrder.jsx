@@ -12,7 +12,7 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 
 const PlaceOrder = () => {
   const { safePush } = useSafeRouter();
-    useBackHandlerControl({ blockBack: true });
+  useBackHandlerControl({ blockBack: true });
 
   const handleContinueShopping = () => {
     safePush('CustomerDashboard');

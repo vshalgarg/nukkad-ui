@@ -28,7 +28,6 @@ const QRScannerBox = forwardRef(({ onScan }, ref) => {
   useImperativeHandle(ref, () => ({
     stopCamera: () => {
       console.log('stopCamera called');
-      
     },
   }));
 

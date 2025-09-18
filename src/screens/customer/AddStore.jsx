@@ -17,6 +17,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import ConfirmDialog from '../../components/ConfirmDialog.jsx';
+import { useDialog } from '../../contexts/DialogContext';
 
 import CustomButton from '../../components/CustomButton';
 import QRScannerBox from '../../components/QRScannerBox.jsx';
@@ -39,7 +41,10 @@ export default function AddStore() {
   useBackHandlerControl({ blockBack: true });
   const [storeId, setStoreID] = useState('');
   const [showScanner, setShowScanner] = useState(true);
-
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [pendingId, setPendingId] = useState('');
+  const [pendingStore, setPendingStore] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -49,6 +54,8 @@ export default function AddStore() {
   const scannerRef = useRef();
   const isScanningRef = useRef(false);
   const isMountedRef = useRef(true); // ✅ declare ref
+
+  const { showDialog } = useDialog();
 
   // ✅ handle mount/unmount
   useEffect(() => {
@@ -60,6 +67,16 @@ export default function AddStore() {
   useEffect(() => {
     Keyboard.dismiss(); // 👈 Hides the keyboard when screen mounts
   }, []);
+
+  const handleConfirm = () => {
+    setDialogOpen(false);
+    if (!pendingId || isSubmitting) return;
+    handleAddStore(pendingId);
+  };
+  const handleCancel = () => {
+    setDialogOpen(false);
+    console.log('❌ Action cancelled');
+  };
 
   const persistStoreIfNew = async store => {
     if (!store?.storekeeperId) return;
@@ -121,21 +138,9 @@ export default function AddStore() {
         stopCameraAndNavigate(() => safePush('CustomerDashboard'));
         return;
       }
-
-      await persistStoreIfNew(store);
-
-      const toastPayload = {
-        type: 'success',
-        title: store.message || strings.addedStoreSuccessfully,
-      };
-
-      saveStore(store);
-      await AsyncStorage.setItem('@selected_store', JSON.stringify(store));
-      stopCameraAndNavigate(() =>
-        safePush('CustomerDashboard', {
-          toast: JSON.stringify(toastPayload),
-        }),
-      );
+      setPendingId(storeQrId);
+      setPendingStore(store.storeName);
+      setDialogOpen(true);
     } catch (err) {
       console.error('QR Scan Error:', err);
       const message =
@@ -143,18 +148,45 @@ export default function AddStore() {
       showToast('error', strings.failedToAddStore, message);
     } finally {
       isScanningRef.current = false;
+      setIsSubmitting(false);
+    }
+  };
+  // NEW: open confirmation dialog instead of calling API
+  const onPressAddStore = async () => {
+    const id = storeId.trim().toUpperCase();
+    if (!id) {
+      showToast('error', 'Missing Store ID', 'Please enter a valid Store ID.');
+      return;
+    }
+    try {
+      const store = await callAddStoreApi(id);
+      setPendingId(id);
+      setPendingStore(store?.storeName);
+      Keyboard.dismiss();
+      setDialogOpen(true);
+    } catch (error) {
+      showToast('error', 'error in adding store');
     }
   };
 
-  const handleAddStore = async () => {
-    const id = storeId.trim().toUpperCase();
-
+  let callAddStoreApi = async id => {
     try {
       const store = await addCustomerStore(id);
+      return store;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleAddStore = async id => {
+    setIsSubmitting(true);
+
+    try {
+      const store = await callAddStoreApi(id);
+      console.log('adding store:', store);
       await persistStoreIfNew(store);
       saveStore(store);
       await AsyncStorage.setItem('@selected_store', JSON.stringify(store));
-
       if (!store?.storekeeperId) {
         stopCameraAndNavigate(() => navigation.navigate('CustomerDashboard'));
         return;
@@ -201,6 +233,7 @@ export default function AddStore() {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 30}
         style={{ flex: 1 }}
       >
         <ScrollView keyboardShouldPersistTaps="handled">
@@ -225,7 +258,7 @@ export default function AddStore() {
                   placeholder="Add Store Id"
                   value={storeId}
                   onTextChange={setStoreID}
-                  fixedPrefix="STR"
+                  fixedPrefix="NKS"
                   keyboardType="phone-pad"
                   maxLength={14}
                 />
@@ -236,9 +269,32 @@ export default function AddStore() {
       </KeyboardAvoidingView>
 
       <View style={innerStyle.btnContainer}>
-        <CustomButton title={strings.addStore} onPress={handleAddStore} />
+        <CustomButton
+          title={strings.addStore}
+          onPress={onPressAddStore}
+          disabled={isSubmitting}
+        />
         <CustomButton title={strings.skip} onPress={handleSkip} />
       </View>
+      {/* Custom popup */}
+      <ConfirmDialog
+        isOpen={isDialogOpen}
+        // title="Sure?"
+        message={
+          <View style={{ marginVertical: 20 }}>
+            <Text style={{ fontWeight: 'bold', marginBottom: 5, fontSize: 16 }}>
+              Store Name: {pendingStore || '-'}
+            </Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
+              StoreKeeperId: {pendingId || '-'}
+            </Text>
+          </View>
+        }
+        cancel="Skip"
+        confirm="Add"
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </View>
   );
 }

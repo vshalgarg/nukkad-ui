@@ -5,7 +5,12 @@ const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        gestureEnabled: false,
+        headerShown: false,
+      }}
+    >
       <Stack.Screen
         name="Home"
         getComponent={() => require('../screens/HomeScreen.jsx').default}

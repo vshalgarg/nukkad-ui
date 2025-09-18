@@ -345,7 +345,7 @@ const innerStyle = StyleSheet.create({
   },
   inputBlock: {
     marginBottom: 16,
-    alignSelf:"center"
+    alignSelf: 'center',
   },
   inputLabel: {
     color: Colors.secondary,

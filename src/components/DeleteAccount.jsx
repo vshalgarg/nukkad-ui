@@ -106,57 +106,54 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
             <Text style={styles.title}>Delete Account</Text>
             <View style={styles.wrapper}>
               <View style={styles.customInput}>
-              <View>
+                <View>
+                  <CustomInput
+                    label="Mobile Number"
+                    value={phoneNumber}
+                    editable={false}
+                    style={styles.input}
+                  />
+                  <Pressable onPress={handleSendOtp} disabled={cooldown > 0}>
+                    <Text
+                      style={[
+                        styles.sendOtpText,
+                        cooldown > 0 ? styles.disabledText : styles.activeText,
+                      ]}
+                    >
+                      {cooldown > 0 ? `Resend in ${cooldown}s` : 'Send OTP'}
+                    </Text>
+                  </Pressable>
+                </View>
                 <CustomInput
-                  label="Mobile Number"
-                  value={phoneNumber}
-                  editable={false}
+                  label="Enter OTP"
+                  placeholder="Enter 4-digit OTP"
+                  value={otp}
+                  onTextChange={text => setOtp(text)}
+                  keyboardType="numeric"
+                  maxLength={4}
                   style={styles.input}
                 />
-                <Pressable onPress={handleSendOtp} disabled={cooldown > 0}>
-                  <Text
-                    style={[
-                      styles.sendOtpText,
-                      cooldown > 0 ? styles.disabledText : styles.activeText,
-                    ]}
-                  >
-                    {cooldown > 0 ? `Resend in ${cooldown}s` : 'Send OTP'}
-                  </Text>
-                </Pressable>
               </View>
-              <CustomInput
-                label="Enter OTP"
-                placeholder="Enter 4-digit OTP"
-                value={otp}
-                onTextChange={text => setOtp(text)}
-                keyboardType="numeric"
-                maxLength={4}
-                style={styles.input}
-              />
-            </View>
-            <View style={styles.buttonRow}>
-              <CustomButton
-                onPress={() => {
-                  setOtp('');
-                  setOtpSent(false);
-                  setCooldown(0);
-                  clearTimeout(intervalRef.current);
-                  onCancel();
-                }}
-                style={styles.cancelBtn}
-                title="Cancel"
-              />
+              <View style={styles.buttonRow}>
+                <CustomButton
+                  onPress={() => {
+                    setOtp('');
+                    setOtpSent(false);
+                    setCooldown(0);
+                    clearTimeout(intervalRef.current);
+                    onCancel();
+                  }}
+                  style={styles.cancelBtn}
+                  title="Cancel"
+                />
 
-              <CustomButton
-                onPress={handleDelete}
-                style={styles.confirmBtn}
-                title={loading ? 'Deleting...' : 'Delete'}
-              />
+                <CustomButton
+                  onPress={handleDelete}
+                  style={styles.confirmBtn}
+                  title={loading ? 'Deleting...' : 'Delete'}
+                />
+              </View>
             </View>
-            </View>
-            
-
-            
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -177,19 +174,19 @@ const styles = StyleSheet.create({
     width: '90%',
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: "5%",
+    padding: '5%',
     elevation: 4,
   },
-  wrapper:{
-     width:"100%",
+  wrapper: {
+    width: '100%',
     //  backgroundColor:"green",
   },
   customInput: {
     // justifyContent: 'center',
     // alignItems: 'center',
   },
-  input:{
-    width:"100%"
+  input: {
+    width: '100%',
   },
   title: {
     fontSize: Fonts.sizes.xxl,
@@ -213,18 +210,18 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20
+    marginTop: 20,
   },
   cancelBtn: {
-    width:140,
-    height:42,
+    width: 140,
+    height: 42,
     backgroundColor: Colors.disabledText,
     paddingVertical: 10,
     borderColor: Colors.disabledText,
   },
   confirmBtn: {
-    width:140,
-    height:42,
+    width: 140,
+    height: 42,
     backgroundColor: Colors.reject,
     borderColor: Colors.reject,
   },

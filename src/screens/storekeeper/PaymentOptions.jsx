@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -186,8 +185,11 @@ const PaymentOptions = () => {
               )}
 
               <TouchableOpacity
-                style={[innerStyle.uploadBtn,
-                (!previewImages[index] && !qr?.qrImageUrl) && { backgroundColor: Colors.borderColor }]}
+                style={[
+                  innerStyle.uploadBtn,
+                  !previewImages[index] &&
+                    !qr?.qrImageUrl && { backgroundColor: Colors.borderColor },
+                ]}
                 onPress={() => handleUploadImage(index, qr)}
                 disabled={!previewImages[index] && !qr?.qrImageUrl}
               >
@@ -288,8 +290,8 @@ const innerStyle = ScaledSheet.create({
   qrImageContainer: {
     position: 'relative',
     alignSelf: 'center',
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: '14@ms',
     width: '200@ms',
     height: '200@ms',

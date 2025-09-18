@@ -33,8 +33,9 @@ const UserToolbar = ({
   const storeName = storeData?.storeName || 'Select Store';
 
   const cartItems = useSelector(state => state.cart.items);
+  let totalItemsInCart = cartItems?.length;
   const totalItems = cartItems.reduce((total, item) => {
-    const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
+    const isPacket = item.product.selectedUnit === 'pkt';
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
 
@@ -66,7 +67,7 @@ const UserToolbar = ({
             </TouchableOpacity>
           )}
           <Pressable onPress={handleLocation} style={styles.location}>
-            <Ionicons name="storefront-outline" size={20} color="black" />
+            <Ionicons name="storefront-outline" size={21} color="black" />
             <Text
               style={styles.storeName}
               numberOfLines={1}
@@ -82,17 +83,17 @@ const UserToolbar = ({
             <Pressable onPress={moveToCart} style={styles.iconWrapper}>
               <Feather name="shopping-cart" size={24} color="black" />
 
-              {totalItems > 0 && (
+              {totalItemsInCart > 0 && (
                 <View style={styles.cartBadge}>
                   <Text
                     style={[
-                      totalItems > 99
+                      totalItemsInCart > 99
                         ? { fontSize: Fonts.sizes.xxs }
                         : { fontSize: Fonts.sizes.xs },
                       styles.cartBadgeText,
                     ]}
                   >
-                    {totalItems > 99 ? '99+' : totalItems}
+                    {totalItemsInCart > 99 ? '99+' : totalItemsInCart}
                   </Text>
                 </View>
               )}
@@ -144,9 +145,10 @@ const styles = ScaledSheet.create({
   },
   rightSection: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    width: '20%',
+    // backgroundColor: 'red',
+    width: '25%',
   },
   iconWrapper: {
     marginHorizontal: '10@ms',
@@ -157,14 +159,14 @@ const styles = ScaledSheet.create({
     right: '-10@ms',
     backgroundColor: Colors.reject,
     borderRadius: '12@ms',
-    minWidth: '22@ms',
+    width: '22@ms',
     height: '22@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: '4@ms',
   },
   cartBadgeText: {
     color: Colors.white,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

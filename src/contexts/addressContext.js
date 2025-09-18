@@ -22,6 +22,7 @@ export const AddressProvider = ({ children }) => {
     const load = async () => {
       const stored = await AsyncStorage.getItem('address');
       const storedId = await AsyncStorage.getItem('selectedAddressId');
+      console.log(typeof storedId);
       if (stored) {
         const parsed = JSON.parse(stored);
         setAddress(parsed);
@@ -43,42 +44,41 @@ export const AddressProvider = ({ children }) => {
   // Update AsyncStorage when selected changes
   useEffect(() => {
     if (selectedAddressId)
-      AsyncStorage.setItem('selectedAddressId', selectedAddressId);
+      AsyncStorage.setItem('selectedAddressId', String(selectedAddressId));
   }, [selectedAddressId]);
 
   // 🔥 ADD NEW ADDRESS
-const addAddress = async data => {
-  const tempId = `temp-${Date.now()}`;
-  const optimisticAddress = {
-    ...data,
-    id: tempId,
-    default: address.length === 0,
+  const addAddress = async data => {
+    const tempId = `temp-${Date.now()}`;
+    const optimisticAddress = {
+      ...data,
+      id: tempId,
+      default: address.length === 0,
+    };
+
+    // Instant UI update
+    setAddress(prev => [...prev, optimisticAddress]);
+    setSelectedAddressId(tempId);
+
+    try {
+      const res = await addNewAddress(data);
+
+      // Replace tempId with real id in local state before sync
+      setAddress(prev =>
+        prev.map(a => (a.id === tempId ? { ...a, id: res.id } : a)),
+      );
+
+      // Keep selected consistent
+      setSelectedAddressId(res.id);
+      await AsyncStorage.setItem('selectedAddressId', String(res.id));
+
+      // Final sync (will keep selection intact)
+      await syncAddressesFromServer();
+    } catch (err) {
+      console.error('Failed to add address:', err);
+      setAddress(prev => prev.filter(a => a.id !== tempId)); // rollback
+    }
   };
-
-  // Instant UI update
-  setAddress(prev => [...prev, optimisticAddress]);
-  setSelectedAddressId(tempId);
-
-  try {
-    const res = await addNewAddress(data);
-
-    // Replace tempId with real id in local state before sync
-    setAddress(prev =>
-      prev.map(a => (a.id === tempId ? { ...a, id: res.id } : a)),
-    );
-
-    // Keep selected consistent
-    setSelectedAddressId(res.id);
-    await AsyncStorage.setItem('selectedAddressId', String(res.id));
-
-    // Final sync (will keep selection intact)
-    await syncAddressesFromServer();
-  } catch (err) {
-    console.error('Failed to add address:', err);
-    setAddress(prev => prev.filter(a => a.id !== tempId)); // rollback
-  }
-};
-
 
   // 🔥 UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {

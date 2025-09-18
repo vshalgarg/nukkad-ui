@@ -30,6 +30,9 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { validateCustomerProfile } from '../../schema/validation';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import DatePicker from '../../components/DatePicker';
+import StateDropdown from '../../components/StateDropdown';
+import CityDropdown from '../../components/CityDropdown';
 
 let pressLock = false;
 
@@ -37,7 +40,6 @@ const CustomerCreateProfile = () => {
   useBackHandlerControl({ blockBack: true });
   const [name, setName] = useState('');
   const [dob, setDob] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
@@ -47,11 +49,16 @@ const CustomerCreateProfile = () => {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [errors, setErrors] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null); // 'state' | 'city' | null
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const nameRef = useRef();
   const emailRef = useRef();
-  const addressRef = useRef();
+  const address1ref = useRef();
+  const address2ref = useRef();
   const landmarkRef = useRef();
   const cityRef = useRef();
   const stateRef = useRef();
@@ -80,27 +87,13 @@ const CustomerCreateProfile = () => {
   }, [params]);
 
   const scrollToInput = ref => {
-    if (ref?.current && scrollViewRef?.current) {
-      const inputHandle = findNodeHandle(ref.current);
-      const scrollHandle = findNodeHandle(scrollViewRef.current);
-
-      if (inputHandle && scrollHandle) {
-        InteractionManager.runAfterInteractions(() => {
-          UIManager.measureLayout(
-            inputHandle,
-            scrollHandle,
-            error => {
-              console.log('measureLayout error:', error);
-            },
-            (x, y) => {
-              scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
-              ref.current.focus?.(); // safer optional chaining
-            },
-          );
-        });
-      }
+    if (ref?.current && scrollViewRef?.current?.scrollToFocusedInput) {
+      scrollViewRef.current.scrollToFocusedInput(ref.current, 80);
+    } else {
+      ref?.current?.focus?.();
     }
   };
+
   const formatDateYYYYMMDD = date => {
     if (!(date instanceof Date) || isNaN(date)) return null;
     const year = date.getFullYear();
@@ -109,25 +102,25 @@ const CustomerCreateProfile = () => {
     return `${year}-${month}-${day}`;
   };
 
-  const handleDobChange = (event, selectedDate) => {
-    setShowDatePicker(false);
+  // const handleDobChange = (event, selectedDate) => {
+  //   setShowDatePicker(false);
 
-    if (event.type === 'dismissed') return; // prevent setting date if dismissed
+  //   if (event.type === 'dismissed') return; // prevent setting date if dismissed
 
-    const currentDate = selectedDate || dob;
-    const today = new Date();
+  //   const currentDate = selectedDate || dob;
+  //   const today = new Date();
 
-    // Optional: Validate that DOB is not in the future and user is at least 13 years old
-    const age = today.getFullYear() - currentDate.getFullYear();
-    const isFutureDate = currentDate > today;
+  //   // Optional: Validate that DOB is not in the future and user is at least 13 years old
+  //   const age = today.getFullYear() - currentDate.getFullYear();
+  //   const isFutureDate = currentDate > today;
 
-    if (isFutureDate || age < 13) {
-      setErrors(prev => ({ ...prev, dob: true }));
-    } else {
-      setDob(currentDate);
-      setErrors(prev => ({ ...prev, dob: false }));
-    }
-  };
+  //   if (isFutureDate || age < 13) {
+  //     setErrors(prev => ({ ...prev, dob: true }));
+  //   } else {
+  //     setDob(currentDate);
+  //     setErrors(prev => ({ ...prev, dob: false }));
+  //   }
+  // };
 
   const handleContinue = async () => {
     if (pressLock) return;
@@ -137,7 +130,7 @@ const CustomerCreateProfile = () => {
     const payload = {
       name: name.trim(),
       email: email.trim(),
-      dob,
+      dob: dob instanceof Date && !isNaN(dob) ? dob : null,
       mobile,
       addressLine1: addressLine1.trim(),
       addressLine2: addressLine2.trim(),
@@ -156,11 +149,11 @@ const CustomerCreateProfile = () => {
 
       if (fieldErrors.name) scrollToInput(nameRef);
       else if (fieldErrors.email) scrollToInput(emailRef);
-      else if (fieldErrors.addressLine1) scrollToInput(addressRef);
-      else if (fieldErrors.landmark) scrollToInput(landmarkRef);
-      else if (fieldErrors.city) scrollToInput(cityRef);
-      else if (fieldErrors.state) scrollToInput(stateRef);
-      else if (fieldErrors.pincode) scrollToInput(pincodeRef);
+      // else if (fieldErrors.addressLine1) scrollToInput(address1ref);
+      // else if (fieldErrors.landmark) scrollToInput(landmarkRef);
+      // else if (fieldErrors.city) scrollToInput(cityRef);
+      // else if (fieldErrors.state) scrollToInput(stateRef);
+      // else if (fieldErrors.pincode) scrollToInput(pincodeRef);
 
       pressLock = false;
       return;
@@ -216,26 +209,46 @@ const CustomerCreateProfile = () => {
       setIsSubmitting(false);
     }
   };
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <View style={localStyles.createProfileStyling}>
-        <Text style={[localStyles.header, textStyles.subheading]}>
-          {strings.myProfile}
-        </Text>
-      </View>
-
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        style={{
+          flex: 1,
+          backgroundColor: Colors.white,
+          marginBottom: '100@vs',
+        }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 30} // adjust if you have header/navbar
       >
+        <View style={localStyles.createProfileStyling}>
+          <Text style={[localStyles.header, textStyles.subheading]}>
+            {strings.myProfile}
+          </Text>
+        </View>
+
         <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-          removeClippedSubviews={true}
-          showsVerticalScrollIndicator={false}
           ref={scrollViewRef}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+          }}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
         >
           <View style={styles.pageContainer}>
             <View style={localStyles.centerContainer}>
@@ -248,6 +261,7 @@ const CustomerCreateProfile = () => {
                   placeholder="Enter Your Name"
                   value={name}
                   maxLength={35}
+                  onFocus={() => setOpenDropdown(null)}
                   onTextChange={text => {
                     const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
                     setName(cleaned);
@@ -264,6 +278,8 @@ const CustomerCreateProfile = () => {
                   }}
                   autoCapitalize="words"
                   isError={errors.name}
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailRef.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>
@@ -274,6 +290,7 @@ const CustomerCreateProfile = () => {
                   editable={false}
                   keyboardType="phone-pad"
                   maxLength={10}
+                  onFocus={() => setOpenDropdown(null)}
                   style={{ color: Colors.disabledText }}
                   isError={errors.mobile}
                 />
@@ -287,6 +304,7 @@ const CustomerCreateProfile = () => {
                   value={email}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  onFocus={() => setOpenDropdown(null)}
                   onTextChange={text => {
                     setEmail(text);
                     if (isSubmitting) {
@@ -300,165 +318,135 @@ const CustomerCreateProfile = () => {
                   }}
                   maxLength={38}
                   isError={errors.email}
+                  returnKeyType="next"
+                  onSubmitEditing={() => address1ref.current?.focus()}
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.dob} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
-                <Pressable onPress={() => setShowDatePicker(true)}>
-                  <View
-                    style={[
-                      localStyles.dobInput,
-                      errors.dob && { borderColor: Colors.reject },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        fontSize: Fonts.sizes.base,
-                        color: dob ? Colors.secondary : Colors.disabledText,
-                      }}
-                    >
-                      {dob
-                        ? dob.toLocaleDateString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                        : 'Select Date of Birth'}
-                    </Text>
-                  </View>
-                </Pressable>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={dob || new Date(2000, 0, 1)}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                    maximumDate={new Date()}
-                    onChange={handleDobChange}
-                  />
-                )}
-
-                <Text style={localStyles.label}>
-                  {strings.addressLine1}
-                  <Text style={localStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={localStyles.label}>{strings.addressLine1}</Text>
                 <CustomInput
-                  ref={addressRef}
+                  ref={address1ref}
                   value={addressLine1}
                   placeholder="Enter Your Address"
                   maxLength={38}
+                  onFocus={() => setOpenDropdown(null)}
                   onTextChange={text => {
                     const cleaned = text.replace(/[^a-zA-Z0-9\s,\/-]/g, '');
                     setAddressLine1(cleaned);
-                    if (isSubmitting) {
-                      setErrors(prev => ({
-                        ...prev,
-                        addressLine1: cleaned.trim().length > 0 ? false : true,
-                      }));
-                    }
+                    // if (isSubmitting) {
+                    //   setErrors(prev => ({
+                    //     ...prev,
+                    //     addressLine1: cleaned.trim().length > 0 ? false : true,
+                    //   }));
+                    // }
                   }}
                   isError={errors.addressLine1}
+                  returnKeyType="next"
+                  onSubmitEditing={() => address2ref.current?.focus()}
                 />
 
                 <Text style={localStyles.label}>{strings.addressLine2}</Text>
                 <CustomInput
+                  ref={address2ref}
                   value={addressLine2}
                   placeholder="Enter Address Line 2"
                   onTextChange={text =>
                     setAddressLine2(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
                   }
                   maxLength={38}
+                  onFocus={() => setOpenDropdown(null)}
+                  returnKeyType="next"
+                  onSubmitEditing={() => landmarkRef.current?.focus()}
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.landmark}{' '}
-                  <Text style={localStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={localStyles.label}>{strings.landmark} </Text>
                 <CustomInput
                   ref={landmarkRef}
                   value={landmark}
                   placeholder="Enter Landmark"
                   onTextChange={text => {
                     setLandmark(text);
-                    if (isSubmitting) {
-                      setErrors(prev => ({
-                        ...prev,
-                        landmark: text.trim().length >= 2 ? false : true,
-                      }));
-                    }
+                    // if (isSubmitting) {
+                    //   setErrors(prev => ({
+                    //     ...prev,
+                    //     landmark: text.trim().length >= 2 ? false : true,
+                    //   }));
+                    // }
                   }}
                   maxLength={20}
+                  onFocus={() => setOpenDropdown(null)}
                   isError={errors.landmark}
+                  returnKeyType="next"
+                  onSubmitEditing={() => cityRef.current?.focus()}
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.city} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={cityRef}
-                  placeholder="Enter City"
-                  value={city}
-                  onTextChange={text => {
-                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
-                    setCity(cleaned);
-                    if (isSubmitting) {
-                      setErrors(prev => ({
-                        ...prev,
-                        city: cleaned.trim().length >= 2 ? false : true,
-                      }));
-                    }
+                <Text style={localStyles.label}>{strings.state}</Text>
+                <StateDropdown
+                  selectedState={state}
+                  onSelectState={val => {
+                    setState(val);
+                    setCity('');
                   }}
-                  maxLength={20}
-                  isError={errors.city}
+                  error={errors.state}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dropdownKey="state"
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.state} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
-                <CustomInput
-                  ref={stateRef}
-                  placeholder="Enter State"
-                  value={state}
-                  onTextChange={text => {
-                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
-                    setState(cleaned);
-                    if (isSubmitting) {
-                      setErrors(prev => ({
-                        ...prev,
-                        state: cleaned.trim().length >= 2 ? false : true,
-                      }));
-                    }
+                <Text style={localStyles.label}>{strings.city}</Text>
+                <CityDropdown
+                  selectedState={state}
+                  selectedCity={city}
+                  onSelectCity={val => {
+                    setCity(val);
                   }}
-                  maxLength={20}
-                  isError={errors.state}
+                  // error={errors.city}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dropdownKey="city"
                 />
 
-                <Text style={localStyles.label}>
-                  {strings.pincode} <Text style={localStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={localStyles.label}>{strings.pincode}</Text>
                 <CustomInput
                   ref={pincodeRef}
                   value={pincode}
                   placeholder="Enter Pincode"
                   keyboardType="number-pad"
+                  inputAccessoryViewID="pincode"
                   maxLength={6}
+                  onFocus={() => setOpenDropdown(null)}
                   onTextChange={text => {
                     const cleaned = text.replace(/\D/g, '');
                     setPincode(cleaned);
-                    if (isSubmitting) {
-                      setErrors(prev => ({
-                        ...prev,
-                        pincode: /^\d{6}$/.test(cleaned) ? false : true,
-                      }));
-                    }
+                    // if (isSubmitting) {
+                    //   setErrors(prev => ({
+                    //     ...prev,
+                    //     pincode: /^\d{6}$/.test(cleaned) ? false : true,
+                    //   }));
+                    // }
                   }}
                   isError={errors.pincode}
                 />
-
-                <View style={localStyles.buttonWrapper}>
-                  <CustomButton
-                    title={strings.continue}
-                    onPress={handleContinue}
+                <Text style={localStyles.label}>
+                  {strings.dob} <Text style={localStyles.mandatory}>*</Text>
+                </Text>
+                <View
+                  style={[
+                    localStyles.dobInput,
+                    errors.dob && {
+                      borderColor: Colors.reject,
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <DatePicker
+                    dob={dob}
+                    setDob={date => {
+                      Keyboard.dismiss();
+                      setDob(date);
+                      if (date instanceof Date && !isNaN(date.getTime())) {
+                        setErrors(prev => ({ ...prev, dob: false }));
+                      }
+                    }}
                   />
                 </View>
               </View>
@@ -466,6 +454,11 @@ const CustomerCreateProfile = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {!isKeyboardVisible && (
+        <View style={localStyles.buttonWrapper}>
+          <CustomButton title={strings.continue} onPress={handleContinue} />
+        </View>
+      )}
     </View>
   );
 };
@@ -504,7 +497,7 @@ const localStyles = ScaledSheet.create({
   },
   dobInput: {
     height: '40@vs',
-    paddingHorizontal: '12@s',
+    paddingHorizontal: '20@s',
     borderWidth: 1,
     borderColor: Colors.inputBorder,
     borderRadius: '50@s',
@@ -513,9 +506,8 @@ const localStyles = ScaledSheet.create({
     justifyContent: 'center',
   },
   buttonWrapper: {
-    marginTop: '40@vs',
+    paddingVertical: '10@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: '30@vs',
   },
 });

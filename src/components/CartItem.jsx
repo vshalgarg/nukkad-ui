@@ -1,4 +1,3 @@
-// components/CartItem.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -7,10 +6,11 @@ import {
   Image,
   Pressable,
   TouchableOpacity,
-  StyleSheet,
+  InputAccessoryView,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import { useDispatch } from 'react-redux';
@@ -26,18 +26,16 @@ import {
 import { useAuth } from '../contexts/authContext';
 import { ScaledSheet } from 'react-native-size-matters';
 
-const CartItem = ({
-  item,
-  openDropdownId,
-  setOpenDropdownId,
-  onItemRemoved,
-}) => {
+const CartItem = ({ item, openDropdownId, setOpenDropdownId }) => {
   const dispatch = useDispatch();
   const { token } = useAuth();
+
   if (!item || !item.product) {
-    console.warn(' CartItem received undefined item or product', item);
+    console.warn('CartItem received invalid data:', item);
     return null;
   }
+
+  const [showAmountError, setShowAmountError] = useState(false);
   const [imageError, setImageError] = useState(false);
   const placeholderImageUrl = require('../../assets/images/itemNotFound.jpg');
   const { product } = item;
@@ -48,21 +46,22 @@ const CartItem = ({
   const isDropdownOpen = openDropdownId === product.id;
   const [selectedUnit, setSelectedUnit] = useState(product.selectedUnit);
 
+  const accessoryViewID = `done-${product.id}`;
+
   const handleDelete = async () => {
     try {
       dispatch(clearProductCartData(product.id));
       await deleteCartItemAPI(product.id, token);
       dispatch(removeFromCart({ itemId: product.id }));
-      if (onItemRemoved) onItemRemoved();
     } catch (err) {
-      console.error(' Failed to delete item from cart', err);
+      console.error('Failed to delete item:', err);
     }
   };
 
   const handleUnitSelect = async unit => {
     try {
       await updateCartAPI(product.id, Number(amountInput), unit, token);
-      setSelectedUnit(unit); // update local state
+      setSelectedUnit(unit);
       dispatch(
         updateCartItemQuantity({
           itemId: item.product.id,
@@ -72,16 +71,25 @@ const CartItem = ({
       );
       setOpenDropdownId(null);
     } catch (err) {
-      console.error('Failed to update unit', err);
+      console.error('Failed to update unit:', err);
+    }
+  };
+
+  const handleAmountChange = val => {
+    setAmountInput(val);
+    if (val.trim() === '' || isNaN(Number(val)) || Number(val) <= 0) {
+      setShowAmountError(true);
+    } else {
+      setShowAmountError(false);
     }
   };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const numericValue = amountInput;
+      const numericValue = Number(amountInput);
       if (
         !isNaN(numericValue) &&
-        numericValue >= 0 &&
+        numericValue > 0 &&
         amountInput !== originalAmount.current
       ) {
         updateCartAPI(product.id, numericValue, selectedUnit, token)
@@ -121,24 +129,43 @@ const CartItem = ({
         <Text style={styles.name}>{product.name}</Text>
         <View style={styles.row}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, showAmountError && styles.errorInput]}
             value={amountInput}
-            keyboardType="numeric"
-            onChangeText={setAmountInput}
-            placeholder=""
-            maxLength={3}
+            keyboardType="number-pad"
+            onChangeText={handleAmountChange}
+            placeholder="Qty."
+            maxLength={4}
+            inputAccessoryViewID={
+              Platform.OS === 'ios' ? accessoryViewID : undefined
+            }
           />
-          <View style={{ marginLeft: 10 }}>
-            <Pressable
-              onPress={() =>
-                setOpenDropdownId(isDropdownOpen ? null : product.id)
-              }
-              style={styles.unitSelector}
-            >
-              <Text style={styles.unitText}>{selectedUnit || 'Unit'}</Text>
 
-              <AntDesign name={isDropdownOpen ? 'up' : 'down'} size={14} />
-            </Pressable>
+          <View style={{ marginLeft: 10 }}>
+            {product.quantity?.length === 1 ? (
+              <View style={styles.unitSelector}>
+                <Text style={styles.unitText}>{selectedUnit || 'Unit'}</Text>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() =>
+                  setOpenDropdownId(isDropdownOpen ? null : product.id)
+                }
+                style={styles.unitSelector}
+              >
+                <View style={styles.unitRow}>
+                  <Text style={styles.unitText}>{selectedUnit || 'Unit'}</Text>
+                  <MaterialIcons
+                    name={
+                      isDropdownOpen
+                        ? 'keyboard-arrow-up'
+                        : 'keyboard-arrow-down'
+                    }
+                    size={18}
+                    color={Colors.secondary}
+                  />
+                </View>
+              </Pressable>
+            )}
 
             {isDropdownOpen && (
               <View style={styles.dropdown}>
@@ -164,6 +191,16 @@ const CartItem = ({
           color={Colors.secondary}
         />
       </TouchableOpacity>
+
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={accessoryViewID}>
+          <View style={styles.accessoryContainer}>
+            <TouchableOpacity onPress={Keyboard.dismiss}>
+              <Text style={styles.doneText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
     </View>
   );
 };
@@ -179,6 +216,9 @@ const styles = ScaledSheet.create({
     marginBottom: '10@ms',
     borderWidth: 1,
     borderColor: Colors.borderColor,
+  },
+  errorInput: {
+    borderColor: 'red',
   },
   image: {
     width: '80@ms',
@@ -202,37 +242,44 @@ const styles = ScaledSheet.create({
     marginTop: '8@ms',
   },
   input: {
-    width: '45@ms',
+    width: '55@ms',
     height: '38@ms',
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: '6@ms',
     paddingHorizontal: '8@ms',
     textAlign: 'center',
-    fontWeight: '800',
+    fontWeight: '700',
   },
   unitSelector: {
     borderWidth: 1,
     borderColor: Colors.borderColor,
     borderRadius: '8@ms',
-    paddingHorizontal: '10@ms',
+    paddingHorizontal: '5@ms',
     paddingVertical: '8@ms',
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '70@ms',
+    width: '55@ms',
     height: '38@ms',
   },
+  unitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+
   unitText: {
-    fontSize: Fonts.sizes.sm,
+    fontSize: Fonts.sizes.xs,
     fontWeight: '600',
     color: Colors.secondary,
-    marginRight: 6,
   },
   dropdown: {
     position: 'absolute',
     top: '40@ms',
-    width: '70@ms',
+    width: '55@ms',
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.borderColor,
@@ -251,8 +298,20 @@ const styles = ScaledSheet.create({
     borderBottomColor: Colors.borderColor,
   },
   dropdownItemText: {
-    fontSize: Fonts.sizes.sm,
+    fontSize: Fonts.sizes.xs,
     color: Colors.secondary,
     fontWeight: '500',
+  },
+  accessoryContainer: {
+    backgroundColor: Colors.white,
+    padding: 10,
+    alignItems: 'flex-end',
+    borderTopWidth: 1,
+    borderColor: Colors.borderColor,
+  },
+  doneText: {
+    color: Colors.primary,
+    fontWeight: 'bold',
+    fontSize: Fonts.sizes.base,
   },
 });

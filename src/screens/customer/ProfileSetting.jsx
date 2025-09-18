@@ -9,16 +9,17 @@ import {
   Platform,
   Pressable,
   ActivityIndicator,
-  ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  Modal,
+  InteractionManager,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import CameraIcon from '../../../assets/images/Camera.svg';
 import ProfileImage from '../../../assets/images/ProfileImage.svg';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 import { useProfile } from '../../contexts/profileContext';
@@ -35,6 +36,11 @@ import { useAddress } from '../../contexts/addressContext';
 import { useStore } from '../../contexts/storeContext';
 import { useDispatch } from 'react-redux';
 import { ScaledSheet } from 'react-native-size-matters';
+import { useDialog } from '../../contexts/DialogContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistor } from '../../store/store.js';
+import { useLogout } from '../../hooks/useLogout.jsx';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const formatDate = date => {
   if (!date) return '';
@@ -48,10 +54,13 @@ const ProfileSetting = () => {
   const scrollRef = useRef();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const firstNameRef = useRef(null);
-  const { resetProfile } = useProfile();
-  const { resetAddress } = useAddress();
-  const { resetStore } = useStore();
+  // const { resetProfile } = useProfile();
+  // const { resetAddress } = useAddress();
+  // const { resetStore } = useStore();
   const dispatch = useDispatch();
+  // const { showDialog } = useDialog();
+  const { confirmLogout } = useLogout();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const { safePush } = useSafeRouter();
   const { token, role } = useAuth();
@@ -65,7 +74,6 @@ const ProfileSetting = () => {
     role: role || '',
     dob: '',
   });
-
   const [DOB, setDOB] = useState('');
   const [dobDate, setDobDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
@@ -73,6 +81,7 @@ const ProfileSetting = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -87,11 +96,9 @@ const ProfileSetting = () => {
             setDobDate(new Date(cachedProfile.dob));
           }
 
-          // Allow UI to render with cached data instantly
           setLoading(false);
         }
 
-        // Fetch fresh data in the background
         const userProfile = await getCustomerProfile(token);
         if (!isMounted) return;
 
@@ -122,6 +129,21 @@ const ProfileSetting = () => {
     fetchProfile();
     return () => {
       isMounted = false;
+    };
+  }, []);
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => setKeyboardVisible(true),
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setKeyboardVisible(false),
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
     };
   }, []);
 
@@ -157,10 +179,17 @@ const ProfileSetting = () => {
   };
 
   const handleDateChange = (_, selectedDate) => {
-    setShowPicker(false);
-    if (selectedDate) {
-      setDobDate(selectedDate);
-      setDOB(formatDate(selectedDate));
+    if (Platform.OS === 'android') {
+      setShowPicker(false);
+      if (selectedDate) {
+        setDobDate(selectedDate);
+        setDOB(formatDate(selectedDate));
+      }
+    } else {
+      if (selectedDate) {
+        setDobDate(selectedDate);
+        setDOB(formatDate(selectedDate));
+      }
     }
   };
 
@@ -168,7 +197,6 @@ const ProfileSetting = () => {
     Keyboard.dismiss();
     if (!profile) return;
 
-    // Validate required fields
     if (!profile.firstName?.trim()) {
       showToast('error', 'First name cannot be empty');
       return;
@@ -196,6 +224,7 @@ const ProfileSetting = () => {
       firstName: profile.firstName || profileData?.firstName || '',
       lastName: profile.lastName || profileData?.lastName || '',
       email: profile.email || profileData?.email || '',
+      mobileNumber: profile.mobileNumber,
     };
 
     try {
@@ -217,213 +246,349 @@ const ProfileSetting = () => {
     Keyboard.dismiss();
     setShowDeleteModal(true);
   };
-  const cancelEdit = () => {
-    setIsEditing(false);
-    setProfile({
-      firstName: profileData?.firstName || '',
-      lastName: profileData?.lastName || '',
-      email: profileData?.email || '',
-      image: profileData?.image || '',
-      role: profileData?.role || role || '',
-      dob: profileData?.dob || '',
-    });
 
-    if (profileData?.dob) {
-      setDOB(formatDate(profileData.dob));
-      setDobDate(new Date(profileData.dob));
-    }
-  };
-  console.log('profileData');
+  // const handleLogout = () => {
+  //   showDialog({
+  //     title: 'Logout',
+  //     message: 'Are you sure you want to Logout?',
+  //     confirmText: 'Logout',
+  //     cancelText: 'Cancel',
+  //     onCancel: () => {
+  //       console.log('Logout cancelled');
+  //     },
+  //     onConfirm: async () => {
+  //       try {
+  //         setLoggingOut(true); // ✅ Prevents back confirmation
+  //         await persistor.purge();
+  //         await AsyncStorage.removeItem('authToken');
+  //         await AsyncStorage.removeItem('userRole');
+  //         await AsyncStorage.removeItem('storekeeperProfile');
+  //         await AsyncStorage.clear();
+  //         dispatch(clearCart());
+  //         dispatch(resetUser());
+  //         resetProfile();
+  //         resetAddress();
+  //         resetStore();
+  //         safeReplace('Home');
+  //       } catch (error) {
+  //         console.error('Logout failed:', error);
+  //         showToast(
+  //           'error',
+  //           'Failed Logout',
+  //           err?.message || 'Please try again',
+  //         );
+  //       } finally {
+  //         setTimeout(() => setLoggingOut(false), 100);
+  //       }
+  //     },
+  //   });
+  // };
+
+  // const cancelEdit = () => {
+  //   setIsEditing(false);
+  //   setProfile({
+  //     firstName: profileData?.firstName || '',
+  //     lastName: profileData?.lastName || '',
+  //     email: profileData?.email || '',
+  //     image: profileData?.image || '',
+  //     role: profileData?.role || role || '',
+  //     dob: profileData?.dob || '',
+  //     mobileNumber: profileData?.mobileNumber,
+  //   });
+
+  //   if (profileData?.dob) {
+  //     setDOB(formatDate(profileData.dob));
+  //     setDobDate(new Date(profileData.dob));
+  //   }
+  // };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <ScrollView
-        style={styles.pageContainer}
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <BackButton title={strings.profileSetting}  />
+    <KeyboardAwareScrollView
+      style={{ flex: 1, backgroundColor: Colors.white }}
+      contentContainerStyle={{ flexGrow: 1 }}
+      // enableOnAndroid={true}
+      // extraScrollHeight={Platform.OS === 'ios' ? 0 : 20}
+      // keyboardShouldPersistTaps="handled"
+      // showsVerticalScrollIndicator={false}
+      // // keyboardOpeningTime={0}
+      // keyboardOpeningTime={Number.MAX_SAFE_INTEGER}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
+          <BackButton title={strings.profileSetting} />
 
-        <View style={innerStyle.container}>
-          <View style={innerStyle.profileImageSection}>
-            {loading ? (
-              <ActivityIndicator size="large" color={Colors.primary} />
-            ) : (
-              <TouchableOpacity onPress={isEditing ? pickImage : null}>
-                {profile.image ? (
-                  <Animated.Image
-                    source={{ uri: profile.image }}
-                    style={[innerStyle.image, { opacity: fadeAnim }]}
-                    onLoad={handleImageLoad}
+          <View style={innerStyle.container}>
+            <View style={innerStyle.profileImageSection}>
+              {loading ? (
+                <ActivityIndicator size="large" color={Colors.primary} />
+              ) : (
+                <TouchableOpacity onPress={isEditing ? pickImage : null}>
+                  {profile.image ? (
+                    <Animated.Image
+                      source={{ uri: profile.image }}
+                      style={[innerStyle.image, { opacity: fadeAnim }]}
+                      onLoad={handleImageLoad}
+                    />
+                  ) : (
+                    <View style={[innerStyle.image]}>
+                      <Ionicons
+                        name="person-circle-outline"
+                        color="#000"
+                        size={150}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {isEditing && (
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={innerStyle.cameraIconContainer}
+                >
+                  <CameraIcon style={innerStyle.cameraIcon} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          <View style={innerStyle.profileDetails}>
+            <View style={innerStyle.row}>
+              <Text style={innerStyle.halfLabel}>{strings.firstName}</Text>
+              <Text style={innerStyle.halfLabel}>{strings.lastName}</Text>
+            </View>
+            <View style={innerStyle.row}>
+              {isEditing ? (
+                <>
+                  <TextInput
+                    ref={firstNameRef}
+                    style={innerStyle.halfInput}
+                    value={profile.firstName}
+                    onChangeText={val => {
+                      // Only keep letters
+                      let cleanText = val.replace(/[^A-Za-z]/g, '');
+
+                      // Optional: capitalize first letter
+                      // cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
+
+                      if (cleanText !== profile.firstName) {
+                        handleChange('firstName', cleanText);
+                      }
+                    }}
+                    maxLength={15}
                   />
-                ) : (
-                  <View style={[innerStyle.image]}>
-                    <ProfileImage height={150} width={150} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            )}
+                  <TextInput
+                    style={innerStyle.halfInput}
+                    value={profile.lastName}
+                    onChangeText={val => {
+                      // Allow only letters and spaces
+                      const cleanText = val.replace(/[^A-Za-z ]/g, '');
 
-            {isEditing && (
-              <TouchableOpacity
-                onPress={pickImage}
-                style={innerStyle.cameraIconContainer}
-              >
-                <CameraIcon style={innerStyle.cameraIcon} />
-              </TouchableOpacity>
-            )}
-          </View>
+                      if (cleanText !== profile.lastName) {
+                        handleChange('lastName', cleanText);
+                      }
+                    }}
+                    maxLength={15}
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={innerStyle.halfInput}>{profile.firstName}</Text>
+                  <Text style={innerStyle.halfInput}>{profile.lastName}</Text>
+                </>
+              )}
+            </View>
 
-          <View style={innerStyle.editButtonWrapper}>
-            {!isEditing ? (
-              <Pressable
-                onPress={() => {
-                  setIsEditing(true);
-                  scrollRef.current?.scrollTo({ y: 0, animated: true });
-                  setTimeout(() => {
-                    firstNameRef.current?.focus();
-                  }, 100);
-                }}
-              >
-                <FontAwesome name="edit" size={28} color="black" />
-              </Pressable>
-            ) : (
-              <Pressable onPress={cancelEdit}>
-                <Text style={innerStyle.cancelText}>{strings.cancel}</Text>
-              </Pressable>
-            )}
-          </View>
-        </View>
+            <View style={innerStyle.email}>
+              <Text style={innerStyle.fullLabel}>{strings.email}</Text>
 
-        <View style={innerStyle.profileDetails}>
-          <View style={innerStyle.row}>
-            <Text style={innerStyle.halfLabel}>{strings.firstName}</Text>
-            <Text style={innerStyle.halfLabel}>{strings.lastName}</Text>
-          </View>
-          <View style={innerStyle.row}>
-            {isEditing ? (
-              <>
+              {isEditing ? (
+                <View>
+                  <TextInput
+                    style={innerStyle.fullInput}
+                    value={profile.email}
+                    keyboardType="email-address"
+                    maxLength={30}
+                    autoCapitalize="none"
+                    onChangeText={val => handleChange('email', val)}
+                  />
+                </View>
+              ) : (
+                <Text style={innerStyle.fullInput}>{profile.email}</Text>
+              )}
+            </View>
+            <View style={innerStyle.email}>
+              <Text style={innerStyle.fullLabel}>{strings.mobile}</Text>
+              {isEditing ? (
                 <TextInput
-                  ref={firstNameRef}
-                  style={innerStyle.halfInput}
-                  value={profile.firstName}
-                  onChangeText={val => {
-                    // Only keep letters
-                    let cleanText = val.replace(/[^A-Za-z]/g, '');
-
-                    // Optional: capitalize first letter
-                    // cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
-
-                    if (cleanText !== profile.firstName) {
-                      handleChange('firstName', cleanText);
-                    }
-                  }}
+                  style={[innerStyle.fullInput, { color: Colors.disabledText }]}
+                  value={profile.mobileNumber || ''}
+                  keyboardType="number-pad"
                   maxLength={15}
+                  editable={false}
                 />
-                <TextInput
-                  style={innerStyle.halfInput}
-                  value={profile.lastName}
-                  onChangeText={val => {
-                    // Allow only letters and spaces
-                    const cleanText = val.replace(/[^A-Za-z ]/g, '');
+              ) : (
+                <Text style={innerStyle.fullInput}>
+                  {profile.mobileNumber || ''}
+                </Text>
+              )}
+            </View>
 
-                    if (cleanText !== profile.lastName) {
-                      handleChange('lastName', cleanText);
-                    }
+            <View>
+              <Text style={innerStyle.fullLabel}>{strings.dob}</Text>
+              {isEditing ? (
+                <Pressable
+                  onPress={() => {
+                    setShowPicker(true);
+                    Keyboard.dismiss();
                   }}
-                  maxLength={15}
-                />
-              </>
-            ) : (
-              <>
-                <Text style={innerStyle.halfInput}>{profile.firstName}</Text>
-                <Text style={innerStyle.halfInput}>{profile.lastName}</Text>
-              </>
-            )}
-          </View>
-
-          <View style={innerStyle.email}>
-            <Text style={innerStyle.fullLabel}>{strings.email}</Text>
-            {isEditing ? (
-              <TextInput
-                style={innerStyle.fullInput}
-                value={profile.email}
-                keyboardType="email-address"
-                maxLength={30}
-                autoCapitalize="none"
-                onChangeText={val => handleChange('email', val)}
-              />
-            ) : (
-              <Text style={innerStyle.fullInput}>{profile.email}</Text>
-            )}
-          </View>
-
-          <View>
-            <Text style={innerStyle.fullLabel}>{strings.dob}</Text>
-            {isEditing ? (
-              <>
-                <Pressable onPress={() => setShowPicker(true)}>
+                >
                   <TextInput
                     style={innerStyle.dob}
                     value={DOB}
                     editable={false}
+                    pointerEvents="none"
                   />
                 </Pressable>
-                {showPicker && (
-                  <DateTimePicker
-                    value={dobDate}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleDateChange}
-                    maximumDate={
-                      new Date(
-                        new Date().setFullYear(new Date().getFullYear() - 10),
-                      )
-                    }
-                    minimumDate={
-                      new Date(
-                        new Date().setFullYear(new Date().getFullYear() - 75),
-                      )
-                    }
-                  />
-                )}
-              </>
-            ) : (
-              <Text style={innerStyle.dob}>{DOB}</Text>
-            )}
+              ) : (
+                <Text style={innerStyle.dob}>{DOB}</Text>
+              )}
+            </View>
           </View>
-        </View>
 
-        {isEditing && (
-          <View style={innerStyle.buttonContainer}>
-            <CustomButton
-              title="Save Changes"
-              onPress={saveProfile}
-              loading={isSaving}
-            />
-            {profile.role === 'CUSTOMER' && (
+          {isEditing && !keyboardVisible ? (
+            <View style={innerStyle.buttonContainer}>
               <CustomButton
-                title="Delete Account"
-                onPress={handleDeleteAccount}
-                style={{
-                  backgroundColor: Colors.reject,
-                  borderColor: Colors.reject,
-                }}
+                title="Save Changes"
+                onPress={saveProfile}
+                loading={isSaving}
               />
-            )}
-          </View>
-        )}
-        <DeleteAccount
-          visible={showDeleteModal}
-          onCancel={() => setShowDeleteModal(false)}
-          onConfirm={() => {
-            setShowDeleteModal(false);
-          }}
-          phoneNumber={profileData?.mobileNumber}
-        />
-      </ScrollView>
-    </TouchableWithoutFeedback>
+              {profile.role === 'CUSTOMER' && (
+                <CustomButton
+                  title="Delete Account"
+                  onPress={handleDeleteAccount}
+                  style={{
+                    backgroundColor: Colors.reject,
+                    borderColor: Colors.reject,
+                  }}
+                />
+              )}
+            </View>
+          ) : (
+            !keyboardVisible && (
+              <View style={innerStyle.buttonContainer}>
+                <CustomButton
+                  title="Edit"
+                  onPress={() => {
+                    setIsEditing(true);
+                    scrollRef.current?.scrollTo({ y: 0, animated: true });
+                    setTimeout(() => {
+                      firstNameRef.current?.focus();
+                    }, 100);
+                  }}
+                />
+                <CustomButton
+                  title="Logout"
+                  style={{
+                    backgroundColor: Colors.reject,
+                    borderColor: Colors.reject,
+                  }}
+                  onPress={confirmLogout}
+                  // loading={isSaving}
+                />
+              </View>
+            )
+          )}
+          <DeleteAccount
+            visible={showDeleteModal}
+            onCancel={() => setShowDeleteModal(false)}
+            onConfirm={() => {
+              setShowDeleteModal(false);
+            }}
+            phoneNumber={profileData?.mobileNumber}
+          />
+          {isEditing && Platform.OS === 'ios' && (
+            <Modal
+              visible={showPicker}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setShowPicker(false)}
+            >
+              <TouchableWithoutFeedback onPress={() => setShowPicker(false)}>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#00000099',
+                    justifyContent: 'flex-end',
+                  }}
+                >
+                  <TouchableWithoutFeedback onPress={() => {}}>
+                    <View
+                      style={{
+                        backgroundColor: '#fff',
+                        borderTopLeftRadius: 16,
+                        borderTopRightRadius: 16,
+                        paddingBottom: 20,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <DateTimePicker
+                        value={dobDate}
+                        mode="date"
+                        display="spinner"
+                        onChange={handleDateChange}
+                        maximumDate={
+                          new Date(
+                            new Date().setFullYear(
+                              new Date().getFullYear() - 10,
+                            ),
+                          )
+                        }
+                        minimumDate={
+                          new Date(
+                            new Date().setFullYear(
+                              new Date().getFullYear() - 75,
+                            ),
+                          )
+                        }
+                        style={{
+                          width: '100%',
+                          alignSelf: 'center',
+                          backgroundColor: 'white',
+                        }}
+                      />
+                      <View style={{ width: '90%' }}>
+                        <CustomButton
+                          title="Done"
+                          onPress={() => setShowPicker(false)}
+                          style={{ marginTop: 10 }}
+                        />
+                      </View>
+                    </View>
+                  </TouchableWithoutFeedback>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          )}
+
+          {/* Android Date Picker */}
+          {isEditing && showPicker && Platform.OS === 'android' && (
+            <DateTimePicker
+              value={dobDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              maximumDate={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 10))
+              }
+              minimumDate={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 75))
+              }
+            />
+          )}
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -440,6 +605,7 @@ const innerStyle = ScaledSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    // backgroundColor: 'red',
     width: '120@s',
     height: '120@s',
   },
@@ -447,7 +613,7 @@ const innerStyle = ScaledSheet.create({
     width: '120@s',
     height: '120@s',
     borderRadius: '65@s',
-    resizeMode: 'contain',
+    resizeMode: 'cover',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
@@ -466,17 +632,11 @@ const innerStyle = ScaledSheet.create({
     alignSelf: 'flex-end',
     paddingHorizontal: 20,
   },
-  editText: {
-    color: Colors.primary,
-    fontSize: Fonts.sizes.base,
-    fontWeight: '600',
-  },
   cancelText: {
     color: Colors.reject,
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
   },
-
   profileDetails: {
     width: '100%',
     marginTop: '10@vs',
@@ -485,6 +645,7 @@ const innerStyle = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: '13@s',
+    width: '100%',
   },
   halfInput: {
     flex: 1,
@@ -493,7 +654,6 @@ const innerStyle = ScaledSheet.create({
     borderRadius: '12@s',
     padding: '10@s',
     fontSize: Fonts.sizes.base,
-    // marginHorizontal: '5@s',
   },
   fullInput: {
     marginBottom: '16@vs',
@@ -528,7 +688,9 @@ const innerStyle = ScaledSheet.create({
     justifyContent: 'space-around',
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: '30@vs',
+    position: 'absolute',
+    width: '100%',
+    bottom: 10,
     paddingHorizontal: '20@s',
   },
 });

@@ -2,6 +2,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -43,15 +46,13 @@ const ShoppingCart = () => {
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
 
-  let pressLock = false;
-
   const dispatch = useDispatch();
-
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(false);
-
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
   const { storeData } = useStore();
   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
@@ -59,12 +60,23 @@ const ShoppingCart = () => {
     address.find(item => item.id.toString() === String(selectedAddressId)) ||
     address.find(item => item.isDefault);
 
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const fetchCartItems = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('Before shopping API:', performance.now());
       const res = await getCartItemsAPI(token);
-      console.log('After API:', performance.now());
       const formattedItems = (res || []).map(item => ({
         cartItemId: item.id,
         product: {
@@ -90,26 +102,11 @@ const ShoppingCart = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!fromRepeatOrder) {
-        fetchCartItems();
-      }
+      if (!fromRepeatOrder) fetchCartItems();
     }, [fetchCartItems, fromRepeatOrder]),
   );
-  const totalCount = useMemo(
-    () =>
-      cartItems.reduce((total, item) => {
-        const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
 
-        return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
-      }, 0),
-    [cartItems],
-  );
-
-  const handleAddAddress = async () => {
-    setMode('add');
-    setAddressData(null);
-    safePush('AddressForm');
-  };
+  const totalItemsInCart = cartItems?.length;
 
   const handleAddItems = () => {
     if (fromRepeatOrder) {
@@ -117,6 +114,18 @@ const ShoppingCart = () => {
     } else {
       navigation.goBack();
     }
+  };
+
+  const handleAddAddress = () => {
+    setMode('add');
+    setAddressData(null);
+    safePush('AddressForm');
+  };
+
+  const handleEditAddress = address => {
+    setMode('edit');
+    setAddressData(address);
+    safePush('AddressForm');
   };
 
   const handleCompleteOrder = async () => {
@@ -160,27 +169,16 @@ const ShoppingCart = () => {
       })),
     };
 
-    // 🚀 Navigate instantly
     safePush('PlaceOrder');
 
-    // 🌐 Place order in the background
     try {
-      const res = await placeOrder(payload, token);
+      await placeOrder(payload, token);
       dispatch(clearCart());
-      // You could also emit an event or update state so PlaceOrder screen shows success
     } catch (error) {
-      console.error('Error placing order:', error);
       showToast('error', error.message || 'Failed to place order');
-      // Optionally navigate back or show retry in PlaceOrder screen
     } finally {
       setOrderInProgress(false);
     }
-  };
-
-  const handleEditAddress = address => {
-    setMode('edit');
-    setAddressData(address);
-    safePush('AddressForm');
   };
 
   if (loading) {
@@ -195,6 +193,7 @@ const ShoppingCart = () => {
       </View>
     );
   }
+
   if (cartItems.length === 0) {
     return (
       <View style={styles.pageContainer}>
@@ -217,12 +216,15 @@ const ShoppingCart = () => {
   }
 
   return (
-    <View style={[{ flex: 1 }, styles.pageContainer]}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[{ flex: 1 }, styles.pageContainer]}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
+    >
       <BackButton
         style={innerStyle.backButton}
-        title={strings.cartTitle(totalCount)}
+        title={strings.cartTitle(totalItemsInCart)}
       />
-
       <FlatList
         data={cartItems}
         keyExtractor={(item, index) =>
@@ -233,9 +235,14 @@ const ShoppingCart = () => {
             item={item}
             openDropdownId={openDropdownId}
             setOpenDropdownId={setOpenDropdownId}
+            inputAccessoryViewID="qty"
           />
         )}
-        contentContainerStyle={{ padding: Fonts.sizes.base }}
+        contentContainerStyle={{
+          padding: Fonts.sizes.base,
+          paddingBottom: 100,
+        }}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
           <>
             <Text style={innerStyle.heading}>{strings.deliveryAddress}</Text>
@@ -251,37 +258,66 @@ const ShoppingCart = () => {
                 showChangeAddress={true}
               />
             ) : (
-              <Pressable onPress={handleAddAddress}>
+              <Pressable
+                onPress={handleAddAddress}
+                style={({ pressed }) => [
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: Colors.lightBackground,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: Colors.primary,
+                    marginVertical: 12,
+
+                    // iOS shadow
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+
+                    // Android shadow (mimic iOS)
+                    // elevation: 1,
+                    transform: pressed ? [{ scale: 0.98 }] : [],
+                  },
+                ]}
+              >
                 <Ionicons
                   name="add-circle-outline"
-                  size={24}
-                  color={Colors.secondary}
+                  size={22}
+                  color={Colors.primary}
                 />
-                <Text style={innerStyle.buttonText}>{strings.addAddress}</Text>
+                <Text
+                  style={[
+                    innerStyle.buttonText,
+                    { fontSize: Fonts.sizes.base, color: Colors.secondary },
+                  ]}
+                >
+                  {strings.addAddress}
+                </Text>
               </Pressable>
             )}
 
             <Text style={[innerStyle.heading, { marginTop: 20 }]}>
-              {strings.selectedItems} ({totalCount})
+              {strings.selectedItems} ({totalItemsInCart})
             </Text>
           </>
         }
-        ListFooterComponent={
-          <>
-            <Pressable onPress={handleAddItems}>
-              <Text style={innerStyle.addItems}>{strings.addMoreItems}</Text>
-            </Pressable>
-            <View style={{ marginTop: 30, alignItems: 'center' }}>
-              <CustomButton
-                title={strings.proceed}
-                onPress={handleCompleteOrder}
-                disabled={!selectedAddress || orderInProgress}
-              />
-            </View>
-          </>
-        }
       />
-    </View>
+
+      {!keyboardVisible && (
+        <View style={innerStyle.fixedBottomContainer}>
+          <CustomButton title={strings.addMoreItems} onPress={handleAddItems} />
+          <CustomButton
+            title={strings.proceed}
+            onPress={handleCompleteOrder}
+            disabled={!selectedAddress || orderInProgress}
+          />
+        </View>
+      )}
+    </KeyboardAvoidingView>
   );
 };
 
@@ -290,19 +326,39 @@ export default ShoppingCart;
 const innerStyle = StyleSheet.create({
   heading: {
     fontSize: Fonts.sizes.base,
-    fontWeight: '800',
+    fontWeight: '700',
     marginBottom: 8,
   },
   buttonText: {
     fontSize: Fonts.sizes.base,
     marginLeft: 6,
   },
-  addItems: {
+  addItemsButton: {
+    backgroundColor: Colors.white,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 30,
+    borderColor: Colors.primary,
+    borderWidth: 1,
+    marginRight: 10,
+  },
+  addItemsButtonText: {
     color: Colors.primary,
-    textAlign: 'right',
-    marginTop: 12,
-    fontWeight: '500',
-    fontSize: Fonts.sizes.base,
+    fontWeight: '600',
+  },
+  fixedBottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    padding: '10',
+    paddingHorizontal: '30',
+    borderTopWidth: 1,
+    borderColor: Colors.borderColor,
   },
   emptyContainer: {
     flex: 1,
@@ -319,5 +375,8 @@ const innerStyle = StyleSheet.create({
     color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
+  },
+  backButton: {
+    marginBottom: 10,
   },
 });

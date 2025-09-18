@@ -2,11 +2,13 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Alert,
   Pressable,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
   RefreshControl,
+  FlatList,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { ActivityIndicator } from 'react-native';
@@ -36,8 +38,9 @@ import { formatTabLabel } from '../../utils/formatTabLabel';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import { ScaledSheet } from 'react-native-size-matters';
 import { showToast } from '../../utils/toastUtils.js';
+import { useDialog } from '../../contexts/DialogContext.js';
 
-
+const height = Dimensions.get('screen').height;
 const StorekeeperDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
   const [formState, setFormState] = useState(0);
@@ -61,7 +64,7 @@ const StorekeeperDashboard = () => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   const { toast } = route.params || {};
-
+  const { showDialog } = useDialog();
 
   const statusTabs = [
     { label: 'PENDING', statuses: ['PENDING'] },
@@ -75,13 +78,10 @@ const StorekeeperDashboard = () => {
     try {
       if (!token) return;
 
-
-      // Set loading states
-
       if (page === 0) {
-        setInitialLoading(true);  // 🆕 Start full loader on first page
+        setInitialLoading(true);
       } else {
-        setLoadingMore(true);     // For pagination
+        setLoadingMore(true);
       }
 
       const orderData = await getOrders(token, status, page, size);
@@ -93,7 +93,6 @@ const StorekeeperDashboard = () => {
         }),
       );
 
-      // Determine if more pages exist
       setHasMore(orderData.orders.length > 0);
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to fetch orders');
@@ -104,9 +103,8 @@ const StorekeeperDashboard = () => {
     }
   };
 
-
   useEffect(() => {
-    console.log(toast)
+    console.log(toast);
     if (toast) {
       try {
         const parsedToast = JSON.parse(toast);
@@ -119,7 +117,7 @@ const StorekeeperDashboard = () => {
   useFocusEffect(
     useCallback(() => {
       const currentStatus = statusTabs[formState].statuses[0];
-      dispatch
+      dispatch;
       setCurrentPage(0);
       loadOrders(currentStatus, 0, false);
     }, [formState, token]),
@@ -136,23 +134,19 @@ const StorekeeperDashboard = () => {
 
   const handleRefresh = async () => {
     const currentStatus = statusTabs[formState].statuses[0];
-    setRefreshing(true); // ⬅️ start spinner manually
+    setRefreshing(true);
     setCurrentPage(0);
 
     await loadOrders(currentStatus, 0, false);
 
-    // ⏱️ Add this delay to make spinner visible longer
     await new Promise(res => setTimeout(res, 700));
 
-    setRefreshing(false); // ⬅️ stop spinner manually
+    setRefreshing(false);
   };
-
-
 
   const filteredOrders = (Array.isArray(orders) ? [...orders] : []).sort(
     (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
   );
-
 
   const safePush = routeObj => {
     try {
@@ -175,7 +169,6 @@ const StorekeeperDashboard = () => {
         );
       }
 
-
       safePush({
         pathname: 'ShowDetails',
         params: {
@@ -190,60 +183,117 @@ const StorekeeperDashboard = () => {
   };
 
   const handleReject = orderId => {
-    Alert.alert('Reject Order', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reject',
-        style: 'destructive',
-        onPress: async () => {
+    showDialog({
+      title: 'Reject Order',
+      message: 'Are you sure you want to reject this order?',
+      confirmText: 'Reject',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('Delivery cancelled');
+      },
+      onConfirm: async () => {
+        try {
           const payload = { orderStatus: 'CANCELLED' };
           await updateOrderStatusById(orderId, payload, token);
           dispatch(updateOrderStatus({ orderId, newStatus: 'CANCELLED' }));
           const currentStatus = statusTabs[formState].statuses[0];
           setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
-        },
+        } catch (error) {
+          console.log(error);
+          showToast(
+            'error',
+            'Failed to reject order',
+            error?.message || 'Please try again',
+          );
+        }
       },
-    ]);
+    });
   };
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx > 50) {
+          setIsSideBarOpen(true); // Open sidebar on right swipe
+        }
+      },
+    }),
+  ).current;
 
   const handleDeliver = orderId => {
-    Alert.alert('Deliver Order', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Yes, Deliver',
-        onPress: async () => {
+    showDialog({
+      title: 'Deliver Order',
+      message: 'Are you sure you want to deliver this order?',
+      confirmText: 'Deliver',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('Delivery Delivered');
+      },
+      onConfirm: async () => {
+        try {
           const payload = { orderStatus: 'DELIVERED' };
           await updateOrderStatusById(orderId, payload, token);
           dispatch(updateOrderStatus({ orderId, newStatus: 'DELIVERED' }));
           const currentStatus = statusTabs[formState].statuses[0];
           setCurrentPage(0);
           loadOrders(currentStatus, 0, false);
-        },
+        } catch (error) {
+          console.log(error);
+          showToast(
+            'error',
+            'Failed to reject order',
+            err?.message || 'Please try again',
+          );
+        }
       },
-    ]);
+    });
   };
 
   const showPopup = (orderId, ref) => {
-    ref?.measureInWindow((x, y, width, height) => {
-      setPopupCards({ x: x + width - 160, y: y + height });
+    if (!ref) return;
+
+    ref.measureInWindow((x, y, width, height) => {
+      const popupWidth = 160;
+      const screenWidth = Dimensions.get('window').width;
+      const screenHeight = Dimensions.get('window').height;
+
+      let popupX = x - popupWidth + width;
+      if (popupX < 10) popupX = 10; // prevent overflow left
+      if (popupX + popupWidth > screenWidth - 10) {
+        popupX = screenWidth - popupWidth - 10; // prevent overflow right
+      }
+
+      let popupY = y + height + 5;
+      if (popupY > screenHeight - 150) {
+        popupY = y - 100;
+      }
+
+      setPopupCards({ x: popupX, y: popupY });
       setPopupOrderId(orderId);
     });
   };
 
-  const computeOrderTotal = (order) => {
+  const computeOrderTotal = order => {
     if (!order?.items || !Array.isArray(order.items)) return 0;
     return order.items.reduce((sum, it) => {
       const price = parseFloat(it.price ?? 0) || 0;
-      return sum + price ;
+      return sum + price;
     }, 0);
   };
 
-  const formatINR = (value) =>
-    `₹ ${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  const formatINR = value =>
+    `₹ ${Number(value || 0).toLocaleString('en-IN', {
+      maximumFractionDigits: 2,
+    })}`;
 
   return (
-    <View style={[styles.pageContainer]}>
+    <View
+      style={[styles.pageContainer, { flex: 1 }]}
+      {...panResponder.panHandlers}
+    >
       <View style={innerStyle.topBar}>
         <TouchableOpacity onPress={() => setIsSideBarOpen(true)}>
           <MaterialIcons name="menu" size={26} color={Colors.secondary} />
@@ -280,14 +330,18 @@ const StorekeeperDashboard = () => {
         ))}
       </View>
       {initialLoading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
           <ActivityIndicator size="large" color={Colors.secondary} />
         </View>
       ) : (
-        <FlashList
-          style={{ flex: 1 }}
+        <FlatList
+          style={{ flex: 1, backgroundColor: Colors.white }}
           data={filteredOrders}
-          estimatedItemSize={150}
+          bounces={false}
+          removeClippedSubviews={false}
+          estimatedItemSize={250}
           keyExtractor={item => item.orderId.toString()}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -295,10 +349,15 @@ const StorekeeperDashboard = () => {
           contentContainerStyle={{
             paddingHorizontal: 2,
             paddingBottom: 30,
-            flexGrow: 1,
+            backgroundColor: Colors.white,
           }}
           ListEmptyComponent={() => (
-            <View style={innerStyle.emptyWrapper}>
+            <View
+              style={[
+                innerStyle.emptyWrapper,
+                { flex: 1, minHeight: height * 0.65 },
+              ]}
+            >
               <Text style={innerStyle.emptyStateText}>
                 {/* No {formatTabLabel(statusTabs[formState].label)} Orders Found. */}
                 No Orders Found.
@@ -318,8 +377,12 @@ const StorekeeperDashboard = () => {
                   order.orderStatus !== 'CANCELLED' && (
                     <Pressable
                       ref={ref => (dotRefs.current[order.orderId] = ref)}
-                      onPress={() =>
-                        showPopup(order.orderId, dotRefs.current[order.orderId])
+                      onPress={event =>
+                        showPopup(
+                          order.orderId,
+                          dotRefs.current[order.orderId],
+                          event,
+                        )
                       }
                     >
                       <Entypo
@@ -335,15 +398,21 @@ const StorekeeperDashboard = () => {
               <View style={innerStyle.middleSection}>
                 <Text style={innerStyle.orderDetailsHeading}>
                   Customer Name:
-                  <Text style={innerStyle.orderDetails}> {order?.address?.name}</Text>
+                  <Text style={innerStyle.orderDetails}>
+                    {' '}
+                    {order?.address?.name}
+                  </Text>
                 </Text>
                 <Text
                   style={innerStyle.orderDetailsHeading}
                   numberOfLines={3}
                   ellipsizeMode="tail"
-                > 
+                >
                   Address:
-                  <Text style={innerStyle.orderDetails}> {order?.address?.addressLine1}</Text>
+                  <Text style={innerStyle.orderDetails}>
+                    {' '}
+                    {order?.address?.addressLine1}
+                  </Text>
                 </Text>
                 <Text
                   style={innerStyle.orderDetailsHeading}
@@ -351,16 +420,26 @@ const StorekeeperDashboard = () => {
                   ellipsizeMode="tail"
                 >
                   Landmark:
-                  <Text style={innerStyle.orderDetails}> {order?.address?.landmark}</Text>
+                  <Text style={innerStyle.orderDetails}>
+                    {' '}
+                    {order?.address?.landmark}
+                  </Text>
                 </Text>
                 <Text style={innerStyle.orderDetailsHeading}>
                   Quantity:
-                  <Text style={innerStyle.orderDetails}> {order.items.length}</Text>
+                  <Text style={innerStyle.orderDetails}>
+                    {' '}
+                    {order.items.length}
+                  </Text>
                 </Text>
-                {(order.orderStatus === 'DISPATCHED' || order.orderStatus === 'DELIVERED') && (
+                {(order.orderStatus === 'DISPATCHED' ||
+                  order.orderStatus === 'DELIVERED') && (
                   <Text style={innerStyle.orderDetailsHeading}>
                     Total:
-                    <Text style={innerStyle.orderDetails}> {formatINR(computeOrderTotal(order))}</Text>
+                    <Text style={innerStyle.orderDetails}>
+                      {' '}
+                      {formatINR(computeOrderTotal(order))}
+                    </Text>
                   </Text>
                 )}
               </View>
@@ -375,10 +454,10 @@ const StorekeeperDashboard = () => {
                         order.orderStatus === 'PENDING'
                           ? 'red'
                           : order.orderStatus === 'IN_PROGRESS'
-                            ? 'orange'
-                            : order.orderStatus === 'DELIVERED'
-                              ? 'green'
-                              : 'red',
+                          ? 'orange'
+                          : order.orderStatus === 'DELIVERED'
+                          ? 'green'
+                          : 'red',
                     },
                   ]}
                 >
@@ -392,7 +471,9 @@ const StorekeeperDashboard = () => {
                         style={innerStyle.showDetailsBtn}
                         onPress={() => handleReject(order.orderId)}
                       >
-                        <Text style={{ color: Colors.white, fontWeight: '800' }}>
+                        <Text
+                          style={{ color: Colors.white, fontWeight: '800' }}
+                        >
                           Reject
                         </Text>
                       </Pressable>
@@ -432,8 +513,8 @@ const StorekeeperDashboard = () => {
         onClose={() => setPopupOrderId(null)}
         position={popupCards}
         phone={
-          filteredOrders.find(o => o.orderId === popupOrderId)?.address?.mobileNumber
-
+          filteredOrders.find(o => o.orderId === popupOrderId)?.address
+            ?.mobileNumber
         }
       />
     </View>
@@ -454,7 +535,7 @@ const innerStyle = ScaledSheet.create({
     fontSize: Fonts.sizes.lg,
     fontWeight: '700',
     flex: 1,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   orderStatus: {
     paddingHorizontal: '5@ms',
@@ -472,17 +553,12 @@ const innerStyle = ScaledSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: '60%',
   },
   emptyStateText: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
     color: Colors.secondaryText,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    marginTop: '50@vs',
   },
-
 
   showDetailsBtn: {
     paddingHorizontal: '20@ms',
@@ -536,6 +612,10 @@ const innerStyle = ScaledSheet.create({
     marginBottom: '10@vs',
     marginHorizontal: '12@ms',
     marginTop: '1@vs',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   topSection: {
     flexDirection: 'row',

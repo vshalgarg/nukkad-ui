@@ -9,8 +9,10 @@ import strings from '../constants/string.js';
 import Fonts from '../styles/font.js';
 
 import { ScaledSheet } from 'react-native-size-matters';
+import useBackHandlerControl from '../hooks/useBackHandlerControl.jsx';
 
 export default function HomeScreen() {
+  useBackHandlerControl({ confirmBack: true });
   const { safePush } = useSafeRouter();
   const dispatch = useDispatch();
   const userType = useSelector(state => state.user.userType);
@@ -78,7 +80,7 @@ const localStyles = ScaledSheet.create({
     fontSize: Fonts.sizes.xxl,
     marginBottom: '20@vs',
     fontWeight: 'bold',
-    color: Colors.primaryText,
+    color: Colors.secondary,
     textAlign: 'center',
   },
   buttonContainer: {
