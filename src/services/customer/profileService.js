@@ -2,7 +2,7 @@
 import api from '../api';
 
 //  Get Customer Profile
-export const getCustomerProfile = async (token) => {
+export const getCustomerProfile = async token => {
   try {
     const response = await api.get('/nukkad/api/customer/v1/get/profile', {
       headers: {
@@ -20,7 +20,6 @@ export const getCustomerProfile = async (token) => {
     // Parse name -> firstName, lastName
     const [firstName = '', ...rest] = user.name?.split(' ') || [];
     const lastName = rest.join(' ');
-
     return {
       ...user,
       firstName,
@@ -40,41 +39,39 @@ export const getCustomerProfile = async (token) => {
 
 //  Update Customer Profile
 export const updateCustomerProfile = async (payload, token) => {
-  console.log(' Updating Customer Profile with payload:', payload);
-
   try {
-    const response = await api.put('/nukkad/api/customer/v1/update', payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log(' Update Profile API Success:', {
-      status: response.status,
-      data: response.data,
-    });
-
-    const updatedUser = response.data?.data || {};
-
-    const [firstName = '', ...rest] = updatedUser.name?.split(' ') || [];
-    const lastName = rest.join(' ');
-
-    return {
-      ...updatedUser,
-      firstName,
-      lastName,
-      DOB: updatedUser.dob,
+    // Only send JSON now; image URL is included in the JSON
+    const requestBody = {
+      name: payload.name || '',
+      email: payload.email || '',
+      dob: payload.dob || '',
+      mobileNumber: payload.mobileNumber || '',
+      profileImageUrl: payload.image || '', // Firebase URL
     };
+    console.log('request body from updateApi', requestBody);
+
+    const response = await api.put(
+      '/nukkad/api/customer/v1/update',
+      requestBody,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log('✅ Update success:', response.data);
+    return response.data?.data;
   } catch (error) {
-    console.error(' Update Profile API Error:', {
+    console.error('❌ Update error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
+      request: payload,
     });
-
     throw new Error(
-      error.response?.data?.message || 'Failed to update profile',
+      error.response?.data?.message || 'Failed to update customer profile',
     );
   }
 };

@@ -12,35 +12,25 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Modal,
-  InteractionManager,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import CameraIcon from '../../../assets/images/Camera.svg';
-import ProfileImage from '../../../assets/images/ProfileImage.svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 import { useProfile } from '../../contexts/profileContext';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-import styles from '../../styles/globalStyles';
-import { showToast } from '../../utils/toastUtils';
 import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
-import { getCustomerProfile } from '../../services/customer/profileService';
-import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
 import DeleteAccount from '../../components/DeleteAccount';
-import { useAddress } from '../../contexts/addressContext';
-import { useStore } from '../../contexts/storeContext';
 import { useDispatch } from 'react-redux';
 import { ScaledSheet } from 'react-native-size-matters';
-import { useDialog } from '../../contexts/DialogContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { persistor } from '../../store/store.js';
 import { useLogout } from '../../hooks/useLogout.jsx';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { uploadImageAsync } from '../../services/firebase/firebaseConfig.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CameraIcon from '../../../assets/images/Camera.svg';
 
 const formatDate = date => {
   if (!date) return '';
@@ -54,83 +44,37 @@ const ProfileSetting = () => {
   const scrollRef = useRef();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const firstNameRef = useRef(null);
-  // const { resetProfile } = useProfile();
-  // const { resetAddress } = useAddress();
-  // const { resetStore } = useStore();
   const dispatch = useDispatch();
-  // const { showDialog } = useDialog();
   const { confirmLogout } = useLogout();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const { safePush } = useSafeRouter();
-  const { token, role } = useAuth();
+  const { role } = useProfile();
   const { profile: profileData, updateProfile, createProfile } = useProfile();
+  console.log(profileData);
 
   const [profile, setProfile] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    image: '',
-    role: role || '',
-    dob: '',
+    firstName: profileData?.firstName || '',
+    lastName: profileData?.lastName || '',
+    email: profileData?.email || '',
+    image: profileData?.image || '',
+    role: profileData?.role || role || '',
+    dob: profileData?.dob || '',
+    mobileNumber: profileData?.mobile || '',
   });
-  const [DOB, setDOB] = useState('');
-  const [dobDate, setDobDate] = useState(new Date());
+  console.log('mobileNumber', profileData?.mobile);
+  const [DOB, setDOB] = useState(
+    profileData?.dob ? formatDate(profileData.dob) : '',
+  );
+  const [dobDate, setDobDate] = useState(
+    profileData?.dob ? new Date(profileData.dob) : new Date(),
+  );
   const [showPicker, setShowPicker] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchProfile = async () => {
-      try {
-        const cachedProfile = profileData || {};
-        if (cachedProfile?.firstName) {
-          setProfile(cachedProfile);
-
-          if (cachedProfile.dob) {
-            setDOB(formatDate(cachedProfile.dob));
-            setDobDate(new Date(cachedProfile.dob));
-          }
-
-          setLoading(false);
-        }
-
-        const userProfile = await getCustomerProfile(token);
-        if (!isMounted) return;
-
-        const formattedProfile = {
-          firstName: userProfile.firstName || '',
-          lastName: userProfile.lastName || '',
-          email: userProfile.email || '',
-          image: userProfile.image || null,
-          role: role || '',
-          dob: userProfile.dob || '',
-          mobileNumber: userProfile.mobileNumber,
-        };
-
-        setProfile(formattedProfile);
-        createProfile(formattedProfile);
-
-        if (userProfile.dob) {
-          setDOB(formatDate(userProfile.dob));
-          setDobDate(new Date(userProfile.dob));
-        }
-      } catch (err) {
-        showToast('error', err.message || strings.failedToLoadProfile);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    fetchProfile();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -156,13 +100,15 @@ const ProfileSetting = () => {
 
       const asset = result.assets?.[0];
       if (asset?.uri) {
-        setProfile(prev => ({
-          ...prev,
-          image: asset.uri,
-        }));
+        setProfile(prev => ({ ...prev, image: asset.uri }));
+
+        const fileName = `profile_${Date.now()}.jpg`;
+        const downloadURL = await uploadImageAsync(asset.uri, fileName);
+
+        setProfile(prev => ({ ...prev, image: downloadURL }));
       }
     } catch (error) {
-      console.log('Image Picker Error:', error);
+      console.log('Image Picker / Firebase Error:', error);
     }
   };
 
@@ -195,24 +141,19 @@ const ProfileSetting = () => {
 
   const saveProfile = async () => {
     Keyboard.dismiss();
-    if (!profile) return;
 
     if (!profile.firstName?.trim()) {
-      showToast('error', 'First name cannot be empty');
-      return;
+      return alert('First name cannot be empty');
     }
     if (!profile.lastName?.trim()) {
-      showToast('error', 'Last name cannot be empty');
-      return;
+      return alert('Last name cannot be empty');
     }
     if (!profile.email?.trim()) {
-      showToast('error', 'Email cannot be empty');
-      return;
+      return alert('Email cannot be empty');
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(profile.email.trim())) {
-      showToast('error', 'Invalid email format');
-      return;
+      return alert('Invalid email format');
     }
 
     setIsSaving(true);
@@ -221,25 +162,20 @@ const ProfileSetting = () => {
     const updatedProfile = {
       ...profile,
       dob: formattedDOB,
-      firstName: profile.firstName || profileData?.firstName || '',
-      lastName: profile.lastName || profileData?.lastName || '',
-      email: profile.email || profileData?.email || '',
-      mobileNumber: profile.mobileNumber,
     };
 
     try {
-      await updateProfile(updatedProfile, token);
+      await updateProfile(updatedProfile);
+      if (updatedProfile.image) {
+        await AsyncStorage.setItem('profileImage', updatedProfile.image);
+      }
       setIsEditing(false);
-      handlePress();
+      safePush('CustomerDashboard');
     } catch (err) {
-      showToast('error', err.message || 'Failed to update profile');
+      console.log(err);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handlePress = () => {
-    safePush('CustomerDashboard');
   };
 
   const handleDeleteAccount = () => {
@@ -247,71 +183,10 @@ const ProfileSetting = () => {
     setShowDeleteModal(true);
   };
 
-  // const handleLogout = () => {
-  //   showDialog({
-  //     title: 'Logout',
-  //     message: 'Are you sure you want to Logout?',
-  //     confirmText: 'Logout',
-  //     cancelText: 'Cancel',
-  //     onCancel: () => {
-  //       console.log('Logout cancelled');
-  //     },
-  //     onConfirm: async () => {
-  //       try {
-  //         setLoggingOut(true); // ✅ Prevents back confirmation
-  //         await persistor.purge();
-  //         await AsyncStorage.removeItem('authToken');
-  //         await AsyncStorage.removeItem('userRole');
-  //         await AsyncStorage.removeItem('storekeeperProfile');
-  //         await AsyncStorage.clear();
-  //         dispatch(clearCart());
-  //         dispatch(resetUser());
-  //         resetProfile();
-  //         resetAddress();
-  //         resetStore();
-  //         safeReplace('Home');
-  //       } catch (error) {
-  //         console.error('Logout failed:', error);
-  //         showToast(
-  //           'error',
-  //           'Failed Logout',
-  //           err?.message || 'Please try again',
-  //         );
-  //       } finally {
-  //         setTimeout(() => setLoggingOut(false), 100);
-  //       }
-  //     },
-  //   });
-  // };
-
-  // const cancelEdit = () => {
-  //   setIsEditing(false);
-  //   setProfile({
-  //     firstName: profileData?.firstName || '',
-  //     lastName: profileData?.lastName || '',
-  //     email: profileData?.email || '',
-  //     image: profileData?.image || '',
-  //     role: profileData?.role || role || '',
-  //     dob: profileData?.dob || '',
-  //     mobileNumber: profileData?.mobileNumber,
-  //   });
-
-  //   if (profileData?.dob) {
-  //     setDOB(formatDate(profileData.dob));
-  //     setDobDate(new Date(profileData.dob));
-  //   }
-  // };
-
   return (
     <KeyboardAwareScrollView
       style={{ flex: 1, backgroundColor: Colors.white }}
       contentContainerStyle={{ flexGrow: 1 }}
-      // enableOnAndroid={true}
-      // extraScrollHeight={Platform.OS === 'ios' ? 0 : 20}
-      // keyboardShouldPersistTaps="handled"
-      // showsVerticalScrollIndicator={false}
-      // // keyboardOpeningTime={0}
-      // keyboardOpeningTime={Number.MAX_SAFE_INTEGER}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
@@ -364,30 +239,17 @@ const ProfileSetting = () => {
                     ref={firstNameRef}
                     style={innerStyle.halfInput}
                     value={profile.firstName}
-                    onChangeText={val => {
-                      // Only keep letters
-                      let cleanText = val.replace(/[^A-Za-z]/g, '');
-
-                      // Optional: capitalize first letter
-                      // cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
-
-                      if (cleanText !== profile.firstName) {
-                        handleChange('firstName', cleanText);
-                      }
-                    }}
+                    onChangeText={val =>
+                      handleChange('firstName', val.replace(/[^A-Za-z]/g, ''))
+                    }
                     maxLength={15}
                   />
                   <TextInput
                     style={innerStyle.halfInput}
                     value={profile.lastName}
-                    onChangeText={val => {
-                      // Allow only letters and spaces
-                      const cleanText = val.replace(/[^A-Za-z ]/g, '');
-
-                      if (cleanText !== profile.lastName) {
-                        handleChange('lastName', cleanText);
-                      }
-                    }}
+                    onChangeText={val =>
+                      handleChange('lastName', val.replace(/[^A-Za-z ]/g, ''))
+                    }
                     maxLength={15}
                   />
                 </>
@@ -401,37 +263,30 @@ const ProfileSetting = () => {
 
             <View style={innerStyle.email}>
               <Text style={innerStyle.fullLabel}>{strings.email}</Text>
-
               {isEditing ? (
-                <View>
-                  <TextInput
-                    style={innerStyle.fullInput}
-                    value={profile.email}
-                    keyboardType="email-address"
-                    maxLength={30}
-                    autoCapitalize="none"
-                    onChangeText={val => handleChange('email', val)}
-                  />
-                </View>
+                <TextInput
+                  style={innerStyle.fullInput}
+                  value={profile.email}
+                  keyboardType="email-address"
+                  maxLength={30}
+                  autoCapitalize="none"
+                  onChangeText={val => handleChange('email', val)}
+                />
               ) : (
                 <Text style={innerStyle.fullInput}>{profile.email}</Text>
               )}
             </View>
+
             <View style={innerStyle.email}>
               <Text style={innerStyle.fullLabel}>{strings.mobile}</Text>
-              {isEditing ? (
-                <TextInput
-                  style={[innerStyle.fullInput, { color: Colors.disabledText }]}
-                  value={profile.mobileNumber || ''}
-                  keyboardType="number-pad"
-                  maxLength={15}
-                  editable={false}
-                />
-              ) : (
-                <Text style={innerStyle.fullInput}>
-                  {profile.mobileNumber || ''}
-                </Text>
-              )}
+              <Text
+                style={[
+                  innerStyle.fullInput,
+                  isEditing && { color: Colors.disabledText },
+                ]}
+              >
+                {profile.mobileNumber}
+              </Text>
             </View>
 
             <View>
@@ -482,9 +337,7 @@ const ProfileSetting = () => {
                   onPress={() => {
                     setIsEditing(true);
                     scrollRef.current?.scrollTo({ y: 0, animated: true });
-                    setTimeout(() => {
-                      firstNameRef.current?.focus();
-                    }, 100);
+                    setTimeout(() => firstNameRef.current?.focus(), 100);
                   }}
                 />
                 <CustomButton
@@ -494,19 +347,18 @@ const ProfileSetting = () => {
                     borderColor: Colors.reject,
                   }}
                   onPress={confirmLogout}
-                  // loading={isSaving}
                 />
               </View>
             )
           )}
+
           <DeleteAccount
             visible={showDeleteModal}
             onCancel={() => setShowDeleteModal(false)}
-            onConfirm={() => {
-              setShowDeleteModal(false);
-            }}
+            onConfirm={() => setShowDeleteModal(false)}
             phoneNumber={profileData?.mobileNumber}
           />
+
           {isEditing && Platform.OS === 'ios' && (
             <Modal
               visible={showPicker}
@@ -571,7 +423,6 @@ const ProfileSetting = () => {
             </Modal>
           )}
 
-          {/* Android Date Picker */}
           {isEditing && showPicker && Platform.OS === 'android' && (
             <DateTimePicker
               value={dobDate}
@@ -605,7 +456,6 @@ const innerStyle = ScaledSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    // backgroundColor: 'red',
     width: '120@s',
     height: '120@s',
   },
@@ -618,29 +468,9 @@ const innerStyle = ScaledSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cameraIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-  },
-  cameraIcon: {
-    height: '42@s',
-    width: '42@s',
-  },
-  editButtonWrapper: {
-    marginTop: 10,
-    alignSelf: 'flex-end',
-    paddingHorizontal: 20,
-  },
-  cancelText: {
-    color: Colors.reject,
-    fontSize: Fonts.sizes.base,
-    fontWeight: '600',
-  },
-  profileDetails: {
-    width: '100%',
-    marginTop: '10@vs',
-  },
+  cameraIconContainer: { position: 'absolute', bottom: 0, right: 0 },
+  cameraIcon: { height: '42@s', width: '42@s' },
+  profileDetails: { width: '100%', marginTop: '10@vs' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

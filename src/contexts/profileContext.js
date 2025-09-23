@@ -11,7 +11,6 @@ export const ProfileProvider = ({ children }) => {
     (async () => {
       try {
         const savedProfile = await AsyncStorage.getItem('userProfile');
-        console.log('saved profile:', savedProfile);
         if (savedProfile) {
           const parsed = JSON.parse(savedProfile);
 
@@ -20,7 +19,6 @@ export const ProfileProvider = ({ children }) => {
             parsed.firstName = firstName;
             parsed.lastName = rest.join(' ');
           }
-          console.log('parsed file:', parsed);
           setProfile(parsed);
         }
       } catch (err) {
@@ -58,6 +56,7 @@ export const ProfileProvider = ({ children }) => {
     };
 
     try {
+      console.log("payload in profilecontext",payload)
       await updateCustomerProfile(payload, token);
       const updated = { ...profile, ...fields, name: payload.name };
       setProfile(updated);

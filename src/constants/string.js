@@ -164,6 +164,7 @@ const strings = {
   missingItems2: 'Add items before checkout',
   failedToPlaceOrder: 'Failed to place order',
   invalidQty: 'Invalid Quantity',
+  uploadSuccess:"Upload Successfully",
   uploadFailed: 'Upload Failed',
   couldnotUploadQR: 'Could not upload QR code. Try again.',
   failedToDeleteQR: 'Failed to delete QR code',

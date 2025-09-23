@@ -351,6 +351,7 @@ const styles = ScaledSheet.create({
   profileTextContainer: {
     maxWidth: screenWidth * 0.55,
     flexShrink: 1,
+    paddingHorizontal:"5@s"
   },
   profileName: {
     fontSize: Fonts.sizes.base,

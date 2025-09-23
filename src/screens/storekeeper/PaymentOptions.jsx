@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -40,7 +32,9 @@ const PaymentOptions = () => {
   const [previewImages, setPreviewImages] = useState({});
 
   useEffect(() => {
-    loadQRs();
+    if (token) {
+      loadQRs();
+    }
   }, [token]);
 
   const loadQRs = async () => {
@@ -48,7 +42,7 @@ const PaymentOptions = () => {
       const fetched = await fetchPaymentQRs(token);
       setQrCodes(fetched);
       const defaultQr = fetched.find(qr => qr.default);
-      if (defaultQr) setDefaultQRId(defaultQr.id);
+      setDefaultQRId(defaultQr?.id || null);
     } catch (err) {
       console.error('Failed to load QR codes:', err);
     }
@@ -82,7 +76,7 @@ const PaymentOptions = () => {
         ? await updatePaymentQR(existingQR.id, file, token)
         : await uploadQRImage(file, token);
 
-      if (response?.id) {
+      if (response?.id) {   
         await loadQRs();
         setPreviewImages(prev => {
           const updated = { ...prev };
@@ -90,7 +84,7 @@ const PaymentOptions = () => {
           return updated;
         });
       } else {
-        showToast('error', strings.uploadFailed, strings.couldnotUploadQR);
+        showToast('success', strings.uploadSuccess);
       }
     } catch (error) {
       console.error('Image upload error:', error);
@@ -111,10 +105,10 @@ const PaymentOptions = () => {
   const handleSetDefault = async id => {
     try {
       await setDefaultPaymentQR(id, token);
-      setDefaultQRId(id);
+      await loadQRs();
     } catch (err) {
-      console.error(' Set default failed:', err);
-      showToast('error', strings.failedTosetDefaultQR);
+      console.error('Set default failed:', err);
+      showToast('error', strings.failedToUpdateQR);
     }
   };
 
@@ -190,12 +184,26 @@ const PaymentOptions = () => {
                   !previewImages[index] &&
                     !qr?.qrImageUrl && { backgroundColor: Colors.borderColor },
                 ]}
-                onPress={() => handleUploadImage(index, qr)}
+                onPress={async () => {
+                  if (!previewImages[index]) {
+                    // No preview selected → pick image first
+                    await handlePickImage(index);
+                  } else {
+                    // Preview selected → upload
+                    await handleUploadImage(index, qr);
+                    // Refetch all QR codes after successful upload
+                    await loadQRs();
+                  }
+                }}
                 disabled={!previewImages[index] && !qr?.qrImageUrl}
               >
                 <Feather name="upload" size={16} color={Colors.white} />
                 <Text style={innerStyle.uploadBtnText}>
-                  {qr?.qrImageUrl ? strings.changeQr : strings.uploadQr}
+                  {previewImages[index]
+                    ? strings.uploadQr // picked, ready to upload
+                    : qr?.qrImageUrl
+                    ? strings.changeQr // existing QR, can change
+                    : strings.uploadQr}
                 </Text>
               </TouchableOpacity>
 
@@ -243,7 +251,7 @@ const PaymentOptions = () => {
         visible={alertVisible}
         title={strings.confirmDeleteQrTitle}
         message={strings.confirmDeleteQrMessage}
-        cancelText={strings.confirm}
+        cancelText={strings.cancel}
         confirmText={strings.delete}
         onCancel={() => setAlertVisible(false)}
         onConfirm={() => {

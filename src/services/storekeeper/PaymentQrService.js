@@ -93,13 +93,12 @@ export const updatePaymentQR = async (qrId, file, token) => {
   }
 };
 
-// ⭐ Mark a QR as default
 export const setDefaultPaymentQR = async (qrId, token) => {
   console.log('🔧 Setting Default Payment QR with ID:', qrId);
   try {
-    const response = await api.post(
+    const response = await api.put(
       `/nukkad/api/qr/v1/${qrId}/default`,
-      {}, // empty body
+      {}, 
       {
         headers: {
           Authorization: `Bearer ${token}`,

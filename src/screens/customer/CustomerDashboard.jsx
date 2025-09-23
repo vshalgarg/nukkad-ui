@@ -100,9 +100,9 @@ const CustomerDashboard = () => {
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
-        image: userProfile.image || null,
-        dob: userProfile.dob || '',
-        mobile: userProfile.mobileNumber || '',
+        image: userProfile.profileImage || null,
+        dob: userProfile.dob || '', // 👈 this is fine, lowercase
+        mobile: userProfile.mobileNumber || '', // 👈 should also work
       });
 
       const stores = await getMyStores(token);

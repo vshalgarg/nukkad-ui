@@ -441,8 +441,8 @@ const MobileOtpScreen = () => {
   const [canResend, setCanResend] = useState(false);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
-  const [confirmResult, setConfirmResult] = useState(null); // firebase confirm
-  const [sendingOtp, setSendingOtp] = useState(false);
+  const [confirmResult, setConfirmResult] = useState(null);
+  // const [sendingOtp, setSendingOtp] = useState(false);
 
   const userType = useSelector(state => state.user.userType);
   const { fetchStorekeeperProfile } = useStorekeeperProfile();
@@ -469,14 +469,14 @@ const MobileOtpScreen = () => {
   // 🔹 Send OTP: backend + Firebase
   const sendOtpRequest = async (isResend = false) => {
     Keyboard.dismiss();
-    setSendingOtp(true); // show "Sending..."
+    // setSendingOtp(true); // show "Sending..."
     try {
       const role = userType === 'I AM CUSTOMER' ? 'CUSTOMER' : 'STOREKEEPER';
 
       // 1. Notify backend
       await sendOtp(mobile, role);
       setSendOtpClicked(true);
-      setOtpEnabled(true); 
+      setOtpEnabled(true);
       setTimer(30);
       setCanResend(false);
       const phoneNumber = `+91${mobile}`;
@@ -497,9 +497,10 @@ const MobileOtpScreen = () => {
         error.message || 'Something went wrong',
         `Failed to send OTP`,
       );
-    } finally {
-      setSendingOtp(false); // done sending
     }
+    // finally {
+    //   setSendingOtp(false); // done sending
+    // }
   };
 
   const handleSendOtp = () => {
@@ -530,10 +531,12 @@ const MobileOtpScreen = () => {
       console.log('firebasetoken in mobile otp screen', firebaseToken);
       console.log('mobile in otp', mobile);
 
-      // 2. Send verified token to backend
-      const role = userType === 'I AM CUSTOMER' ? 'CUSTOMER' : 'STOREKEEPER';
       const res = await verifyOtp({ mobile, firebaseToken });
+      // 2. Send verified token to backend
+      console.log('userRole');
 
+      const role = res.roles[0];
+      console.log(role);
       const token = res?.token;
       const userId = res?.userId;
       const returningUser = res.firstTimeLogin === 1502;
@@ -677,15 +680,16 @@ const MobileOtpScreen = () => {
           <CustomButton
             onPress={sendOtpClicked ? handleLogin : handleSendOtp}
             title={
-              sendingOtp
-                ? 'Sending...' // while sending
-                : sendOtpClicked
+              // sendingOtp
+              //   ? 'Sending...' // while sending
+              //   :
+              sendOtpClicked
                 ? strings.login // after OTP field editable
                 : strings.sendOtp // initial state
             }
             disabled={
-              sendingOtp || // disable while sending
-              (sendOtpClicked ? !otpEnabled : mobile.length !== 10)
+              // sendingOtp || // disable while sending
+              sendOtpClicked ? !otpEnabled : mobile.length !== 10
             }
           />
         </View>
