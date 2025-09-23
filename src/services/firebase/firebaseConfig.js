@@ -33,3 +33,23 @@ export const uploadImageAsync = async (filePath, fileName) => {
     throw err;
   }
 };
+
+export const deleteImageAsync = async fileName => {
+  try {
+    console.log('🗑️ Deleting:', fileName);
+
+    const storageRef = storage().ref(`profile_images/${fileName}`);
+
+    await storageRef.delete();
+
+    console.log('✅ Image deleted successfully');
+    return true;
+  } catch (err) {
+    if (err.code === 'storage/object-not-found') {
+      console.warn('⚠️ File not found in storage');
+    } else {
+      console.error('❌ Firebase Delete Error:', err);
+    }
+    throw err;
+  }
+};

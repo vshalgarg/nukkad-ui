@@ -31,6 +31,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { uploadImageAsync } from '../../services/firebase/firebaseConfig.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CameraIcon from '../../../assets/images/Camera.svg';
+import { useAuth } from '../../contexts/authContext.js';
 
 const formatDate = date => {
   if (!date) return '';
@@ -49,9 +50,8 @@ const ProfileSetting = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const { safePush } = useSafeRouter();
-  const { role } = useProfile();
+  const { role } = useAuth();
   const { profile: profileData, updateProfile, createProfile } = useProfile();
-  console.log(profileData);
 
   const [profile, setProfile] = useState({
     firstName: profileData?.firstName || '',
@@ -100,15 +100,23 @@ const ProfileSetting = () => {
 
       const asset = result.assets?.[0];
       if (asset?.uri) {
+        // show local preview immediately
         setProfile(prev => ({ ...prev, image: asset.uri }));
+
+        // start loader
+        setLoading(true);
 
         const fileName = `profile_${Date.now()}.jpg`;
         const downloadURL = await uploadImageAsync(asset.uri, fileName);
 
+        // replace local uri with firebase url
         setProfile(prev => ({ ...prev, image: downloadURL }));
       }
     } catch (error) {
       console.log('Image Picker / Firebase Error:', error);
+    } finally {
+      // stop loader
+      setLoading(false);
     }
   };
 
@@ -317,8 +325,16 @@ const ProfileSetting = () => {
                 title="Save Changes"
                 onPress={saveProfile}
                 loading={isSaving}
+                disabled={loading || isSaving} // disable while uploading or saving
+                style={{
+                  backgroundColor:
+                    loading || isSaving ? Colors.disabled : Colors.primary,
+                  borderColor:
+                    loading || isSaving ? Colors.disabled : Colors.primary,
+                }}
               />
-              {profile.role === 'CUSTOMER' && (
+              {console.log('profileRol', profile)}
+              {role === 'CUSTOMER' && (
                 <CustomButton
                   title="Delete Account"
                   onPress={handleDeleteAccount}

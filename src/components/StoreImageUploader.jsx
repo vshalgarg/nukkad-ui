@@ -7,12 +7,17 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  ActivityIndicator,
   Text,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Feather';
 import Colors from '../styles/colors';
 import { ScaledSheet } from 'react-native-size-matters';
+import {
+  deleteImageAsync,
+  uploadImageAsync,
+} from '../services/firebase/firebaseConfig';
 
 const MAX_IMAGES = 4;
 
@@ -21,7 +26,6 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
 
   const requestGalleryPermission = async () => {
     if (Platform.OS !== 'android') return true;
-
     try {
       const granted = await PermissionsAndroid.request(
         Platform.Version >= 33
@@ -55,22 +59,65 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
 
     if (result?.assets?.length > 0) {
       const selected = result.assets[0];
+      const fileName = `store_${Date.now()}_${
+        selected.fileName || 'image.jpg'
+      }`;
+
+      // Add placeholder image with uploading status
       setImages(prev => {
         const updated = [...prev];
-        updated[index] = selected;
+        updated[index] = {
+          uri: selected.uri,
+          status: 'uploading',
+          remoteUrl: null,
+          fileName,
+        };
         return updated;
       });
+
+      try {
+        const downloadUrl = await uploadImageAsync(selected.uri, fileName);
+
+        setImages(prev => {
+          const updated = [...prev];
+          updated[index] = {
+            uri: selected.uri,
+            status: 'uploaded',
+            remoteUrl: downloadUrl,
+            fileName,
+          };
+          return updated;
+        });
+      } catch (err) {
+        console.error('Upload failed:', err);
+        Alert.alert('Upload failed', 'Please try again');
+        setImages(prev => {
+          const updated = [...prev];
+          updated[index] = null;
+          return updated;
+        });
+      }
     }
 
     setPicking(false);
   };
 
-  const removeImage = index => {
+  const removeImage = async index => {
+    const img = images[index];
+    if (!img || img.status === 'uploading') return; // prevent remove while uploading
+
     Alert.alert('Remove Image', 'Do you want to remove this image?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
-        onPress: () => {
+        onPress: async () => {
+          try {
+            if (img.fileName) {
+              await deleteImageAsync(img.fileName);
+            }
+          } catch (err) {
+            console.warn('Failed to delete from storage', err);
+          }
           setImages(prev => {
             const updated = [...prev];
             updated[index] = null;
@@ -89,15 +136,27 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
         return (
           <TouchableOpacity
             key={index}
-            onPress={() => editable && !img && pickImage(index)}
+            onPress={() =>
+              editable &&
+              (!img || img.status !== 'uploading') &&
+              pickImage(index)
+            }
             activeOpacity={0.8}
             style={{ position: 'relative', marginBottom: 10 }}
             disabled={!editable && !img}
           >
             {img ? (
               <View>
-                <Image source={{ uri: img.uri }} style={styles.image} />
-                {editable && (
+                <Image
+                  source={{ uri: img.remoteUrl || img.uri }}
+                  style={styles.image}
+                />
+                {img.status === 'uploading' && (
+                  <View style={styles.loaderOverlay}>
+                    <ActivityIndicator size="small" color="#fff" />
+                  </View>
+                )}
+                {editable && img.status !== 'uploading' && (
                   <TouchableOpacity
                     style={styles.removeIcon}
                     onPress={() => removeImage(index)}
@@ -108,7 +167,7 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
               </View>
             ) : (
               <View style={[styles.image, styles.emptyImage]}>
-                <Text style={{ color: '#888', fontSize: 20 }}>+</Text>
+                <Text style={styles.plusText}>+</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -148,6 +207,13 @@ const styles = ScaledSheet.create({
     padding: '4@s',
     zIndex: 10,
     elevation: 3,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
   },
   plusText: {
     color: '#888',

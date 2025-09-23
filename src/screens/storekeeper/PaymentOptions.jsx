@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -22,6 +29,10 @@ import { useAuth } from '../../contexts/authContext';
 import { showToast } from '../../utils/toastUtils';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
+import {
+  uploadImageAsync,
+  deleteImageAsync,
+} from '../../services/firebase/firebaseConfig';
 
 const PaymentOptions = () => {
   const { token } = useAuth();
@@ -30,6 +41,7 @@ const PaymentOptions = () => {
   const [alertVisible, setAlertVisible] = useState(false);
   const [qrToDelete, setQrToDelete] = useState(null);
   const [previewImages, setPreviewImages] = useState({});
+  const [uploadingIndex, setUploadingIndex] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -55,37 +67,77 @@ const PaymentOptions = () => {
         quality: 1,
       });
       if (!result.assets || result.assets.length === 0) return;
+
       const asset = result.assets[0];
-      setPreviewImages(prev => ({ ...prev, [index]: asset }));
+      const fileName = asset.fileName || `qr_${Date.now()}.jpg`;
+
+      // Show loader
+      setUploadingIndex(index);
+
+      // Upload to Firebase (loader stays until this completes)
+      const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
+
+      // Save preview
+      setPreviewImages(prev => ({
+        ...prev,
+        [index]: { ...asset, firebaseUrl, fileName },
+      }));
+
+      // Directly upload to backend
+      await handleUploadImage(index, qrCodes[index]);
     } catch (error) {
       console.error('Image pick error:', error);
+      showToast('error', error.message);
+    } finally {
+      // Remove loader only after Firebase + backend upload completes
+      setUploadingIndex(null);
+    }
+  };
+
+  const handleRemoveImage = async index => {
+    try {
+      const asset = previewImages[index];
+      if (asset?.fileName) {
+        await deleteImageAsync(asset.fileName).catch(() =>
+          console.log('Firebase delete skipped'),
+        );
+      }
+    } catch (err) {
+      console.error('Firebase delete failed:', err);
+    } finally {
+      setPreviewImages(prev => {
+        const updated = { ...prev };
+        delete updated[index];
+        return updated;
+      });
     }
   };
 
   const handleUploadImage = async (index, existingQR) => {
     try {
       const asset = previewImages[index];
-      if (!asset) return;
-      const file = {
-        uri: asset.uri,
-        fileName: asset.fileName || 'qr.jpg',
-        type: asset.type || 'image/jpeg',
-      };
+      if (!asset?.firebaseUrl) return;
+
+      const payload = { qrCodes: asset.firebaseUrl };
 
       const response = existingQR?.id
-        ? await updatePaymentQR(existingQR.id, file, token)
-        : await uploadQRImage(file, token);
+        ? await updatePaymentQR(existingQR.id, payload, token)
+        : await uploadQRImage(payload, token);
 
-      if (response?.id) {   
-        await loadQRs();
+      console.log('responseID', response);
+      if (response) {
+        // Remove preview only after successful upload
         setPreviewImages(prev => {
           const updated = { ...prev };
-          delete updated[index];
+          delete updated[index]; // this will remove the cross
           return updated;
         });
-      } else {
+
         showToast('success', strings.uploadSuccess);
+
+        // Reload QRs to reflect the new image and button text
       }
+      await loadQRs();
     } catch (error) {
       console.error('Image upload error:', error);
       showToast('error', error.message);
@@ -122,7 +174,7 @@ const PaymentOptions = () => {
         {displaySlots.map((qr, index) => {
           const isDefault = qr?.id === defaultQRId;
           const preview = previewImages[index];
-          const imageUrl = preview?.uri || qr?.qrImageUrl;
+          const imageUrl = preview?.firebaseUrl || qr?.qrImageUrl;
 
           return (
             <View
@@ -138,21 +190,22 @@ const PaymentOptions = () => {
 
               {imageUrl ? (
                 <View style={innerStyle.qrImageContainer}>
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={innerStyle.qrImage}
-                    resizeMode="contain"
-                  />
-                  {preview && (
+                  {uploadingIndex === index ? (
+                    // Loader dikhega jab image upload ho rahi ho
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                  ) : (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={innerStyle.qrImage}
+                      resizeMode="contain"
+                    />
+                  )}
+
+                  {/* Remove icon sirf tab dikhe jab upload complete ho */}
+                  {preview && uploadingIndex !== index && (
                     <TouchableOpacity
                       style={innerStyle.removeIcon}
-                      onPress={() => {
-                        setPreviewImages(prev => {
-                          const updated = { ...prev };
-                          delete updated[index];
-                          return updated;
-                        });
-                      }}
+                      onPress={() => handleRemoveImage(index)}
                     >
                       <Ionicons
                         name="close-circle"
@@ -166,46 +219,71 @@ const PaymentOptions = () => {
                 <TouchableOpacity
                   style={innerStyle.qrPlaceholder}
                   onPress={() => handlePickImage(index)}
+                  disabled={uploadingIndex === index} // pick image button disable during upload
                 >
-                  <Ionicons
-                    name="qr-code-outline"
-                    size={60}
-                    color={Colors.secondary}
-                  />
-                  <Text style={innerStyle.placeholderText}>
-                    {strings.selectQr}
+                  {uploadingIndex === index ? (
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                  ) : (
+                    <>
+                      <Ionicons
+                        name="qr-code-outline"
+                        size={60}
+                        color={Colors.secondary}
+                      />
+                      <Text style={innerStyle.placeholderText}>
+                        {strings.selectQr}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+              {!previewImages[index]?.firebaseUrl && !qr?.qrImageUrl && (
+                <TouchableOpacity
+                  style={[
+                    innerStyle.uploadBtn,
+                    { backgroundColor: Colors.borderColor },
+                  ]}
+                  disabled
+                >
+                  <Feather name="upload" size={16} color={Colors.white} />
+                  <Text style={innerStyle.uploadBtnText}>
+                    {strings.uploadQr}
                   </Text>
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity
-                style={[
-                  innerStyle.uploadBtn,
-                  !previewImages[index] &&
-                    !qr?.qrImageUrl && { backgroundColor: Colors.borderColor },
-                ]}
-                onPress={async () => {
-                  if (!previewImages[index]) {
-                    // No preview selected → pick image first
-                    await handlePickImage(index);
-                  } else {
-                    // Preview selected → upload
-                    await handleUploadImage(index, qr);
-                    // Refetch all QR codes after successful upload
-                    await loadQRs();
-                  }
-                }}
-                disabled={!previewImages[index] && !qr?.qrImageUrl}
-              >
-                <Feather name="upload" size={16} color={Colors.white} />
-                <Text style={innerStyle.uploadBtnText}>
-                  {previewImages[index]
-                    ? strings.uploadQr // picked, ready to upload
-                    : qr?.qrImageUrl
-                    ? strings.changeQr // existing QR, can change
-                    : strings.uploadQr}
-                </Text>
-              </TouchableOpacity>
+              {/* Upload new QR (for newly picked image) */}
+              {previewImages[index]?.firebaseUrl && (
+                <TouchableOpacity
+                  style={innerStyle.uploadBtn}
+                  onPress={async () => await handleUploadImage(index, qr)}
+                  disabled={uploadingIndex === index}
+                >
+                  <Feather name="upload" size={16} color={Colors.white} />
+                  <Text style={innerStyle.uploadBtnText}>
+                    {strings.uploadQr}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Change QR (for already uploaded QR) */}
+              {!previewImages[index]?.firebaseUrl && qr?.qrImageUrl && (
+                <TouchableOpacity
+                  style={[
+                    innerStyle.uploadBtn,
+                    uploadingIndex === index
+                      ? { backgroundColor: Colors.borderColor }
+                      : {},
+                  ]}
+                  onPress={async () => await handlePickImage(index)}
+                  disabled={uploadingIndex === index}
+                >
+                  <Feather name="upload" size={16} color={Colors.white} />
+                  <Text style={innerStyle.uploadBtnText}>
+                    {strings.changeQr}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               {qr?.id && (
                 <View style={innerStyle.actionRow}>

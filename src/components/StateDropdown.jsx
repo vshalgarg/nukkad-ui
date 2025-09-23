@@ -26,6 +26,8 @@ const StateDropdown = ({
     try {
       Keyboard.dismiss();
       setLoading(true);
+      console.log("fetching States");
+      
       const res = await fetch(
         'https://countriesnow.space/api/v0.1/countries/states',
         {

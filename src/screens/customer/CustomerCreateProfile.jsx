@@ -188,7 +188,7 @@ const CustomerCreateProfile = () => {
         email: payload.email,
         mobile,
         dob: formatDateYYYYMMDD(payload.dob),
-        role: 'customer',
+        role: 'CUSTOMER',
         image: null,
       };
 

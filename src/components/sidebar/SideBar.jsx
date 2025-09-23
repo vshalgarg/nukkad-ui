@@ -39,9 +39,15 @@ const SideBar = ({ isVisible, onClose }) => {
   const slideAnimation = useRef(new Animated.Value(-screenWidth)).current;
   const { profile } = useProfile();
   const { storekeeperProfile } = useStorekeeperProfile();
+
   const { role } = useAuth();
+
   const userRole = role;
-  const imageUri = profile?.image;
+  const imageUri =
+    userRole === 'STOREKEEPER'
+      ? storekeeperProfile?.imageUrls?.[0] ?? null
+      : profile?.image ?? null;
+
   const name = `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();
   const email = profile?.email ?? '';
   const mobile = profile?.mobileNumber || profile?.mobile;
@@ -205,9 +211,9 @@ const SideBar = ({ isVisible, onClose }) => {
       console.warn('No route found for menu item:', menuName);
     }
   };
-
   if (!isVisible) return null;
-
+  console.log(role);
+  console.log('storekeper', storekeeperProfile);
   return (
     <>
       <TouchableOpacity style={styles.overlay} onPress={onClose} />
@@ -351,7 +357,7 @@ const styles = ScaledSheet.create({
   profileTextContainer: {
     maxWidth: screenWidth * 0.55,
     flexShrink: 1,
-    paddingHorizontal:"5@s"
+    paddingHorizontal: '5@s',
   },
   profileName: {
     fontSize: Fonts.sizes.base,
