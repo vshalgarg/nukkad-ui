@@ -126,6 +126,7 @@ const StorekeeperCreateProfile = () => {
     };
 
     const result = storekeeperProfileSchema.safeParse(formData);
+    console.log("rsult",result)
 
     console.log(result);
     if (!result.success) {

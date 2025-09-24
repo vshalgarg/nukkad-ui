@@ -13,11 +13,13 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Feather';
 import Colors from '../styles/colors';
 import { ScaledSheet } from 'react-native-size-matters';
+import {useDialog} from "../contexts/DialogContext"
 
 const MAX_IMAGES = 4;
 
 const StoreImageUploader = ({ images, setImages, editable = true }) => {
   const [picking, setPicking] = useState(false);
+  const {showDialog}= useDialog()
 
   const requestGalleryPermission = async () => {
     if (Platform.OS !== 'android') return true;
@@ -66,19 +68,37 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
   };
 
   const removeImage = index => {
-    Alert.alert('Remove Image', 'Do you want to remove this image?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        onPress: () => {
-          setImages(prev => {
+    // Alert.alert('Remove Image', 'Do you want to remove this image?', [
+    //   { text: 'Cancel', style: 'cancel' },
+    //   {
+    //     text: 'Remove',
+    //     onPress: () => {
+    //       setImages(prev => {
+    //         const updated = [...prev];
+    //         updated[index] = null;
+    //         return updated;
+    //       });
+    //     },
+    //   },
+    // ]);
+  
+    showDialog({
+      title: 'Remove',
+      message: 'Do you want to remove this image?',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('REmove pic cancelled');
+      },
+      onConfirm: () => {
+           setImages(prev => {
             const updated = [...prev];
-            updated[index] = null;
+             updated[index] = null;
             return updated;
           });
         },
-      },
-    ]);
+    });
+  
   };
 
   return (
