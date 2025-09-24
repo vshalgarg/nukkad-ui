@@ -121,23 +121,31 @@ const PaymentOptions = () => {
       const payload = { qrCodes: asset.firebaseUrl };
 
       const response = existingQR?.id
-        ? await updatePaymentQR(existingQR.id, payload, token)
-        : await uploadQRImage(payload, token);
+        ? await updatePaymentQR(existingQR.id, payload, token) // update existing
+        : await uploadQRImage(payload, token); // new QR
 
-      console.log('responseID', response);
       if (response) {
-        // Remove preview only after successful upload
+        if (existingQR?.id) {
+          // Update existing QR in state (no flicker)
+          setQrCodes(prev => {
+            const updated = [...prev];
+            updated[index] = { ...existingQR, qrImageUrl: asset.firebaseUrl };
+            return updated;
+          });
+        } else {
+          // New QR → reload from backend to get ID etc.
+          await loadQRs();
+        }
+
+        // Remove preview
         setPreviewImages(prev => {
           const updated = { ...prev };
-          delete updated[index]; // this will remove the cross
+          delete updated[index];
           return updated;
         });
 
         showToast('success', strings.uploadSuccess);
-
-        // Reload QRs to reflect the new image and button text
       }
-      await loadQRs();
     } catch (error) {
       console.error('Image upload error:', error);
       showToast('error', error.message);

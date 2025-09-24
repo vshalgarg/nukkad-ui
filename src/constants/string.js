@@ -12,7 +12,7 @@ const strings = {
   resendOtpAvailable: seconds => `Resend available in ${seconds}s`,
   havnotReceivedOtp: "Haven't received OTP?",
   login: ' Login',
-  enterOtp: 'Enter 4 Digit Code Here',
+  enterOtp: 'Enter 6 Digit Code Here',
   otpFailed: 'OTP Verification Failed',
   agreeTo: ' I agreed to ',
   termsAndConditions: `Terms and conditions & ${'\n'}Privacy Policy`,
