@@ -226,6 +226,7 @@ const StorekeeperProfileScreen = () => {
 
         try {
           setUploadingIndex(index); // show loader
+
           const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
 
           setProfile(prev => {

@@ -147,15 +147,17 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
           >
             {img ? (
               <View>
-                <Image
-                  source={{ uri: img.remoteUrl || img.uri }}
-                  style={styles.image}
-                />
+                {/* Always show local URI to avoid flicker */}
+                <Image source={{ uri: img.uri }} style={styles.image} />
+
+                {/* Loader overlay while uploading */}
                 {img.status === 'uploading' && (
                   <View style={styles.loaderOverlay}>
                     <ActivityIndicator size="small" color="#fff" />
                   </View>
                 )}
+
+                {/* Remove button only when editable and not uploading */}
                 {editable && img.status !== 'uploading' && (
                   <TouchableOpacity
                     style={styles.removeIcon}

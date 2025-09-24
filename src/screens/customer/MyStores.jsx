@@ -131,6 +131,7 @@ export default function MyStores() {
 
   const handleSelectStoreTemp = store => {
     setSelectedStoreTemp(store);
+    saveStore(selectedStoreTemp);
   };
 
   const renderItem = ({ item }) => {

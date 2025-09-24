@@ -212,8 +212,6 @@ const SideBar = ({ isVisible, onClose }) => {
     }
   };
   if (!isVisible) return null;
-  console.log(role);
-  console.log('storekeper', storekeeperProfile);
   return (
     <>
       <TouchableOpacity style={styles.overlay} onPress={onClose} />

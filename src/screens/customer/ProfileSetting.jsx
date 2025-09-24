@@ -217,7 +217,7 @@ const ProfileSetting = () => {
                       <Ionicons
                         name="person-circle-outline"
                         color="#000"
-                        size={150}
+                        size={innerStyle.image.width}
                       />
                     </View>
                   )}

@@ -586,6 +586,7 @@ const ShowDetails = () => {
                       editable={true}
                       scrollEnabled={false}
                       onChangeText={setStoreKeeperNote}
+                      returnKeyType="done"
                     />
                   ) : (
                     <Text

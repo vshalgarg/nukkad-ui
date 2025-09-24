@@ -3,7 +3,7 @@ import api from '../api';
 
 // 📤 Upload a new QR image
 export const uploadQRImage = async (payload, token) => {
-  console.log({ qrCodes: payload.qrCodes },"payload")
+  console.log({ qrCodes: payload.qrCodes }, 'payload');
   try {
     const response = await api.post(
       '/nukkad/api/qr/v1/upload',
@@ -53,8 +53,8 @@ export const deletePaymentQR = async (qrId, token) => {
     console.log(' Payment QR Delete Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error(' Payment QR Delete Error:', error);
-    throw new Error('Payment QR Delete failed');
+    console.error(' Payment QR Delete Error:', error.response.data.message);
+    throw new Error(error.response.data.message);
   }
 };
 

@@ -140,7 +140,6 @@ const StorekeeperCreateProfile = () => {
         if (!message) message = err.message;
       }
 
-      // Manually ensure city and state errors are shown if missing
       if (!state) fieldErrors.state = true;
       if (!city) fieldErrors.city = true;
 
@@ -176,7 +175,7 @@ const StorekeeperCreateProfile = () => {
       console.log('try block called');
       await createStorekeeperProfile(formData, token);
       showToast('success', strings.registeredSuccessfully);
-      // setTimeout(() => (pressLock = false), 1500);
+      setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
     } catch (err) {
       console.error('Storekeeper profile error:', err.message);
@@ -269,6 +268,7 @@ const StorekeeperCreateProfile = () => {
                   }}
                   isError={errors.name}
                   returnKeyType="next"
+                  blurOnSubmit={false}
                   onSubmitEditing={() => storeNameRef.current?.focus()}
                 />
               </View>
@@ -296,6 +296,7 @@ const StorekeeperCreateProfile = () => {
                   }}
                   isError={errors.storeName}
                   returnKeyType="next"
+                  blurOnSubmit={false}
                   onSubmitEditing={() => contactNumberRef.current?.focus()}
                 />
               </View>
@@ -352,6 +353,7 @@ const StorekeeperCreateProfile = () => {
                   }}
                   isError={errors.gstNum}
                   returnKeyType="next"
+                  blurOnSubmit={false}
                   onSubmitEditing={() => address1Ref.current?.focus()}
                 />
               </View>
@@ -380,6 +382,7 @@ const StorekeeperCreateProfile = () => {
                   }}
                   isError={errors.addressLine1}
                   returnKeyType="next"
+                  blurOnSubmit={false}
                   onSubmitEditing={() => address2Ref.current?.focus()}
                 />
               </View>
@@ -396,6 +399,7 @@ const StorekeeperCreateProfile = () => {
                     setAddressLine2(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
                   }
                   returnKeyType="next"
+                  blurOnSubmit={false}
                   onSubmitEditing={() => landmarkRef.current?.focus()}
                 />
               </View>
@@ -423,6 +427,7 @@ const StorekeeperCreateProfile = () => {
                   }}
                   isError={errors.landmark}
                   returnKeyType="next"
+                  blurOnSubmit={false}
                   onSubmitEditing={() => cityRef.current?.focus()}
                 />
               </View>

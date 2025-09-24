@@ -262,6 +262,7 @@ const CustomerCreateProfile = () => {
                   value={name}
                   maxLength={35}
                   onFocus={() => setOpenDropdown(null)}
+                  blurOnSubmit={false}
                   onTextChange={text => {
                     const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
                     setName(cleaned);
@@ -305,6 +306,7 @@ const CustomerCreateProfile = () => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   onFocus={() => setOpenDropdown(null)}
+                  blurOnSubmit={false}
                   onTextChange={text => {
                     setEmail(text);
                     if (isSubmitting) {
@@ -329,6 +331,7 @@ const CustomerCreateProfile = () => {
                   placeholder="Enter Your Address"
                   maxLength={38}
                   onFocus={() => setOpenDropdown(null)}
+                  blurOnSubmit={false}
                   onTextChange={text => {
                     const cleaned = text.replace(/[^a-zA-Z0-9\s,\/-]/g, '');
                     setAddressLine1(cleaned);
@@ -353,6 +356,7 @@ const CustomerCreateProfile = () => {
                     setAddressLine2(text.replace(/[^a-zA-Z0-9\s,\/-]/g, ''))
                   }
                   maxLength={38}
+                  blurOnSubmit={false}
                   onFocus={() => setOpenDropdown(null)}
                   returnKeyType="next"
                   onSubmitEditing={() => landmarkRef.current?.focus()}
@@ -375,7 +379,6 @@ const CustomerCreateProfile = () => {
                   maxLength={20}
                   onFocus={() => setOpenDropdown(null)}
                   isError={errors.landmark}
-                  returnKeyType="next"
                   onSubmitEditing={() => cityRef.current?.focus()}
                 />
 
