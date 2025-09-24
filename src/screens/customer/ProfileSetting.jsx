@@ -333,7 +333,7 @@ const ProfileSetting = () => {
                     loading || isSaving ? Colors.disabled : Colors.primary,
                 }}
               />
-              {console.log('profileRol', profile)}
+              {console.log('profileRole', profile)}
               {role === 'CUSTOMER' && (
                 <CustomButton
                   title="Delete Account"

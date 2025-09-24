@@ -29,7 +29,10 @@ import Fonts from '../../styles/font';
 import CustomInput from '../../components/CustomInput';
 import { showToast } from '../../utils/toastUtils';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
-import { addCustomerStore } from '../../services/customer/addStoreService.js';
+import {
+  addCustomerStore,
+  getStoreById,
+} from '../../services/customer/addStoreService.js';
 import textStyles from '../../styles/textStyles.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import strings from '../../constants/string.js';
@@ -130,11 +133,10 @@ export default function AddStore() {
         showToast('error', strings.invalidQr, strings.invalidQr2);
         return;
       }
+      const store = await getStoreById(storeQrId);
+      if (!store?.storeQrId) {
+        console.log('reTURNING FROM THSI');
 
-      const store = await addCustomerStore(storeQrId);
-      console.log('store messages', store.message);
-
-      if (!store?.storekeeperId) {
         stopCameraAndNavigate(() => safePush('CustomerDashboard'));
         return;
       }
@@ -159,7 +161,7 @@ export default function AddStore() {
       return;
     }
     try {
-      const store = await callAddStoreApi(id);
+      const store = await getStoreById(id);
       setPendingId(id);
       setPendingStore(store?.storeName);
       Keyboard.dismiss();
