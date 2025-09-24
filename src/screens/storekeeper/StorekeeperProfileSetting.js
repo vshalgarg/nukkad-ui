@@ -7,6 +7,10 @@ import {
   TouchableOpacity,
   Image,
   KeyboardAvoidingView,
+  ActivityIndicator,
+  Keyboard,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
@@ -14,7 +18,6 @@ import { useAuth } from '../../contexts/authContext';
 import Toast from 'react-native-toast-message';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { z } from 'zod';
-import { Keyboard } from 'react-native';
 import strings from '../../constants/string';
 import CustomButton from '../../components/CustomButton';
 import Colors from '../../styles/colors';
@@ -22,21 +25,26 @@ import BackButton from '../../components/BackButton';
 import CustomInput from '../../components/CustomInput';
 import { ScaledSheet } from 'react-native-size-matters';
 import Fonts from '../../styles/font';
-import { Dimensions } from 'react-native';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import { useLogout } from '../../hooks/useLogout';
 import CityDropdown from '../../components/CityDropdown';
 import StateDropdown from '../../components/StateDropdown';
+import {
+  deleteImageAsync,
+  uploadImageAsync,
+} from '../../services/firebase/firebaseConfig';
+
 const { width } = Dimensions.get('screen');
+
 const profileSchema = z.object({
   name: z
     .string()
     .min(1, 'Name is required')
-    .max(30, "Name can't be more that 30 characters"),
+    .max(30, "Name can't be more than 30 characters"),
   storeName: z
     .string()
     .min(1, 'Store Name is required')
-    .max(30, "Store name can't be more that 30 characters"),
+    .max(30, "Store name can't be more than 30 characters"),
   contactNumber: z
     .string()
     .min(1, 'Contact Number is required')
@@ -44,28 +52,16 @@ const profileSchema = z.object({
   gstNum: z
     .string()
     .min(15, 'GST Number is required')
-    .max(15, "GST Number can't be more that 15 characters"),
+    .max(15, "GST Number can't be more than 15 characters"),
   storeQrId: z.string().optional(),
   addressLine1: z
     .string()
     .min(1, 'Address is required')
-    .max(100, "Address can't be more that 100 characters"),
-  // addressLine2: z
-  //   .string()
-  //   .min(1, 'Address is required')
-  //   .max(100, "Address can't be more that 100 characters"),
+    .max(100, "Address can't be more than 100 characters"),
   landmark: z
     .string()
     .min(1, 'Landmark is required')
-    .max(200, "Landmark can't be more that 100 characters"),
-  // city: z
-  //   .string()
-  //   .min(1, 'City is required')
-  //   .max(30, "City can't be more that 30 characters"),
-  // state: z
-  //   .string()
-  //   .min(1, 'State is required')
-  //   .max(30, "State can't be more that 30 characters"),
+    .max(200, "Landmark can't be more than 200 characters"),
   pincode: z
     .string()
     .min(6, 'Pincode must be 6 digits long')
@@ -101,14 +97,16 @@ const StorekeeperProfileScreen = () => {
   const { storekeeperProfile, updateStorekeeperProfile } =
     useStorekeeperProfile();
   const { token } = useAuth();
+  const { confirmLogout } = useLogout();
+  const { safePush } = useSafeRouter();
+
   const [isEditing, setIsEditing] = useState(false);
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [uploadingIndex, setUploadingIndex] = useState(null); // loader state
 
-  const { confirmLogout } = useLogout();
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     storeName: '',
@@ -136,60 +134,20 @@ const StorekeeperProfileScreen = () => {
     pincode: '',
     imageUrls: [],
   });
-  // Create refs for each input field
-  const nameRef = useRef(null);
-  const storeNameRef = useRef(null);
-  const contactNumberRef = useRef(null);
-  const gstNumRef = useRef(null);
-  const addressLine1Ref = useRef(null);
-  const addressLine2Ref = useRef(null);
-  const landmarkRef = useRef(null);
-  const cityRef = useRef(null);
-  const stateRef = useRef(null);
-  const pincodeRef = useRef(null);
-  const { safePush } = useSafeRouter();
-
-  // Create a mapping of field keys to their refs
-  const fieldRefs = {
-    name: nameRef,
-    storeName: storeNameRef,
-    contactNumber: contactNumberRef,
-    gstNum: gstNumRef,
-    addressLine1: addressLine1Ref,
-    addressLine2: addressLine2Ref,
-    landmark: landmarkRef,
-    city: cityRef,
-    state: stateRef,
-    pincode: pincodeRef,
-  };
-
-  const inputRefs = useRef({
-    name: null,
-    storeName: null,
-    contactNumber: null,
-    gstNum: null,
-    addressLine1: null,
-    addressLine2: null,
-    landmark: null,
-    city: null,
-    state: null,
-    pincode: null,
-  });
 
   const scrollViewRef = useRef(null);
 
-  const scrollToError = firstErrorKey => {
-    const fieldRef = fieldRefs[firstErrorKey]?.current;
-    if (fieldRef) {
-      fieldRef.measureLayout(
-        scrollViewRef.current,
-        (x, y) => {
-          scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
-          fieldRef.focus?.();
-        },
-        () => {},
-      );
-    }
+  const fieldRefs = {
+    name: useRef(null),
+    storeName: useRef(null),
+    contactNumber: useRef(null),
+    gstNum: useRef(null),
+    addressLine1: useRef(null),
+    addressLine2: useRef(null),
+    landmark: useRef(null),
+    city: useRef(null),
+    state: useRef(null),
+    pincode: useRef(null),
   };
 
   useEffect(() => {
@@ -201,7 +159,6 @@ const StorekeeperProfileScreen = () => {
       'keyboardDidHide',
       () => setKeyboardVisible(false),
     );
-
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
@@ -218,31 +175,19 @@ const StorekeeperProfileScreen = () => {
 
   const handleStateChange = value => {
     setSelectedState(value);
-    setSelectedCity(''); // reset city on state change
-    setFieldErrors(prev => ({
-      ...prev,
-      state: '',
-      city: '',
-    }));
+    setSelectedCity('');
+    setFieldErrors(prev => ({ ...prev, state: '', city: '' }));
   };
 
   const handleCityChange = value => {
     setSelectedCity(value);
-    setFieldErrors(prev => ({
-      ...prev,
-      city: '',
-    }));
+    setFieldErrors(prev => ({ ...prev, city: '' }));
   };
+
   const handleChange = (key, value) => {
     setProfile(prev => ({ ...prev, [key]: value }));
-    setFieldErrors(prev => ({
-      ...prev,
-      [key]: '',
-    }));
-
-    if (isEditing) {
-      validateSingleField(key, value);
-    }
+    setFieldErrors(prev => ({ ...prev, [key]: '' }));
+    if (isEditing) validateSingleField(key, value);
   };
 
   const validateSingleField = (key, value) => {
@@ -260,44 +205,81 @@ const StorekeeperProfileScreen = () => {
     }
   };
 
-  const handleImagePick = index => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.7,
-    };
+  const scrollToError = firstErrorKey => {
+    const fieldRef = fieldRefs[firstErrorKey]?.current;
+    if (fieldRef) {
+      fieldRef.measureLayout(scrollViewRef.current, (x, y) => {
+        scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
+        fieldRef.focus?.();
+      });
+    }
+  };
 
-    launchImageLibrary(options, response => {
+  const handleImagePick = async index => {
+    const options = { mediaType: 'photo', quality: 0.7 };
+    launchImageLibrary(options, async response => {
       if (response.didCancel) return;
 
       if (response.assets && response.assets.length > 0) {
-        const uri = response.assets[0].uri;
-        setProfile(prev => {
-          const updated = [...prev.imageUrls];
-          updated[index] = uri; // replace image at index
-          return { ...prev, imageUrls: updated };
-        });
+        const asset = response.assets[0];
+        const fileName = asset.fileName || `store_${Date.now()}.jpg`;
+
+        try {
+          setUploadingIndex(index); // show loader
+          const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
+
+          setProfile(prev => {
+            const updated = [...prev.imageUrls];
+            updated[index] = firebaseUrl;
+            return { ...prev, imageUrls: updated };
+          });
+        } catch (err) {
+          console.error('Firebase upload failed:', err);
+          Toast.show({
+            type: 'error',
+            text1: 'Image upload failed',
+            text2: err.message || '',
+          });
+        } finally {
+          setUploadingIndex(null);
+        }
       }
     });
   };
-  const handleRemoveImage = index => {
-    setProfile(prev => {
-      const updated = [...prev.imageUrls];
-      updated.splice(index, 1, null); // Set null to maintain slot
-      return { ...prev, imageUrls: updated };
-    });
+
+  const handleRemoveImage = async index => {
+    const imageUrl = profile.imageUrls[index];
+    if (!imageUrl) return;
+
+    try {
+      const fileName = imageUrl.split('%2F').pop().split('?')[0];
+      await deleteImageAsync(fileName);
+
+      setProfile(prev => {
+        const updated = [...prev.imageUrls];
+        updated[index] = null;
+        return { ...prev, imageUrls: updated };
+      });
+    } catch (err) {
+      console.error('Firebase delete failed:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to remove image',
+        text2: err.message || '',
+      });
+    }
   };
+
   const handleSave = async () => {
     let isValid = true;
     let firstErrorKey = null;
-    const fieldsToValidate = Object.keys(fieldErrors);
-
     const tempProfile = {
       ...profile,
       state: selectedState,
       city: selectedCity,
     };
 
-    fieldsToValidate.forEach(key => {
+    Object.keys(fieldErrors).forEach(key => {
       if (!validateSingleField(key, tempProfile[key])) {
         if (!firstErrorKey) firstErrorKey = key;
         isValid = false;
@@ -323,7 +305,6 @@ const StorekeeperProfileScreen = () => {
       'pincode',
       'imageUrls',
     ];
-
     const filteredProfile = allowedFields.reduce((acc, key) => {
       acc[key] = tempProfile[key];
       return acc;
@@ -359,6 +340,106 @@ const StorekeeperProfileScreen = () => {
     pincode: 6,
   };
 
+  const renderField = (label, key) => {
+    const hasError = !!fieldErrors[key];
+    if (key === 'storeQrId')
+      return (
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{label}</Text>
+          <CustomInput
+            value={profile[key]}
+            editable={false}
+            style={hasError ? styles.errorInput : {}}
+          />
+          {hasError && <Text style={styles.errorText}>{fieldErrors[key]}</Text>}
+        </View>
+      );
+
+    if (key === 'state')
+      return (
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{label}</Text>
+          {isEditing ? (
+            <StateDropdown
+              selectedState={selectedState}
+              onSelectState={handleStateChange}
+              error={hasError}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="state"
+            />
+          ) : (
+            <CustomInput
+              value={selectedState}
+              editable={false}
+              style={hasError ? styles.errorInput : {}}
+            />
+          )}
+          {hasError && (
+            <Text style={styles.errorText}>{fieldErrors.state}</Text>
+          )}
+        </View>
+      );
+
+    if (key === 'city')
+      return (
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{label}</Text>
+          {isEditing ? (
+            <CityDropdown
+              selectedState={selectedState}
+              selectedCity={selectedCity}
+              onSelectCity={handleCityChange}
+              error={hasError}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              dropdownKey="city"
+            />
+          ) : (
+            <CustomInput
+              value={selectedCity}
+              editable={false}
+              style={hasError ? styles.errorInput : {}}
+            />
+          )}
+          {hasError && <Text style={styles.errorText}>{fieldErrors.city}</Text>}
+        </View>
+      );
+
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{label}</Text>
+        {isEditing ? (
+          <>
+            <CustomInput
+              ref={fieldRefs[key]}
+              value={profile[key]}
+              onTextChange={val => handleChange(key, val)}
+              placeholder={label}
+              maxLength={maxLengths[key]}
+              onBlur={() => validateSingleField(key, profile[key])}
+              keyboardType={
+                key === 'contactNumber' || key === 'pincode'
+                  ? 'number-pad'
+                  : 'default'
+              }
+              style={hasError ? styles.errorInput : {}}
+            />
+            {hasError && (
+              <Text style={styles.errorText}>{fieldErrors[key]}</Text>
+            )}
+          </>
+        ) : (
+          <CustomInput
+            value={profile[key]}
+            editable={false}
+            style={hasError ? styles.errorInput : {}}
+          />
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <KeyboardAvoidingView
@@ -367,23 +448,6 @@ const StorekeeperProfileScreen = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <BackButton title={strings.profileSetting} />
-        {/* <View style={{ marginVertical: 20 }}>
-        <TouchableOpacity
-          style={[
-            styles.editIcon,
-            isEditing && styles.cancelButton
-          ]}
-          onPress={() => setIsEditing(!isEditing)}
-        >
-          <Icon
-            name={isEditing ? "x" : "edit"}
-            size={23}
-            color={isEditing ? Colors.reject : Colors.secondary}
-          />
-
-        </TouchableOpacity>
-      </View> */}
-
         <ScrollView
           ref={scrollViewRef}
           style={styles.container}
@@ -400,6 +464,7 @@ const StorekeeperProfileScreen = () => {
               ))}
             </View>
           ))}
+
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
             <View style={styles.imageContainer}>
@@ -426,11 +491,21 @@ const StorekeeperProfileScreen = () => {
                       </View>
                     ) : (
                       <View style={[styles.image, styles.emptyImage]}>
-                        <Text
-                          style={{ color: Colors.secondaryText, fontSize: 20 }}
-                        >
-                          +
-                        </Text>
+                        {uploadingIndex === i ? (
+                          <ActivityIndicator
+                            size="small"
+                            color={Colors.secondary}
+                          />
+                        ) : (
+                          <Text
+                            style={{
+                              color: Colors.secondaryText,
+                              fontSize: 20,
+                            }}
+                          >
+                            +
+                          </Text>
+                        )}
                       </View>
                     )}
                   </TouchableOpacity>
@@ -440,6 +515,7 @@ const StorekeeperProfileScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
       {isEditing && !keyboardVisible && (
         <View style={styles.ButtonContainer}>
           <CustomButton title={strings.saveChanges} onPress={handleSave} />
@@ -447,10 +523,7 @@ const StorekeeperProfileScreen = () => {
       )}
       {!isEditing && (
         <View style={styles.saveButtonContainer}>
-          <CustomButton
-            title={'Edit'}
-            onPress={() => setIsEditing(!isEditing)}
-          />
+          <CustomButton title={'Edit'} onPress={() => setIsEditing(true)} />
           <CustomButton
             title={'Logout'}
             style={{
@@ -463,118 +536,6 @@ const StorekeeperProfileScreen = () => {
       )}
     </View>
   );
-
-  function renderField(label, key) {
-    const hasError = !!fieldErrors[key];
-
-    if (key === 'storeQrId') {
-      return (
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>{label}</Text>
-          <CustomInput
-            value={profile[key]}
-            editable={false}
-            style={hasError ? styles.errorInput : {}}
-          />
-          {hasError && <Text style={styles.errorText}>{fieldErrors[key]}</Text>}
-        </View>
-      );
-    }
-
-    if (key === 'state') {
-      return (
-        <View style={styles.inputContainer} key={key}>
-          <Text style={styles.label}>{label}</Text>
-          {isEditing ? (
-            <StateDropdown
-              selectedState={selectedState}
-              onSelectState={handleStateChange}
-              error={hasError}
-              openDropdown={openDropdown}
-              setOpenDropdown={setOpenDropdown}
-              dropdownKey="state"
-            />
-          ) : (
-            <CustomInput
-              value={selectedState}
-              editable={false}
-              style={hasError ? styles.errorInput : {}}
-            />
-          )}
-          {hasError && (
-            <Text style={styles.errorText}>{fieldErrors.state}</Text>
-          )}
-        </View>
-      );
-    }
-
-    if (key === 'city') {
-      return (
-        <View style={styles.inputContainer} key={key}>
-          <Text style={styles.label}>{label}</Text>
-          {isEditing ? (
-            <CityDropdown
-              selectedState={selectedState}
-              selectedCity={selectedCity}
-              onSelectCity={handleCityChange}
-              error={hasError}
-              openDropdown={openDropdown}
-              setOpenDropdown={setOpenDropdown}
-              dropdownKey="city"
-            />
-          ) : (
-            <CustomInput
-              value={selectedCity}
-              editable={false}
-              style={hasError ? styles.errorInput : {}}
-            />
-          )}
-          {hasError && <Text style={styles.errorText}>{fieldErrors.city}</Text>}
-        </View>
-      );
-    }
-
-    // Default: render normal text input
-    return (
-      <View style={styles.inputContainer} key={key}>
-        <Text style={styles.label}>{label}</Text>
-        {isEditing ? (
-          <>
-            <CustomInput
-              ref={fieldRefs[key]}
-              value={profile[key]}
-              onTextChange={val => handleChange(key, val)}
-              placeholder={label}
-              maxLength={maxLengths[key]}
-              onBlur={() => validateSingleField(key, profile[key])}
-              keyboardType={
-                key === 'contactNumber' || key === 'pincode'
-                  ? 'number-pad'
-                  : 'default'
-              }
-              inputAccessoryViewID={
-                key === 'contactNumber'
-                  ? 'DoneAccessory'
-                  : key === 'pincode'
-                  ? 'pincode'
-                  : null
-              }
-              style={hasError ? styles.errorInput : {}}
-            />
-            {hasError && (
-              <Text style={styles.errorText}>{fieldErrors[key]}</Text>
-            )}
-          </>
-        ) : (
-          <CustomInput
-            value={profile[key]}
-            editable={false}
-            style={hasError ? styles.errorInput : {}}
-          />
-        )}
-      </View>
-    );
-  }
 };
 
 const styles = ScaledSheet.create({
@@ -583,54 +544,49 @@ const styles = ScaledSheet.create({
     backgroundColor: Colors.white,
     marginTop: 30,
   },
-  header: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    marginBottom: '70@vs',
-  },
-  editIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    marginRight: '20@s',
-    padding: '2@s',
-    borderRadius: '30@s',
-  },
-  cancelButton: {
-    backgroundColor: Colors.white,
-    borderWidth: '1.5@s',
-    borderColor: Colors.reject,
-    elevation: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: '10@s',
-    justifyContent: 'space-between',
-    marginBottom: '16@vs',
-  },
-  fieldWrapper: {
-    marginBottom: '24@vs',
-  },
-  inputContainer: {
-    marginBottom: '10@vs',
-  },
+  inputContainer: { marginBottom: '10@vs' },
   label: {
     fontSize: '14@s',
     fontWeight: '600',
     color: Colors.secondary,
     marginBottom: '4@vs',
   },
-  profileHeader: {
-    fontSize: '22@s',
-    fontWeight: 'bold',
+  errorInput: { borderColor: Colors.reject },
+  errorText: { color: Colors.reject, fontSize: '12@s' },
+  sectionContainer: {
     marginBottom: '24@vs',
-    textAlign: 'center',
+    backgroundColor: Colors.sectionBackground,
+    borderRadius: '8@s',
+    padding: '16@s',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  saveButtonText: {
-    color: Colors.white,
+  sectionTitle: {
+    fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
-    fontSize: '16@s',
+    marginBottom: '16@vs',
+    color: Colors.secondary,
+  },
+  saveButtonContainer: {
+    flexDirection: 'row',
+    paddingVertical: '10@vs',
+    paddingHorizontal: '20@s',
+    backgroundColor: Colors.white,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  ButtonContainer: {
+    flexDirection: 'row',
+    paddingVertical: '10@vs',
+    paddingHorizontal: '20@s',
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 0.02 * width,
   },
   image: {
     width: '65@s',
@@ -655,54 +611,6 @@ const styles = ScaledSheet.create({
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  errorInput: {
-    borderColor: Colors.reject,
-  },
-  errorText: {
-    color: Colors.reject,
-    fontSize: '12@s',
-  },
-  sectionContainer: {
-    marginBottom: '24@vs',
-    backgroundColor: Colors.sectionBackground,
-    borderRadius: '8@s',
-    padding: '16@s',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    marginBottom: '16@vs',
-    color: Colors.secondary,
-  },
-  saveButtonContainer: {
-    flexDirection: 'row',
-    // height: '70@vs',
-    paddingVertical: '10@vs',
-
-    paddingHorizontal: '20@s',
-    // width:"90%",
-    backgroundColor: Colors.white,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ButtonContainer: {
-    flexDirection: 'row',
-    // height: '70@vs',
-    paddingVertical: '10@vs',
-    paddingHorizontal: '20@s',
-    // width:"90%",
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  imageContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 0.02 * width,
   },
 });
 

@@ -122,7 +122,9 @@ const StorekeeperCreateProfile = () => {
       city,
       state,
       pincode,
-      images,
+      imageUrls: images
+        .filter(img => img && img.status === 'uploaded' && img.remoteUrl)
+        .map(img => img.remoteUrl),
     };
 
     const result = storekeeperProfileSchema.safeParse(formData);
@@ -180,7 +182,7 @@ const StorekeeperCreateProfile = () => {
     } catch (err) {
       console.error('Storekeeper profile error:', err.message);
       showToast('error', strings.failedToCreateProfile);
-      state, (pressLock = false);
+      pressLock = false;
     } finally {
       console.log('finally');
       setIsSubmitting(false);
