@@ -236,10 +236,9 @@ const SideBar = ({ isVisible, onClose }) => {
               //   </View>
               // )
               <Ionicons
-                style={styles.profileImage}
                 name="person-circle-outline"
                 color="#000"
-                size={70}
+                size={styles.profileImage.height}
               />
             )}
 

@@ -215,11 +215,11 @@ const ReferToCustomer = () => {
                   backgroundColor={Colors.white}
                 />
               </ViewShot>
-            </View>
 
-            <View style={innerStyle.storeIdContainer}>
-              <Text style={innerStyle.label}>Store ID:</Text>
-              <Text style={innerStyle.id}>{selectedStore.storeId}</Text>
+              <View style={innerStyle.storeIdContainer}>
+                <Text style={innerStyle.label}>Store ID:</Text>
+                <Text style={innerStyle.id}>{selectedStore.storeId}</Text>
+              </View>
             </View>
           </>
         )}
@@ -248,7 +248,6 @@ const innerStyle = ScaledSheet.create({
     padding: '20@s',
     backgroundColor: Colors.white,
     minHeight: screenHeight * 0.7,
-    
   },
   selectorContainer: {
     width: '100%',
@@ -308,18 +307,21 @@ const innerStyle = ScaledSheet.create({
   },
   qrSection: {
     alignItems: 'center',
+    justifyContent: 'center',
     width: '100%',
-  
+    flex: 1,
   },
+
   storeIdContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center', // center horizontally
     backgroundColor: Colors.backgroundLight,
     padding: '12@s',
     borderRadius: '8@s',
     width: '100%',
   },
+
   label: {
     fontSize: Fonts.sizes.lg,
     fontWeight: '500',

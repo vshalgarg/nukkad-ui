@@ -33,7 +33,8 @@ export const sendOtp = async (mobileNumber, role = null) => {
 
 // Verify OTP
 export const verifyOtp = async ({ mobile, firebaseToken }) => {
-  const FcmToken = '1234567890';
+  const FcmToken = await AsyncStorage.getItem('FcmToken');
+  console.log('FCM TOKEN', FcmToken);
 
   const payload = {
     mobileNumber: mobile,
@@ -45,7 +46,7 @@ export const verifyOtp = async ({ mobile, firebaseToken }) => {
 
   try {
     const response = await api.post(
-      'nukkad/api/otp/v1/otp/verify/login',
+      '/nukkad/api/otp/v1/otp/verify/login',
       payload,
     );
 

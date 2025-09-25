@@ -100,7 +100,7 @@ const styles = ScaledSheet.create({
     marginLeft: '5%',
   },
   queryInput: {
-    width: '80%',
+    width: '78%',
     paddingInline: '4@s',
     backgroundColor: Colors.white,
     color: Colors.secondary,

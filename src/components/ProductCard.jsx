@@ -331,7 +331,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontSize: Fonts.sizes.sm,
+    fontSize: Fonts.sizes.xs,
   },
   placeholder: {
     fontSize: Fonts.sizes.sm,

@@ -1,75 +1,63 @@
-// components/CityDropdown.jsx
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Keyboard, Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import { ScaledSheet } from 'react-native-size-matters';
+import statesData from '../State_City Data/State_city.json';
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 
 const CityDropdown = ({
   selectedState,
-  selectedCity, // 👈 comes from address
+  selectedCity,
   onSelectCity,
   error,
   openDropdown,
   setOpenDropdown,
   dropdownKey,
 }) => {
-  const [value, setValue] = useState(selectedCity || null); // ✅ immediate show
+  const [value, setValue] = useState(selectedCity || null);
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const isOpen = openDropdown === dropdownKey;
 
-  const fetchCities = async () => {
+  const fetchCities = () => {
     if (!selectedState) {
       setItems([]);
+      setValue(null);
       return;
     }
 
     try {
-      setLoading(true);
-      const res = await fetch(
-        'https://countriesnow.space/api/v0.1/countries/state/cities',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country: 'India', state: selectedState }),
-        },
-      );
-      const data = await res.json();
-
-      if (data?.data) {
-        const mappedCities = data.data.map(c => ({
-          label: c,
-          value: c,
+      Keyboard.dismiss();
+      const state = statesData.states.find(s => s.name === selectedState);
+      if (state && Array.isArray(state.cities)) {
+        const mapped = state.cities.map(city => ({
+          label: city,
+          value: city,
         }));
+        setItems(mapped);
 
-        setItems(mappedCities);
-
-        // ✅ keep selectedCity if it's valid in fetched list
         if (selectedCity) {
-          const exists = mappedCities.find(i => i.value === selectedCity);
-          if (!exists) {
-            setValue(null); // reset if invalid
-          }
+          const exists = mapped.find(i => i.value === selectedCity);
+          if (!exists) setValue(null);
         }
+      } else {
+        setItems([]);
+        setValue(null);
       }
     } catch (err) {
       console.error('Failed to fetch cities:', err);
-    } finally {
-      setLoading(false);
+      setItems([]);
+      setValue(null);
     }
   };
 
   useEffect(() => {
-    // 👇 show saved city immediately
     if (selectedCity) {
       setValue(selectedCity);
     }
-    // then fetch list in background
     fetchCities();
   }, [selectedState, selectedCity]);
 
@@ -80,7 +68,7 @@ const CityDropdown = ({
       items={items}
       setOpen={o => {
         if (o) {
-          Keyboard.dismiss(); // 👈 close keyboard
+          Keyboard.dismiss();
           setOpenDropdown(dropdownKey);
         } else {
           setOpenDropdown(null);
@@ -97,13 +85,7 @@ const CityDropdown = ({
         keyboardShouldPersistTaps: 'handled',
       }}
       placeholder={
-        !selectedState
-          ? 'Select a State first'
-          : value
-          ? value // 👈 show saved value first
-          : loading
-          ? 'Loading cities...'
-          : 'Select City'
+        !selectedState ? 'Select a State first' : value ? value : 'Select City'
       }
       TickIconComponent={() => null}
       style={[

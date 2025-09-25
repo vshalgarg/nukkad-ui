@@ -107,9 +107,17 @@ const OrderItem = memo(
             )
           ) : (
             <TextInput
-              style={[innerStyle.input, { color: Colors.secondary }]}
+              style={[
+                innerStyle.input,
+                price === null
+                  ? { fontSize: Fonts.sizes.xs } // out of stock styling
+                  : {
+                      color: Colors.secondary,
+                      borderColor: Colors.borderColor,
+                    }, // normal styling
+              ]}
               placeholder="Price"
-              value={`₹ ${price}`}
+              value={price === null ? 'Out of Stock' : `${price}`}
               editable={false}
             />
           )}
@@ -342,7 +350,9 @@ const ShowDetails = () => {
             <Text
               style={[innerStyle.value, { color: 'green', fontWeight: '600' }]}
             >
-              ₹{totalAmount.toFixed(2)}
+              {items?.price === null
+                ? 'Out of Stock'
+                : `₹${totalAmount.toFixed(2)}`}
             </Text>
           </View>
         </View>
@@ -369,7 +379,9 @@ const ShowDetails = () => {
             const isOutOfStock = outOfStockMap[itemId];
             return {
               itemId,
-              price: isOutOfStock ? null : parseFloat(prices[itemId]) || 0,
+              price: isOutOfStock
+                ? 'Out of Stock'
+                : parseFloat(prices[itemId]) || 0,
             };
           });
 

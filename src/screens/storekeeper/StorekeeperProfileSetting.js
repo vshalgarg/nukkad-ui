@@ -11,6 +11,7 @@ import {
   Keyboard,
   Platform,
   Dimensions,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext';
@@ -230,9 +231,13 @@ const StorekeeperProfileScreen = () => {
           const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
 
           setProfile(prev => {
-            const updated = [...prev.imageUrls];
-            updated[index] = firebaseUrl;
-            return { ...prev, imageUrls: updated };
+            const images = prev.imageUrls.filter(Boolean); // remove empty slots
+            images.push(firebaseUrl); // add new image at the end
+
+            // Make sure length is always 4
+            while (images.length < 4) images.push(null);
+
+            return { ...prev, imageUrls: images };
           });
         } catch (err) {
           console.error('Firebase upload failed:', err);
@@ -248,27 +253,24 @@ const StorekeeperProfileScreen = () => {
     });
   };
 
-  const handleRemoveImage = async index => {
-    const imageUrl = profile.imageUrls[index];
-    if (!imageUrl) return;
+  const handleRemoveImage = index => {
+    const img = profile.imageUrls[index];
+    if (!img) return;
 
-    try {
-      const fileName = imageUrl.split('%2F').pop().split('?')[0];
-      await deleteImageAsync(fileName);
-
-      setProfile(prev => {
-        const updated = [...prev.imageUrls];
-        updated[index] = null;
-        return { ...prev, imageUrls: updated };
-      });
-    } catch (err) {
-      console.error('Firebase delete failed:', err);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to remove image',
-        text2: err.message || '',
-      });
-    }
+    Alert.alert('Remove Image', 'Do you want to remove this image?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        onPress: () => {
+          setProfile(prev => {
+            const images = prev.imageUrls.filter(Boolean); // remove nulls
+            images.splice(index, 1); // remove selected image
+            while (images.length < 4) images.push(null); // fill up to 4
+            return { ...prev, imageUrls: images };
+          });
+        },
+      },
+    ]);
   };
 
   const handleSave = async () => {
@@ -519,9 +521,14 @@ const StorekeeperProfileScreen = () => {
 
       {isEditing && !keyboardVisible && (
         <View style={styles.ButtonContainer}>
-          <CustomButton title={strings.saveChanges} onPress={handleSave} />
+          <CustomButton
+            title={strings.saveChanges}
+            onPress={handleSave}
+            disabled={uploadingIndex !== null} // disable while uploading
+          />
         </View>
       )}
+
       {!isEditing && (
         <View style={styles.saveButtonContainer}>
           <CustomButton title={'Edit'} onPress={() => setIsEditing(true)} />

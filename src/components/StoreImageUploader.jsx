@@ -63,37 +63,52 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
         selected.fileName || 'image.jpg'
       }`;
 
-      // Add placeholder image with uploading status
+      // 🔹 Place new image in the **first empty slot** (not necessarily the tapped index)
       setImages(prev => {
-        const updated = [...prev];
-        updated[index] = {
+        const updated = prev.filter(Boolean); // remove nulls
+        updated.push({
           uri: selected.uri,
           status: 'uploading',
           remoteUrl: null,
           fileName,
-        };
-        return updated;
+        });
+
+        // keep max 4 slots
+        while (updated.length < MAX_IMAGES) {
+          updated.push(null);
+        }
+        return updated.slice(0, MAX_IMAGES);
       });
 
       try {
         const downloadUrl = await uploadImageAsync(selected.uri, fileName);
 
         setImages(prev => {
-          const updated = [...prev];
-          updated[index] = {
-            uri: selected.uri,
-            status: 'uploaded',
-            remoteUrl: downloadUrl,
-            fileName,
-          };
-          return updated;
+          const updated = prev.filter(Boolean);
+          // find the one with same fileName
+          const idx = updated.findIndex(img => img?.fileName === fileName);
+          if (idx !== -1) {
+            updated[idx] = {
+              uri: selected.uri,
+              status: 'uploaded',
+              remoteUrl: downloadUrl,
+              fileName,
+            };
+          }
+
+          while (updated.length < MAX_IMAGES) {
+            updated.push(null);
+          }
+          return updated.slice(0, MAX_IMAGES);
         });
       } catch (err) {
         console.error('Upload failed:', err);
         Alert.alert('Upload failed', 'Please try again');
         setImages(prev => {
-          const updated = [...prev];
-          updated[index] = null;
+          const updated = prev.filter(img => img?.fileName !== fileName);
+          while (updated.length < MAX_IMAGES) {
+            updated.push(null);
+          }
           return updated;
         });
       }
@@ -118,9 +133,16 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
           } catch (err) {
             console.warn('Failed to delete from storage', err);
           }
+
           setImages(prev => {
-            const updated = [...prev];
-            updated[index] = null;
+            // Remove the image at index
+            const updated = prev.filter((_, i) => i !== index);
+
+            // Pad the array with nulls to keep length same (4 slots)
+            while (updated.length < 4) {
+              updated.push(null);
+            }
+
             return updated;
           });
         },

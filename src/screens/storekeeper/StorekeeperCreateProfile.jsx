@@ -213,6 +213,7 @@ const StorekeeperCreateProfile = () => {
     }
   }, []);
 
+  const isUploadInProgress = images.some(img => img?.status === 'uploading');
   return (
     <View style={[{ flex: 1, backgroundColor: Colors.white }]}>
       <View style={innerStyles.createProfileStyling}>
@@ -443,8 +444,8 @@ const StorekeeperCreateProfile = () => {
                     setCity(''); // Reset city when state changes
                     setErrors(prev => ({
                       ...prev,
-                      state: val ? false : true,
-                      city: true, // since city is reset
+                      state: hasTriedSubmit ? (val ? false : true) : prev.state,
+                      city: hasTriedSubmit ? true : prev.city, // force city error highlight if submit already pressed
                     }));
                   }}
                   error={errors.state}
@@ -466,7 +467,7 @@ const StorekeeperCreateProfile = () => {
                     setCity(val);
                     setErrors(prev => ({
                       ...prev,
-                      city: val ? false : true,
+                      city: hasTriedSubmit ? (val ? false : true) : prev.city,
                     }));
                   }}
                   error={errors.city}
@@ -536,7 +537,7 @@ const StorekeeperCreateProfile = () => {
             title={'Continue'}
             onPress={handleContinue}
             style={innerStyles.continueBtn}
-            // disabled={isSubmitting}
+            disabled={isSubmitting || isUploadInProgress}
           />
         </View>
       )}
