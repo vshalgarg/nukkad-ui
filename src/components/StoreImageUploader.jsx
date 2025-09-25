@@ -18,11 +18,13 @@ import {
   deleteImageAsync,
   uploadImageAsync,
 } from '../services/firebase/firebaseConfig';
+import { useDialog } from '../contexts/DialogContext';
 
 const MAX_IMAGES = 4;
 
 const StoreImageUploader = ({ images, setImages, editable = true }) => {
   const [picking, setPicking] = useState(false);
+  const { showDialog } = useDialog();
 
   const requestGalleryPermission = async () => {
     if (Platform.OS !== 'android') return true;
@@ -121,33 +123,36 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
     const img = images[index];
     if (!img || img.status === 'uploading') return; // prevent remove while uploading
 
-    Alert.alert('Remove Image', 'Do you want to remove this image?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        onPress: async () => {
-          try {
-            if (img.fileName) {
-              await deleteImageAsync(img.fileName);
-            }
-          } catch (err) {
-            console.warn('Failed to delete from storage', err);
+    showDialog({
+      title: 'Remove Image',
+      message: 'Do you want to remove this image?',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('Remove pic cancelled');
+      },
+      onConfirm: async () => {
+        try {
+          if (img.fileName) {
+            await deleteImageAsync(img.fileName);
+          }
+        } catch (err) {
+          console.warn('Failed to delete from storage', err);
+        }
+
+        setImages(prev => {
+          // Remove the image at index
+          const updated = prev.filter((_, i) => i !== index);
+
+          // Pad the array with nulls to keep length same (4 slots)
+          while (updated.length < 4) {
+            updated.push(null);
           }
 
-          setImages(prev => {
-            // Remove the image at index
-            const updated = prev.filter((_, i) => i !== index);
-
-            // Pad the array with nulls to keep length same (4 slots)
-            while (updated.length < 4) {
-              updated.push(null);
-            }
-
-            return updated;
-          });
-        },
+          return updated;
+        });
       },
-    ]);
+    });
   };
 
   return (

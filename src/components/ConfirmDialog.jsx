@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     flex: 1,
-    paddingVertical: 15,
-    borderRadius: 6,
+    paddingVertical: 12,
+    borderRadius: 50,
     alignItems: 'center',
     // marginHorizontal: 5,
   },

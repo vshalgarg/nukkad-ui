@@ -34,6 +34,7 @@ import {
   deleteImageAsync,
   uploadImageAsync,
 } from '../../services/firebase/firebaseConfig';
+import { useDialog } from '../../contexts/DialogContext';
 
 const { width } = Dimensions.get('screen');
 
@@ -98,6 +99,7 @@ const StorekeeperProfileScreen = () => {
   const { storekeeperProfile, updateStorekeeperProfile } =
     useStorekeeperProfile();
   const { token } = useAuth();
+  const { showDialog } = useDialog();
   const { confirmLogout } = useLogout();
   const { safePush } = useSafeRouter();
 
@@ -257,20 +259,23 @@ const StorekeeperProfileScreen = () => {
     const img = profile.imageUrls[index];
     if (!img) return;
 
-    Alert.alert('Remove Image', 'Do you want to remove this image?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        onPress: () => {
-          setProfile(prev => {
-            const images = prev.imageUrls.filter(Boolean); // remove nulls
-            images.splice(index, 1); // remove selected image
-            while (images.length < 4) images.push(null); // fill up to 4
-            return { ...prev, imageUrls: images };
-          });
-        },
+    showDialog({
+      title: 'Remove',
+      message: 'Do you want to remove this image?',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('Remove pic cancelled');
       },
-    ]);
+      onConfirm: () => {
+        setProfile(prev => {
+          const images = prev.imageUrls.filter(Boolean); // remove nulls
+          images.splice(index, 1); // remove selected image
+          while (images.length < 4) images.push(null); // fill up to 4
+          return { ...prev, imageUrls: images };
+        });
+      },
+    });
   };
 
   const handleSave = async () => {
