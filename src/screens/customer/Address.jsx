@@ -15,7 +15,7 @@ import {
 } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useDialog } from '../../contexts/DialogContext';
 import AddressCard from '../../components/AddressCard';
 import BackButton from '../../components/BackButton';
 import { useAddress } from '../../contexts/addressContext';
@@ -26,6 +26,7 @@ import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 
 const Address = () => {
+  const { showDialog } = useDialog();
   const {
     setMode,
     setAddressData,
@@ -64,31 +65,29 @@ const Address = () => {
   };
 
   const handleDeleteAddress = item => {
-    Alert.alert(
-      'Delete Address',
-      'Are you sure you want to delete this address?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const isDeletingDefault = item.id === selectedAddressId;
+    showDialog({
+      title: 'Delete Address',
+      message: 'Are you sure you want to delete this address?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onCancel: () => {
+        console.log('deleting address cancelled');
+      },
+      onConfirm: async () => {
+        const isDeletingDefault = item.id === selectedAddressId;
 
-            deleteAddress(item.id);
+        deleteAddress(item.id);
 
-            const remainingAddresses = address.filter(a => a.id !== item.id);
-            if (isDeletingDefault && remainingAddresses.length > 0) {
-              const fallback = remainingAddresses[0];
-              await handleSelectAddress(fallback.id);
-            } else if (remainingAddresses.length === 0) {
-              setSelectedAddressId(null);
-              await AsyncStorage.removeItem('selectedAddressId');
-            }
-          },
-        },
-      ],
-    );
+        const remainingAddresses = address.filter(a => a.id !== item.id);
+        if (isDeletingDefault && remainingAddresses.length > 0) {
+          const fallback = remainingAddresses[0];
+          await handleSelectAddress(fallback.id);
+        } else if (remainingAddresses.length === 0) {
+          setSelectedAddressId(null);
+          await AsyncStorage.removeItem('selectedAddressId');
+        }
+      },
+    });
   };
   const selectedaddress = async () => {
     const storedSelectedId = await AsyncStorage.getItem('selectedAddressId');

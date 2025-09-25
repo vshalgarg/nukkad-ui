@@ -25,7 +25,7 @@ import Fonts from '../../styles/font';
 import strings from '../../constants/string';
 import DeleteAccount from '../../components/DeleteAccount';
 import { useDispatch } from 'react-redux';
-import { ScaledSheet } from 'react-native-size-matters';
+import { moderateScale, ScaledSheet } from 'react-native-size-matters';
 import { useLogout } from '../../hooks/useLogout.jsx';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { uploadImageAsync } from '../../services/firebase/firebaseConfig.js';
@@ -217,7 +217,7 @@ const ProfileSetting = () => {
                       <Ionicons
                         name="person-circle-outline"
                         color="#000"
-                        size={150}
+                        size={innerStyle.image.width}
                       />
                     </View>
                   )}
@@ -479,6 +479,8 @@ const innerStyle = ScaledSheet.create({
     width: '120@s',
     height: '120@s',
     borderRadius: '65@s',
+    borderColor:"black",
+    // borderWidth:"3@s",
     resizeMode: 'cover',
     overflow: 'hidden',
     alignItems: 'center',

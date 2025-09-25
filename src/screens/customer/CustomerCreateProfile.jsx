@@ -141,6 +141,7 @@ const CustomerCreateProfile = () => {
     };
 
     const { isValid, fieldErrors, message } = validateCustomerProfile(payload);
+    
 
     setErrors(fieldErrors);
 

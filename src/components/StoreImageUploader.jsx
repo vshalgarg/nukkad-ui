@@ -14,18 +14,16 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Feather';
 import Colors from '../styles/colors';
 import { ScaledSheet } from 'react-native-size-matters';
-import {useDialog} from "../contexts/DialogContext"
 import {
   deleteImageAsync,
   uploadImageAsync,
 } from '../services/firebase/firebaseConfig';
-
+import { useDialog } from '../contexts/DialogContext';
 const MAX_IMAGES = 4;
 
 const StoreImageUploader = ({ images, setImages, editable = true }) => {
   const [picking, setPicking] = useState(false);
-  const {showDialog}= useDialog()
-
+  const { showDialog } = useDialog();
   const requestGalleryPermission = async () => {
     if (Platform.OS !== 'android') return true;
     try {
@@ -103,56 +101,33 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
 
     setPicking(false);
   };
-
-  const removeImage = index => {
-    // Alert.alert('Remove Image', 'Do you want to remove this image?', [
-    //   { text: 'Cancel', style: 'cancel' },
-    //   {
-    //     text: 'Remove',
-    //     onPress: () => {
-    //       setImages(prev => {
-    //         const updated = [...prev];
-    //         updated[index] = null;
-    //         return updated;
-    //       });
-    //     },
-    //   },
-    // ]);
-  
+  const removeImage = async index => {
+    const img = images[index];
+    if (!img || img.status === 'uploading') return;
+    console.log('image', img);
     showDialog({
       title: 'Remove',
       message: 'Do you want to remove this image?',
       confirmText: 'Remove',
       cancelText: 'Cancel',
       onCancel: () => {
-        console.log('REmove pic cancelled');
+        console.log('Remove pic cancelled');
       },
-      onConfirm: () => {
-           setImages(prev => {
-  const removeImage = async index => {
-    const img = images[index];
-    if (!img || img.status === 'uploading') return; // prevent remove while uploading
-
-    Alert.alert('Remove Image', 'Do you want to remove this image?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        onPress: async () => {
-          try {
-            if (img.fileName) {
-              await deleteImageAsync(img.fileName);
-            }
-          } catch (err) {
-            console.warn('Failed to delete from storage', err);
+      onConfirm: async () => {
+        try {
+          if (img.fileName) {
+            await deleteImageAsync(img.fileName);
           }
-          setImages(prev => {
-            const updated = [...prev];
-             updated[index] = null;
-            return updated;
-          });
-        },
+        } catch (err) {
+          console.warn('Failed to delete from storage', err);
+        }
+        setImages(prev => {
+          const updated = [...prev];
+          updated[index] = null;
+          return updated;
+        });
+      },
     });
-  
   };
 
   return (
