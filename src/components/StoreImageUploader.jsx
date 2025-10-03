@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Image as CompressorImage } from 'react-native-compressor';
+import RNFS from 'react-native-fs';
 import {
   View,
   Image,
@@ -49,14 +51,12 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
       setPicking(false);
       return;
     }
-
+    console.time('compress1');
     const result = await launchImageLibrary({
       mediaType: 'photo',
-      maxWidth: 800,
-      quality: 0.7,
       selectionLimit: 1,
     });
-
+    console.timeEnd('compress1');
     if (result?.assets?.length > 0) {
       const selected = result.assets[0];
       const fileName = `store_${Date.now()}_${
@@ -76,12 +76,28 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
       });
 
       try {
-        const downloadUrl = await uploadImageAsync(selected.uri, fileName);
+        const originalStat = await RNFS.stat(selected.uri);
+        let compressedUri = selected.uri;
+
+        if (originalStat.size >= 200 * 1024) {
+          console.time('compress');
+          compressedUri = await CompressorImage.compress(selected.uri, {
+            compressionMethod: 'auto',
+            quality: 0.6,
+          });
+          console.timeEnd('compress');
+        }
+        const compressedStat = await RNFS.stat(compressedUri);
+        console.log('Compressed size (KB):', compressedStat.size / 1024);
+        console.time('upload');
+        console.log(`compressedUri" ${compressedUri} fileName:${fileName}`)
+        const downloadUrl = await uploadImageAsync(compressedUri, fileName);
+        console.timeEnd('upload');
 
         setImages(prev => {
           const updated = [...prev];
           updated[index] = {
-            uri: selected.uri,
+            uri: compressedUri,
             status: 'uploaded',
             remoteUrl: downloadUrl,
             fileName,

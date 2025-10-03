@@ -7,9 +7,10 @@ import storage from '@react-native-firebase/storage';
  */
 export const uploadImageAsync = async (filePath, fileName) => {
   try {
-    console.log('📌 Uploading:', fileName, filePath);
+    console.log('Current Firebase bucket:', storage().ref().bucket);
+    console.log(' Uploading:', fileName, filePath);
 
-    // ✅ Correct way: use storage.ref directly
+    //Correct way: use storage.ref directly
     const storageRef = storage().ref(`profile_images/${fileName}`);
 
     // Upload local file
@@ -18,21 +19,22 @@ export const uploadImageAsync = async (filePath, fileName) => {
     // Track progress
     task.on('state_changed', snapshot => {
       const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      console.log(`📈 Progress: ${progress.toFixed(2)}%`);
+      console.log(`Progress: ${progress.toFixed(2)}%`);
     });
 
     await task;
 
     // Get download URL
     const downloadURL = await storageRef.getDownloadURL();
-    console.log('✅ Upload complete. URL:', downloadURL);
+    console.log('Upload complete. URL:', downloadURL);
 
     return downloadURL;
   } catch (err) {
-    console.error('❌ Firebase Upload Error:', err);
+    console.error('Firebase Upload Error:', err);
     throw err;
   }
 };
+
 
 export const deleteImageAsync = async fileName => {
   console.log(fileName);
@@ -43,15 +45,15 @@ export const deleteImageAsync = async fileName => {
 
     await storageRef.delete();
 
-    console.log('✅ Image deleted successfully');
+    console.log(' Image deleted successfully');
     return true;
   } catch (err) {
     console.log(err);
-    
+
     if (err.code === 'storage/object-not-found') {
-      console.warn('⚠️ File not found in storage');
+      console.warn('File not found in storage');
     } else {
-      console.error('❌ Firebase Delete Error:', err);
+      console.error('Firebase Delete Error:', err);
     }
     throw err;
   }
