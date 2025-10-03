@@ -357,8 +357,6 @@ const innerStyle = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.white,
     padding: '10',
-    borderTopWidth: 1,
-    borderColor: Colors.borderColor,
   },
   emptyContainer: {
     flex: 1,

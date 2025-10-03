@@ -121,7 +121,9 @@ dependencies {
     // Import the Firebase BoM
   implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
   implementation("com.google.firebase:firebase-analytics")
+  implementation("com.google.firebase:firebase-auth") 
   implementation("com.google.firebase:firebase-messaging")
+   implementation "com.google.android.gms:play-services-safetynet:18.0.1"
 }
 
 apply plugin: 'com.google.gms.google-services'

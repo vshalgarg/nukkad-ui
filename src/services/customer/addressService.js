@@ -12,7 +12,8 @@ export const addNewAddress = async addressData => {
     console.log('Save Address API Success:', {
       status: response.status,
       data: response.data,
-    });
+    }); 
+    
 
     return response.data;
   } catch (error) {

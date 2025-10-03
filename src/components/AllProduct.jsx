@@ -103,6 +103,7 @@ const innerStyle = StyleSheet.create({
     height: height - height * 0.4,
   },
   emptyText: {
+    width: '70%',
     textAlign: 'center',
     color: Colors.secondaryText,
     fontSize: Fonts.sizes.base,

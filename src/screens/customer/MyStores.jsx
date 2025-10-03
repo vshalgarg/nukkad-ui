@@ -395,7 +395,5 @@ const innerStyle = ScaledSheet.create({
     backgroundColor: Colors.white,
     padding: '10',
     paddingHorizontal: '30',
-    borderTopWidth: 1,
-    borderColor: Colors.borderColor,
   },
 });

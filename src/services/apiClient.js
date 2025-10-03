@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { API_URL, CLIENT_NAME, CLIENT_SECRET } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
 import { showToast } from '../utils/toastUtils';
 
 const api = axios.create({
@@ -13,22 +12,11 @@ const api = axios.create({
   },
 });
 
-// 🔹 Request Interceptor
+// Only attach token & log request; remove NetInfo check
 api.interceptors.request.use(async config => {
-  // ✅ Check internet connection before request
-  const state = await NetInfo.fetch();
-  if (!state.isConnected) {
-    showToast('error', 'No Internet Connection', 'Please check your network.');
-    return Promise.reject(new Error('No Internet Connection'));
-  }
-
-  // ✅ Attach auth token
   const token = await AsyncStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
 
-  // ✅ Log request
   console.log('➡️ API Request:', {
     method: config.method,
     url: `${config.baseURL}${config.url}`,
@@ -40,7 +28,6 @@ api.interceptors.request.use(async config => {
   return config;
 });
 
-// 🔹 Response Interceptor
 api.interceptors.response.use(
   response => {
     const { responseCode, message } = response.data;
@@ -55,7 +42,7 @@ api.interceptors.response.use(
       showToast('error', 'Error', message || 'Something went wrong');
       return Promise.reject({
         code: responseCode,
-        message: message,
+        message,
         data: response.data,
       });
     }
@@ -71,11 +58,12 @@ api.interceptors.response.use(
       data: error?.response?.data,
     });
 
-    // ✅ Handle network / timeout errors
-    if (error.message === 'No Internet Connection') {
-      // already shown toast in request interceptor
-    } else if (error.message.includes('Network Error')) {
-      showToast('error', 'Network Error', 'Please check your connection.');
+    if (error.message.includes('Network Error')) {
+      showToast(
+        'error',
+        'No Internet Connection',
+        'Please check your network.',
+      );
     } else if (error.code === 'ECONNABORTED') {
       showToast('error', 'Timeout', 'The request took too long.');
     } else if (error.response?.status >= 500) {

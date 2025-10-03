@@ -49,12 +49,14 @@ const SearchContainer = ({
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
-        <Entypo
-          name="magnifying-glass"
-          size={20}
-          color={Colors.secondaryText}
-          style={styles.icon}
-        />
+        <View style={styles.iconContainerOne}>
+          <Entypo
+            name="magnifying-glass"
+            size={20}
+            color={Colors.secondaryText}
+            style={styles.icon}
+          />
+        </View>
 
         <TextInput
           style={styles.queryInput}
@@ -67,11 +69,13 @@ const SearchContainer = ({
           }}
           returnKeyType="search"
         />
-        {queryInput.length > 0 && (
-          <TouchableOpacity onPress={handleClear}>
-            <Entypo name="cross" size={20} color={Colors.secondaryText} />
-          </TouchableOpacity>
-        )}
+        <View style={styles.iconContainerTwo}>
+          {queryInput.length > 0 && (
+            <TouchableOpacity onPress={handleClear} style={styles.icon}>
+              <Entypo name="cross" size={20} color={Colors.secondaryText} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -85,9 +89,10 @@ const styles = ScaledSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    // backgroundColor: 'blue',
   },
   innerContainer: {
-    width: '95%',
+    width: '100%',
     borderWidth: 0.5,
     position: 'relative',
     borderRadius: '50@s',
@@ -95,14 +100,26 @@ const styles = ScaledSheet.create({
     marginVertical: '10@vs',
     height: '40@vs',
     alignItems: 'center',
+    // backgroundColor: 'white',
   },
-  icon: {
-    marginLeft: '5%',
+  iconContainerOne: {
+    width: '12%',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+
+    // backgroundColor: 'yellow',
+  },
+  iconContainerTwo: {
+    width: '12%',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    // backgroundColor: 'yellow',
   },
   queryInput: {
-    width: '78%',
-    paddingInline: '4@s',
-    backgroundColor: Colors.white,
+    width: '75%',
+    // backgroundColor: 'red',
+    // paddingInline: '4@s',
+    textAlignVertical: 'center',
     color: Colors.secondary,
     fontSize: Fonts.sizes.sm,
   },

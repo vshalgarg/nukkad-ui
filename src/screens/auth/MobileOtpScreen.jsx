@@ -79,28 +79,35 @@ const MobileOtpScreen = () => {
       setOtpEnabled(true);
       setTimer(30);
       setCanResend(false);
-      const phoneNumber = `+91${mobile}`;
-
-      // 2. Trigger Firebase OTP
-      const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
-      setConfirmResult(confirmation);
-
       showToast(
         'success',
         isResend ? strings.otpResent : strings.otpSent,
         `OTP ${isResend ? 'resent' : 'sent'} to ${mobile}`,
       );
+      const phoneNumber = `+91${mobile}`;
+
+      // 2. Trigger Firebase OTP
+      const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+      setConfirmResult(confirmation);
     } catch (error) {
       console.error('Send OTP Error:', error);
-      showToast(
-        'error',
-        error.message || 'Something went wrong',
-        `Failed to send OTP`,
-      );
+
+      // ✅ Handle no internet explicitly
+      if (error.message === 'No Internet Connection') {
+        showToast(
+          'error',
+          'No Internet',
+          'Please check your network connection.',
+        );
+      } else {
+        // fallback for other errors
+        showToast(
+          'error',
+          error.message || 'Failed to send OTP',
+          'OTP could not be sent',
+        );
+      }
     }
-    // finally {
-    //   setSendingOtp(false); // done sending
-    // }
   };
 
   const handleSendOtp = () => {
@@ -181,12 +188,8 @@ const MobileOtpScreen = () => {
         }
       }
     } catch (error) {
-      console.error('OTP Verify Error:', error);
-      showToast(
-        'error',
-        strings.otpFailed,
-        error.message || 'Something went wrong',
-      );
+      console.error('OTP Verify Error:', error.message);
+      showToast('error', strings.otpFailed, 'Please enter a correct OTP');
     }
   };
 
