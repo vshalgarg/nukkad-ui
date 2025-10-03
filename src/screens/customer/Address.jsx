@@ -24,7 +24,7 @@ import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
-
+import { useDialog } from '../../contexts/DialogContext';
 const Address = () => {
   const { showDialog } = useDialog();
   const {
@@ -42,7 +42,7 @@ const Address = () => {
   const initialFromCart = route.params?.fromCart === 'true';
   const [fromCart] = useState(initialFromCart);
   const hideDelete = fromCart;
-
+  const { showDialog } = useDialog();
   const handleSelectAddress = async id => {
     console.log('Address card pressed!');
     setSelectedAddressId(String(id));

@@ -90,7 +90,7 @@ const ProductPage = () => {
     return (
       !searching && (
         <View style={innerStyle.noItemContainer}>
-          <Text style={styles.hintText}>
+          <Text style={innerStyle.hintText}>
             No products found. Try searching for something else
           </Text>
         </View>
@@ -375,6 +375,8 @@ const innerStyle = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: height - height * 0.4,
+    width: '100%',
+    fontSize: Fonts.sizes.base,
   },
   fixedBottomBanner: {
     position: 'absolute',
@@ -418,6 +420,7 @@ const innerStyle = StyleSheet.create({
     color: Colors.secondaryText,
     fontSize: Fonts.sizes.base,
     padding: 15,
+    width: '70%',
   },
 });
 

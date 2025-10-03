@@ -4,70 +4,45 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import { ScaledSheet } from 'react-native-size-matters';
+import statesData from '../State_City Data/State_city.json';
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 
 const StateDropdown = ({
-  selectedState, // 👈 comes from address
+  selectedState,
   onSelectState,
   error,
   openDropdown,
   setOpenDropdown,
   dropdownKey,
 }) => {
-  const [value, setValue] = useState(selectedState || null); // show immediately
+  const [value, setValue] = useState(selectedState || null);
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const isOpen = openDropdown === dropdownKey;
 
-  // ✅ Fetch list in background
-  const fetchStates = async () => {
+  const fetchStates = () => {
     try {
       Keyboard.dismiss();
-      setLoading(true);
-      console.log("fetching States");
-      
-      const res = await fetch(
-        'https://countriesnow.space/api/v0.1/countries/states',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country: 'India' }),
-        },
-      );
-      const data = await res.json();
+      const mapped = statesData.states.map(s => ({
+        label: s.name,
+        value: s.name,
+      }));
+      setItems(mapped);
 
-      if (data?.data?.states) {
-        const mappedStates = data.data.states.map(s => ({
-          label: s.name,
-          value: s.name,
-        }));
-
-        setItems(mappedStates);
-
-        // 👇 Ensure selectedState stays valid in case it matches API data
-        if (selectedState) {
-          const exists = mappedStates.find(i => i.value === selectedState);
-          if (!exists) {
-            // fallback if address had invalid state
-            setValue(null);
-          }
-        }
+      if (selectedState) {
+        const exists = mapped.find(i => i.value === selectedState);
+        if (!exists) setValue(null);
       }
     } catch (err) {
       console.error('Failed to fetch states:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // 👇 show whatever is in address first
     if (selectedState) {
       setValue(selectedState);
     }
-    // then fetch states in background
     fetchStates();
   }, [selectedState]);
 
@@ -93,9 +68,7 @@ const StateDropdown = ({
         keyboardShouldPersistTaps: 'handled',
       }}
       maxHeight={200}
-      placeholder={
-        value ? value : loading ? 'Loading states...' : 'Select a state'
-      } // 👈 show selected first
+      placeholder={value ? value : 'Select a state'}
       TickIconComponent={() => null}
       style={[
         styles.dropdown,
@@ -135,7 +108,6 @@ const styles = ScaledSheet.create({
     borderTopRightRadius: '30@s',
     paddingVertical: '5@vs',
   },
-
   openDropdownStyle: {
     borderBottomLeftRadius: '30@s',
     borderBottomRightRadius: '30@s',

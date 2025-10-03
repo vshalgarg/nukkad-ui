@@ -63,16 +63,21 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
         selected.fileName || 'image.jpg'
       }`;
 
-      // Add placeholder image with uploading status
+      // 🔹 Place new image in the **first empty slot** (not necessarily the tapped index)
       setImages(prev => {
-        const updated = [...prev];
-        updated[index] = {
+        const updated = prev.filter(Boolean); // remove nulls
+        updated.push({
           uri: selected.uri,
           status: 'uploading',
           remoteUrl: null,
           fileName,
-        };
-        return updated;
+        });
+
+        // keep max 4 slots
+        while (updated.length < MAX_IMAGES) {
+          updated.push(null);
+        }
+        return updated.slice(0, MAX_IMAGES);
       });
 
       try {
@@ -108,8 +113,10 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
         console.error('Upload failed:', err);
         Alert.alert('Upload failed', 'Please try again');
         setImages(prev => {
-          const updated = [...prev];
-          updated[index] = null;
+          const updated = prev.filter(img => img?.fileName !== fileName);
+          while (updated.length < MAX_IMAGES) {
+            updated.push(null);
+          }
           return updated;
         });
       }
@@ -165,15 +172,17 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
           >
             {img ? (
               <View>
-                <Image
-                  source={{ uri: img.remoteUrl || img.uri }}
-                  style={styles.image}
-                />
+                {/* Always show local URI to avoid flicker */}
+                <Image source={{ uri: img.uri }} style={styles.image} />
+
+                {/* Loader overlay while uploading */}
                 {img.status === 'uploading' && (
                   <View style={styles.loaderOverlay}>
                     <ActivityIndicator size="small" color="#fff" />
                   </View>
                 )}
+
+                {/* Remove button only when editable and not uploading */}
                 {editable && img.status !== 'uploading' && (
                   <TouchableOpacity
                     style={styles.removeIcon}

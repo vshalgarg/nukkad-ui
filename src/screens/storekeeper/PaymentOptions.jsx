@@ -89,8 +89,7 @@ const PaymentOptions = () => {
       console.error('Image pick error:', error);
       showToast('error', error.message);
     } finally {
-      // Remove loader only after Firebase + backend upload completes
-      setUploadingIndex(null);
+       setUploadingIndex(null);
     }
   };
 
@@ -158,7 +157,7 @@ const PaymentOptions = () => {
       await loadQRs();
     } catch (err) {
       console.error('Delete QR failed:', err);
-      showToast('error', strings.failedToDeleteQR);
+      showToast('error', strings.failedToDeleteQR,err.message);
     }
   };
 

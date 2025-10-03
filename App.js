@@ -5,7 +5,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-// import messaging from '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -26,109 +26,108 @@ import { SearchProvider } from './src/contexts/searchContext';
 import { DialogProvider } from './src/contexts/DialogContext';
 import GlobalDialog from './src/components/GlobalDialog';
 
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  await notifee.displayNotification({
+    title: remoteMessage.data?.title || 'New Message',
+    body: remoteMessage.data?.body,
+    android: {
+      channelId: 'default',
+      smallIcon: 'ic_notification',
+      color: '#FF0000',
+      pressAction: {
+        id: 'default',
+        launchActivity: 'default',
+      },
+      sound: 'default',
+    },
+    data: remoteMessage.data,
+  });
+  return Promise.resolve();
+});
 
-// messaging().setBackgroundMessageHandler(async remoteMessage => {
-//   await notifee.displayNotification({
-//     title: remoteMessage.data?.title || 'New Message',
-//     body: remoteMessage.data?.body,
-//     android: {
-//       channelId: 'default',
-//       smallIcon: 'ic_notification',
-//       color: '#FF0000',
-//       pressAction: {
-//         id: 'default',
-//         launchActivity: 'default',
-//       },
-//       sound: 'default',
-//     },
-//     data: remoteMessage.data,
-//   });
-//   return Promise.resolve();
-// });
-
-// 🔒 FIX: Use in a component wrapped in SafeAreaProvider
+//  🔒 FIX: Use in a component wrapped in SafeAreaProvider
 const AppContent = () => {
   const insets = useSafeAreaInsets();
 
-  // useEffect(() => {
-  //   const setupFCM = async () => {
-  //     try {
-  //       await notifee.requestPermission();
-  //       if (Platform.OS === 'android') {
-  //         await notifee.createChannel({
-  //           id: 'default',
-  //           name: 'Default Channel',
-  //           importance: AndroidImportance.HIGH,
-  //           sound: 'default',
-  //           vibration: true,
-  //         });
-  //       }
+  useEffect(() => {
+    const setupFCM = async () => {
+      try {
+        await notifee.requestPermission();
+        if (Platform.OS === 'android') {
+          await notifee.createChannel({
+            id: 'default',
+            name: 'Default Channel',
+            importance: AndroidImportance.HIGH,
+            sound: 'default',
+            vibration: true,
+          });
+        }
 
-  //       const token = await messaging().getToken();
-  //       await AsyncStorage.setItem('FcmToken', token);
-  //       console.log('FCM Token:', token);
-  //     } catch (error) {
-  //       console.error('FCM Setup Error:', error);
-  //     }
-  //   };
+        const token = await messaging().getToken();
+        await AsyncStorage.setItem('FcmToken', token);
+        console.log('FCM Token:', token);
+      } catch (error) {
+        console.error('FCM Setup Error:', error);
+      }
+    };
 
-  //   const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
-  //     try {
-  //       await notifee.displayNotification({
-  //         id: String(Math.random()),
-  //         title: remoteMessage.data?.title || 'New Message',
-  //         body: remoteMessage.data?.body || 'You have a new notification',
-  //         android: {
-  //           channelId: 'default',
-  //           smallIcon: 'ic_notification',
-  //           color: '#FF0000',
-  //           importance: AndroidImportance.HIGH,
-  //           pressAction: {
-  //             id: 'default',
-  //             launchActivity: 'default',
-  //           },
-  //           sound: 'default',
-  //         },
-  //         data: remoteMessage.data,
-  //       });
-  //     } catch (error) {
-  //       console.error('Foreground Notification Error:', error);
-  //     }
-  //   });
+    const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
+      try {
+        await notifee.displayNotification({
+          id: String(Math.random()),
+          title: remoteMessage.data?.title || 'New Message',
+          body: remoteMessage.data?.body || 'You have a new notification',
+          android: {
+            channelId: 'default',
+            smallIcon: 'ic_notification',
+            color: '#FF0000',
+            importance: AndroidImportance.HIGH,
+            pressAction: {
+              id: 'default',
+              launchActivity: 'default',
+            },
+            sound: 'default',
+          },
+          data: remoteMessage.data,
+        });
+      } catch (error) {
+        console.error('Foreground Notification Error:', error);
+      }
+    });
 
-  //   const unsubscribeOnOpened = messaging().onNotificationOpenedApp(
-  //     remoteMessage => {
-  //       console.log('Notification opened from background:', remoteMessage);
-  //     },
-  //   );
+    const unsubscribeOnOpened = messaging().onNotificationOpenedApp(
+      remoteMessage => {
+        console.log('Notification opened from background:', remoteMessage);
+      },
+    );
 
-  //   messaging()
-  //     .getInitialNotification()
-  //     .then(async remoteMessage => {
-  //       if (remoteMessage) {
-  //         await notifee.displayNotification({
-  //           title: remoteMessage.data?.title || 'New Message',
-  //           body: remoteMessage.data?.body,
-  //           android: {
-  //             channelId: 'default',
-  //             smallIcon: 'ic_notification',
-  //             pressAction: {
-  //               id: 'default',
-  //               launchActivity: 'default',
-  //             },
-  //           },
-  //           data: remoteMessage.data,
-  //         });
-  //       }
-  //     });
+    messaging()
+      .getInitialNotification()
+      .then(async remoteMessage => {
+        if (remoteMessage) {
+          await notifee.displayNotification({
+            title: remoteMessage.data?.title || 'New Message',
+            body: remoteMessage.data?.body,
+            android: {
+              channelId: 'default',
+              smallIcon: 'ic_notification',
+              pressAction: {
+                id: 'default',
+                launchActivity: 'default',
+              },
+            },
+            data: remoteMessage.data,
+          });
+        }
+      });
 
-  //   setupFCM();
+    setupFCM();
 
-  //   return () => {
-  //     unsubscribeOnMessage();
-  //     unsubscribeOnOpened();
-  //   };
-  // }, []);
+    return () => {
+      unsubscribeOnMessage();
+      unsubscribeOnOpened();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>

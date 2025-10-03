@@ -212,8 +212,6 @@ const SideBar = ({ isVisible, onClose }) => {
     }
   };
   if (!isVisible) return null;
-  console.log(role);
-  console.log('storekeper', storekeeperProfile);
   return (
     <>
       <TouchableOpacity style={styles.overlay} onPress={onClose} />
@@ -238,10 +236,9 @@ const SideBar = ({ isVisible, onClose }) => {
               //   </View>
               // )
               <Ionicons
-                style={styles.profileImage}
                 name="person-circle-outline"
                 color="#000"
-                size={70}
+                size={styles.profileImage.height}
               />
             )}
 

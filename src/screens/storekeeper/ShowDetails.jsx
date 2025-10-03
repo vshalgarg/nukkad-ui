@@ -107,9 +107,17 @@ const OrderItem = memo(
             )
           ) : (
             <TextInput
-              style={[innerStyle.input, { color: Colors.secondary }]}
+              style={[
+                innerStyle.input,
+                price === null
+                  ? { fontSize: Fonts.sizes.xxs } // out of stock styling
+                  : {
+                      color: Colors.secondary,
+                      borderColor: Colors.borderColor,
+                    }, // normal styling
+              ]}
               placeholder="Price"
-              value={`₹ ${price}`}
+              value={price === null ? 'Out of Stock' : `${price}`}
               editable={false}
             />
           )}
@@ -219,7 +227,7 @@ const ShowDetails = () => {
 
       setPrices(prices => ({
         ...prices,
-        [itemId]: isNowOut ? '0' : '',
+        [itemId]: isNowOut ? null : '',
       }));
 
       return {
@@ -304,12 +312,6 @@ const ShowDetails = () => {
       title: 'Dispatch Order',
       message: (
         <View style={{ paddingVertical: 5 }}>
-          {/* Order ID */}
-          {/* <Text style={[innerStyle.row, { fontWeight: '600', fontSize: 16 }]}>
-            {`Order #${order.orderId}`}
-          </Text> */}
-
-          {/* Customer Name */}
           <View style={innerStyle.row}>
             <Text style={{}}>{`Order #${order.orderId}`}</Text>
           </View>
@@ -342,7 +344,9 @@ const ShowDetails = () => {
             <Text
               style={[innerStyle.value, { color: 'green', fontWeight: '600' }]}
             >
-              ₹{totalAmount.toFixed(2)}
+              {items?.price === null
+                ? 'Out of Stock'
+                : `₹${totalAmount.toFixed(2)}`}
             </Text>
           </View>
         </View>
@@ -369,7 +373,7 @@ const ShowDetails = () => {
             const isOutOfStock = outOfStockMap[itemId];
             return {
               itemId,
-              price: isOutOfStock ? null : parseFloat(prices[itemId]) || 0,
+              price: isOutOfStock ? null : parseFloat(prices[itemId]),
             };
           });
 
@@ -385,7 +389,7 @@ const ShowDetails = () => {
             const itemId = item.itemId || item.id || item.productId;
             return {
               ...item,
-              price: parseFloat(prices[itemId]) || 0,
+              price: parseFloat(prices[itemId]),
             };
           });
 
@@ -397,6 +401,7 @@ const ShowDetails = () => {
           if (storeKeeperNote) {
             dispatch(updateOrderNote({ orderId, storeKeeperNote }));
           }
+          showToast('success', 'Order Dispatched Successfully');
         } catch (error) {
           console.log(error);
           showToast(
@@ -410,33 +415,6 @@ const ShowDetails = () => {
   };
 
   const handleDeliver = orderId => {
-    // Alert.alert(
-    //   'Deliver Order',
-    //   'Are you sure you want to deliver this order?',
-    //   [
-    //     { text: 'Cancel', style: 'cancel' },
-    //     {
-    //       text: 'Yes, Deliver',
-    //       onPress: async () => {
-    //         try {
-    //           const payload = { orderStatus: 'DELIVERED' };
-    //           await updateOrderStatusById(orderId, payload, token);
-    //           dispatch(
-    //             updateOrderStatus({
-    //               orderId: orderId,
-    //               newStatus: 'DELIVERED',
-    //             }),
-    //           );
-    //           navigation.goBack();
-    //           console.log('Order marked as delivered');
-    //         } catch (error) {
-    //           console.error('Error delivering order:', error);
-    //         }
-    //       },
-    //     },
-    //   ],
-    //   { cancelable: true },
-    // );
     showDialog({
       title: 'Deliver Order',
       message: 'Are you sure, you want to Deliver this order?',
@@ -458,6 +436,7 @@ const ShowDetails = () => {
           );
           navigation.goBack();
           console.log('Order marked as delivered');
+          showToast('success', 'Order Delivered Successfully');
         } catch (error) {
           console.log(error);
           showToast(
@@ -586,6 +565,7 @@ const ShowDetails = () => {
                       editable={true}
                       scrollEnabled={false}
                       onChangeText={setStoreKeeperNote}
+                      returnKeyType="done"
                     />
                   ) : (
                     <Text
@@ -850,53 +830,3 @@ const innerStyle = ScaledSheet.create({
     justifyContent: 'space-between',
   },
 });
-
-// Alert.alert('Dispatch Order', 'Are you sure you want to dispatch?', [
-//   { text: 'Cancel', style: 'cancel' },
-//   {
-//     text: 'Dispatch',
-//     onPress: async () => {
-//       try {
-//         if (!order) {
-//           Alert.alert('Error', 'Order not found.');
-//           return;
-//         }
-
-//         const orderItem = parsedItems.map(item => {
-//           const itemId = item.itemId || item.id || item.productId;
-//           return {
-//             itemId,
-//             price: parseFloat(prices[itemId]) || 0,
-//           };
-//         });
-
-//         const payload = {
-//           orderId,
-//           storeKeeperNote: storeKeeperNote,
-//           orderItem,
-//         };
-
-//         await dispatchOrder(payload, token);
-
-//         const updatedItemsWithPrices = parsedItems.map(item => {
-//           const itemId = item.itemId || item.id || item.productId;
-//           return {
-//             ...item,
-//             price: parseFloat(prices[itemId]) || 0,
-//           };
-//         });
-
-//         dispatch(
-//           updateOrderPrices({ orderId, items: updatedItemsWithPrices }),
-//         );
-//         dispatch(updateOrderStatus({ orderId, newStatus: 'DISPATCHED' }));
-
-//         if (storeKeeperNote) {
-//           dispatch(updateOrderNote({ orderId, storeKeeperNote }));
-//         }
-//       } catch (err) {
-//         Alert.alert('Error', err.message || 'Failed to dispatch order');
-//       }
-//     },
-//   },
-// ]);

@@ -131,6 +131,7 @@ export default function MyStores() {
 
   const handleSelectStoreTemp = store => {
     setSelectedStoreTemp(store);
+    saveStore(selectedStoreTemp);
   };
 
   const renderItem = ({ item }) => {
@@ -394,7 +395,5 @@ const innerStyle = ScaledSheet.create({
     backgroundColor: Colors.white,
     padding: '10',
     paddingHorizontal: '30',
-    borderTopWidth: 1,
-    borderColor: Colors.borderColor,
   },
 });

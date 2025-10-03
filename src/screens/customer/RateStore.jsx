@@ -233,8 +233,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     padding: '10',
-    borderTopWidth: 1,
-    borderColor: Colors.borderColor,
   },
   modalOverlay: {
     flex: 1,
