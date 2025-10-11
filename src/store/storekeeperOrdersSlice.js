@@ -1,0 +1,56 @@
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  orders: [],
+};
+
+const storekeeperOrdersSlice = createSlice({
+  name: 'storekeeperOrders',
+  initialState,
+  reducers: {
+    setOrders: (state, action) => {
+      // New logic handles both replacement and appending
+      if (action.payload.append) {
+        // Append new orders (for pagination)
+        state.orders = [...state.orders, ...(action.payload.orders || [])];
+      } else {
+        // Replace all orders (for refresh/initial load)
+        state.orders = action.payload.orders || [];
+      }
+    },
+    updateOrderStatus: (state, action) => {
+      const { orderId, newStatus } = action.payload;
+      const order = state.orders.find(order => order.orderId === orderId);
+      if (order) {
+        order.orderStatus = newStatus;
+      }
+    },
+    updateOrderPrices: (state, action) => {
+      const { orderId, items } = action.payload;
+      const order = state.orders.find(order => order.orderId === orderId);
+      if (order) {
+        order.items = items;
+      }
+    },
+    resetOrdersFromFile: state => {
+      state.orders = [...orders];
+    },
+    updateOrderNote: (state, action) => {
+      const { orderId, storeKeeperNote } = action.payload;
+      const order = state.orders.find(order => order.orderId === orderId);
+      if (order) {
+        order.storeKeeperNote = storeKeeperNote;
+      }
+    },
+  },
+});
+
+export const {
+  updateOrderStatus,
+  updateOrderPrices,
+  resetOrdersFromFile,
+  setOrders,
+  updateOrderNote,
+} = storekeeperOrdersSlice.actions;
+
+export default storekeeperOrdersSlice.reducer;

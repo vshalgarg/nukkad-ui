@@ -14,8 +14,9 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'NukkadReleaseApp' do
+target 'nukkad' do
   config = use_native_modules!
+
 
   use_react_native!(
     :path => config[:reactNativePath],

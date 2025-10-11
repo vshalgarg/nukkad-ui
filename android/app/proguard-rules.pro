@@ -8,3 +8,10 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+-keep class com.facebook.react.** { *; }
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+-keepattributes Annotation
+-keep class com.facebook.react.** { *; }
+-keep class com.swmansion.** { *; }
+-keep class com.reactnative.** { *; }
