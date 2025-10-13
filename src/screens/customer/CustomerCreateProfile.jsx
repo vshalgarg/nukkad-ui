@@ -33,6 +33,7 @@ import { ScaledSheet } from 'react-native-size-matters';
 import DatePicker from '../../components/DatePicker';
 import StateDropdown from '../../components/StateDropdown';
 import CityDropdown from '../../components/CityDropdown';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let pressLock = false;
 
@@ -141,7 +142,6 @@ const CustomerCreateProfile = () => {
     };
 
     const { isValid, fieldErrors, message } = validateCustomerProfile(payload);
-    
 
     setErrors(fieldErrors);
 
@@ -197,6 +197,8 @@ const CustomerCreateProfile = () => {
       // dispatch(setCartUser(profile.userId));
 
       showToast('success', strings.registeredSuccessfully);
+     
+
       Keyboard.dismiss();
       setTimeout(() => {
         pressLock = false;

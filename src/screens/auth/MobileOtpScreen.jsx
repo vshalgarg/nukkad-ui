@@ -150,12 +150,17 @@ const MobileOtpScreen = () => {
       const token = res?.token;
       const userId = res?.userId;
       const returningUser = res.firstTimeLogin === 1502;
+      if (returningUser) {
+        await AsyncStorage.setItem('ProfileCreated', 'true');
+      }
 
       if (!token) throw new Error('No token received');
 
       await AsyncStorage.removeItem('selectedAddressId');
       await login({ token, role, userId });
       dispatch(setCartUser(userId));
+
+      
 
       if (role === 'CUSTOMER') {
         if (returningUser) {

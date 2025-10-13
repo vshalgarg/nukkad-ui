@@ -128,7 +128,7 @@ const StorekeeperCreateProfile = () => {
     };
 
     const result = storekeeperProfileSchema.safeParse(formData);
-    console.log("rsult",result)
+    console.log('rsult', result);
 
     console.log(result);
     if (!result.success) {
@@ -176,6 +176,7 @@ const StorekeeperCreateProfile = () => {
       console.log('try block called');
       await createStorekeeperProfile(formData, token);
       showToast('success', strings.registeredSuccessfully);
+
       setTimeout(() => (pressLock = false), 1500);
       safePush('StorekeeperDashboard');
     } catch (err) {

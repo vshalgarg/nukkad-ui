@@ -78,7 +78,7 @@ const ProductPage = () => {
   );
 
   const renderEmpty = useCallback(() => {
-    if (searching || !hasSearched) return null; // 🧠 don’t show during or before search
+    if (searching || !hasSearched) return null; 
     return (
       <View style={innerStyle.noItemContainer}>
         <Text style={innerStyle.hintText}>

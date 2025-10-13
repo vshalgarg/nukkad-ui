@@ -55,8 +55,9 @@ const AppContent = () => {
       try {
         const token = await AsyncStorage.getItem('authToken');
         const role = await AsyncStorage.getItem('role');
+        const profileCreated = await AsyncStorage.getItem('ProfileCreated');
         console.log('token', token, 'role', role);
-        if (token) {
+        if (token && profileCreated === 'true') {
           if (role === 'STOREKEEPER') setInitialRoute('StorekeeperDashboard');
           else setInitialRoute('CustomerDashboard');
         } else {
