@@ -1,29 +1,25 @@
-// hooks/useKeyboardStatus.js
 import { useEffect, useState } from 'react';
-import { Keyboard } from 'react-native';
+import { Platform, Keyboard } from 'react-native';
 
 export default function useKeyboardStatus() {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    let hideTimeout;
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
-    const showListener = Keyboard.addListener('keyboardDidShow', () => {
-      // optional: clear hideTimeout if keyboard shows again quickly
-      if (hideTimeout) clearTimeout(hideTimeout);
+    const showListener = Keyboard.addListener(showEvent, () => {
       setKeyboardVisible(true);
     });
-
-    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
-      hideTimeout = setTimeout(() => {
-        setKeyboardVisible(false);
-      }, 150);
+    const hideListener = Keyboard.addListener(hideEvent, () => {
+      setKeyboardVisible(false);
     });
 
     return () => {
       showListener.remove();
       hideListener.remove();
-      if (hideTimeout) clearTimeout(hideTimeout); 
     };
   }, []);
 

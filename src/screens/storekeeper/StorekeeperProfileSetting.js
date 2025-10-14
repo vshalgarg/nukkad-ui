@@ -73,7 +73,7 @@ const profileSchema = z.object({
 
 const fieldGroups = [
   {
-    title: 'Personal Details',
+    // title: 'Personal Details',
     fields: [
       { label: 'Name', key: 'name' },
       { label: 'Store Name', key: 'storeName' },
@@ -102,6 +102,7 @@ const StorekeeperProfileScreen = () => {
   const { showDialog } = useDialog();
   const { confirmLogout } = useLogout();
   const { safePush } = useSafeRouter();
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedState, setSelectedState] = useState('');
@@ -325,7 +326,9 @@ const StorekeeperProfileScreen = () => {
         text1: strings.profileUpdatedSuccessfully,
       });
       setIsEditing(false);
-      safePush('StorekeeperDashboard');
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      }, 0);
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -446,7 +449,7 @@ const StorekeeperProfileScreen = () => {
         )}
       </View>
     );
-  }; 
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
@@ -455,12 +458,14 @@ const StorekeeperProfileScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <BackButton title={strings.profileSetting} />
+        <BackButton title={strings.storeDetail} />
         <ScrollView
           ref={scrollViewRef}
           style={styles.container}
           contentContainerStyle={{ paddingBottom: keyboardVisible ? 20 : 0 }}
           showsVerticalScrollIndicator={false}
+          onScroll={e => setScrollPosition(e.nativeEvent.contentOffset.y)}
+          scrollEventThrottle={16}
         >
           {fieldGroups.map((group, index) => (
             <View key={index} style={styles.sectionContainer}>
@@ -473,54 +478,71 @@ const StorekeeperProfileScreen = () => {
             </View>
           ))}
 
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
-            <View style={styles.imageContainer}>
-              {[0, 1, 2, 3].map(i => {
-                const image = profile.imageUrls[i];
-                return (
-                  <TouchableOpacity
-                    key={i}
-                    onPress={() => isEditing && !image && handleImagePick(i)}
-                    style={{ position: 'relative', marginBottom: 10 }}
-                    activeOpacity={0.8}
-                  >
-                    {image ? (
-                      <View>
-                        <Image source={{ uri: image }} style={styles.image} />
-                        {isEditing && (
-                          <TouchableOpacity
-                            style={styles.removeIcon}
-                            onPress={() => handleRemoveImage(i)}
-                          >
-                            <Icon name="x" size={16} color={Colors.white} />
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    ) : (
-                      <View style={[styles.image, styles.emptyImage]}>
-                        {uploadingIndex === i ? (
-                          <ActivityIndicator
-                            size="small"
-                            color={Colors.secondary}
-                          />
+          {/* Render Store Image section only if editing OR there are existing images */}
+          {(isEditing ||
+            (profile.imageUrls && profile.imageUrls.some(url => url))) && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>{strings.storeImage}</Text>
+
+              <View style={styles.imageContainer}>
+                {(isEditing
+                  ? [0, 1, 2, 3] // show all slots in edit mode
+                  : profile.imageUrls.filter(url => url)
+                ) // only existing when not editing
+                  .map((_, i) => {
+                    const image = profile.imageUrls[i];
+
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        onPress={() =>
+                          isEditing && !image && handleImagePick(i)
+                        }
+                        style={{ position: 'relative', marginBottom: 10 }}
+                        activeOpacity={0.8}
+                      >
+                        {image ? (
+                          <View>
+                            <Image
+                              source={{ uri: image }}
+                              style={styles.image}
+                            />
+                            {isEditing && (
+                              <TouchableOpacity
+                                style={styles.removeIcon}
+                                onPress={() => handleRemoveImage(i)}
+                              >
+                                <Icon name="x" size={16} color={Colors.white} />
+                              </TouchableOpacity>
+                            )}
+                          </View>
                         ) : (
-                          <Text
-                            style={{
-                              color: Colors.secondaryText,
-                              fontSize: 20,
-                            }}
-                          >
-                            +
-                          </Text>
+                          isEditing && (
+                            <View style={[styles.image, styles.emptyImage]}>
+                              {uploadingIndex === i ? (
+                                <ActivityIndicator
+                                  size="small"
+                                  color={Colors.secondary}
+                                />
+                              ) : (
+                                <Text
+                                  style={{
+                                    color: Colors.secondaryText,
+                                    fontSize: 20,
+                                  }}
+                                >
+                                  +
+                                </Text>
+                              )}
+                            </View>
+                          )
                         )}
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+                      </TouchableOpacity>
+                    );
+                  })}
+              </View>
             </View>
-          </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 

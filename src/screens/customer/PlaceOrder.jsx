@@ -21,7 +21,10 @@ const PlaceOrder = () => {
   return (
     <View style={styles.pageContainer}>
       <Text
-        style={[textStyles.heading, { textAlign: 'center', marginTop: '5%' }]}
+        style={[
+          textStyles.heading,
+          { textAlign: 'center', marginTop: '5%', color: Colors.secondary },
+        ]}
       >
         {strings.checkout}
       </Text>
@@ -68,6 +71,7 @@ const innerStyle = StyleSheet.create({
     fontSize: Fonts.sizes.xxl,
     fontWeight: '600',
     textAlign: 'center',
+    color: Colors.secondary,
   },
   textContainer: {
     marginTop: 20,
@@ -77,6 +81,7 @@ const innerStyle = StyleSheet.create({
     fontSize: Fonts.sizes.base,
     marginVertical: 2,
     lineHeight: 25,
+    color: Colors.secondary,
   },
   btn: {
     backgroundColor: Colors.primary,

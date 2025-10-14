@@ -6,12 +6,16 @@ const Stack = createNativeStackNavigator();
 export default function AppNavigator({ initialRoute }) {
   return (
     <Stack.Navigator
-      initialRouteName={initialRoute}
+      initialRouteName="Splash"
       screenOptions={{
         gestureEnabled: false,
         headerShown: false,
       }}
     >
+      <Stack.Screen
+        name="Splash"
+        getComponent={() => require('../screens/SplashScreen.jsx').default}
+      />
       <Stack.Screen
         name="Home"
         getComponent={() => require('../screens/HomeScreen.jsx').default}

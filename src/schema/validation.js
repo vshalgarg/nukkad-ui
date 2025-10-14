@@ -4,8 +4,12 @@ import { z } from 'zod';
 export const customerProfileSchema = z.object({
   name: z
     .string()
-    .min(2, 'Enter valid name')
-    .regex(/^[A-Za-z\s]+$/, 'Name must contain only letters'),
+    .max(32, 'Name cannot exceed 32 characters')
+    // Allow letters, numbers, special chars, and single spaces (no double spaces)
+    .regex(
+      /^(?!.*\s{2,})[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~\s]+$/,
+      'Name can include letters, numbers, and special characters, but not multiple spaces',
+    ),
   email: z.string().email('Enter valid email'),
   dob: z.preprocess(
     val => (val === null || val === '' ? undefined : val), // convert null/empty to undefined
@@ -37,11 +41,11 @@ export const storekeeperProfileSchema = z.object({
   contactNumber: z
     .string()
     .regex(/^\d{10}$/, 'Contact number must be exactly 10 digits'),
-  gstNum: z.string().length(15, 'GST IN must be exactly 15 characters'),
-  // .regex(
-  //   /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-  //   'Invalid GST IN format',
-  // )
+  gstNum: z
+    .string()
+    .optional()
+    .refine(val => !val || val.length === 15, { message: 'Invalid GSTIN' }),
+
   addressLine1: z
     .string()
     .min(2, 'Address Line 1 must contain at least 2 characters')

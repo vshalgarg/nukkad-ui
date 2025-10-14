@@ -33,7 +33,7 @@ export const getCustomerProfile = async token => {
       data: error.response?.data,
     });
 
-    throw new Error(error.response?.data?.message || 'Failed to fetch profile');
+    throw error;
   }
 };
 

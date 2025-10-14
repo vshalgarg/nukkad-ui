@@ -247,17 +247,15 @@ const ProfileSetting = () => {
                     ref={firstNameRef}
                     style={innerStyle.halfInput}
                     value={profile.firstName}
-                    onChangeText={val =>
-                      handleChange('firstName', val.replace(/[^A-Za-z]/g, ''))
-                    }
+                    keyboardType="default"
+                    onChangeText={val => handleChange('firstName', val)}
                     maxLength={15}
                   />
                   <TextInput
                     style={innerStyle.halfInput}
                     value={profile.lastName}
-                    onChangeText={val =>
-                      handleChange('lastName', val.replace(/[^A-Za-z ]/g, ''))
-                    }
+                    keyboardType="default"
+                    onChangeText={val => handleChange('lastName', val)}
                     maxLength={15}
                   />
                 </>

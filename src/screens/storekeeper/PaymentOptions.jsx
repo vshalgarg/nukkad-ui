@@ -6,47 +6,41 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { ScaledSheet } from 'react-native-size-matters';
 
 import BackButton from '../../components/BackButton';
-import styles from '../../styles/globalStyles';
-import Fonts from '../../styles/font';
 import Colors from '../../styles/colors';
-import CustomAlert from '../../components/CustomAlert';
-
-import {
-  deletePaymentQR,
-  fetchPaymentQRs,
-  uploadQRImage,
-  updatePaymentQR,
-  setDefaultPaymentQR,
-} from '../../services/storekeeper/PaymentQrService';
-
+import Fonts from '../../styles/font';
 import { useAuth } from '../../contexts/authContext';
 import { showToast } from '../../utils/toastUtils';
 import strings from '../../constants/string';
-import { ScaledSheet } from 'react-native-size-matters';
+import { uploadImageAsync } from '../../services/firebase/firebaseConfig';
 import {
-  uploadImageAsync,
-  deleteImageAsync,
-} from '../../services/firebase/firebaseConfig';
+  uploadQRImage,
+  fetchPaymentQRs,
+  deletePaymentQR,
+  setDefaultPaymentQR,
+} from '../../services/storekeeper/PaymentQrService';
+import CustomAlert from '../../components/CustomAlert';
 
 const PaymentOptions = () => {
   const { token } = useAuth();
   const [qrCodes, setQrCodes] = useState([]);
-  const [defaultQRId, setDefaultQRId] = useState(null);
+  const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
   const [alertVisible, setAlertVisible] = useState(false);
   const [qrToDelete, setQrToDelete] = useState(null);
-  const [previewImages, setPreviewImages] = useState({});
-  const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [defaultQRId, setDefaultQRId] = useState(null);
 
   useEffect(() => {
-    if (token) {
-      loadQRs();
-    }
+    if (token) loadQRs();
   }, [token]);
 
   const loadQRs = async () => {
@@ -71,93 +65,49 @@ const PaymentOptions = () => {
       const asset = result.assets[0];
       const fileName = asset.fileName || `qr_${Date.now()}.jpg`;
 
-      // Show loader
       setUploadingIndex(index);
 
-      // Upload to Firebase (loader stays until this completes)
       const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
 
-      // Save preview
-      setPreviewImages(prev => ({
-        ...prev,
-        [index]: { ...asset, firebaseUrl, fileName },
-      }));
-
-      // Directly upload to backend
-      await handleUploadImage(index, qrCodes[index]);
-    } catch (error) {
-      console.error('Image pick error:', error);
-      showToast('error', error.message);
-    } finally {
-       setUploadingIndex(null);
-    }
-  };
-
-  const handleRemoveImage = async index => {
-    try {
-      const asset = previewImages[index];
-      if (asset?.fileName) {
-        await deleteImageAsync(asset.fileName).catch(() =>
-          console.log('Firebase delete skipped'),
-        );
-      }
-    } catch (err) {
-      console.error('Firebase delete failed:', err);
-    } finally {
-      setPreviewImages(prev => {
-        const updated = { ...prev };
-        delete updated[index];
-        return updated;
-      });
-    }
-  };
-
-  const handleUploadImage = async (index, existingQR) => {
-    try {
-      const asset = previewImages[index];
-      if (!asset?.firebaseUrl) return;
-
-      const payload = { qrCodes: asset.firebaseUrl };
-
-      const response = existingQR?.id
-        ? await updatePaymentQR(existingQR.id, payload, token) // update existing
-        : await uploadQRImage(payload, token); // new QR
+      const response = await uploadQRImage({ qrCodes: firebaseUrl }, token);
 
       if (response) {
-        if (existingQR?.id) {
-          // Update existing QR in state (no flicker)
-          setQrCodes(prev => {
-            const updated = [...prev];
-            updated[index] = { ...existingQR, qrImageUrl: asset.firebaseUrl };
-            return updated;
-          });
-        } else {
-          // New QR → reload from backend to get ID etc.
-          await loadQRs();
-        }
-
-        // Remove preview
-        setPreviewImages(prev => {
-          const updated = { ...prev };
-          delete updated[index];
-          return updated;
-        });
-
+        await loadQRs();
         showToast('success', strings.uploadSuccess);
       }
-    } catch (error) {
-      console.error('Image upload error:', error);
-      showToast('error', error.message);
+    } catch (err) {
+      console.error(err);
+      showToast('error', strings.failedToUploadQR);
+    } finally {
+      setUploadingIndex(null);
     }
+  };
+
+  const handleOpenModal = uri => {
+    setModalImage(uri);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setModalImage(null);
   };
 
   const handleDeleteQR = async id => {
     try {
+      // Optimistically remove the QR from the state first
+      setQrCodes(prev => prev.filter(qr => qr.id !== id));
+
+      // Call backend to delete
       await deletePaymentQR(id, token);
-      await loadQRs();
+
+      showToast('success', strings.deleteSuccess);
     } catch (err) {
-      console.error('Delete QR failed:', err);
-      showToast('error', strings.failedToDeleteQR,err.message);
+      console.error(err);
+      showToast('error', strings.failedToDeleteQR);
+
+      // If backend fails, reload QR codes to restore state
+      await loadQRs();
     }
   };
 
@@ -165,68 +115,54 @@ const PaymentOptions = () => {
     try {
       await setDefaultPaymentQR(id, token);
       await loadQRs();
+      showToast('success', strings.defaultSetSuccess);
     } catch (err) {
-      console.error('Set default failed:', err);
+      console.error(err);
       showToast('error', strings.failedToUpdateQR);
     }
   };
-
+  // Only show uploaded QR images + 1 placeholder if total < 3
   const displaySlots = [...qrCodes];
-  if (displaySlots.length < 3) displaySlots.push(null);
+  if (qrCodes.length < 3) {
+    displaySlots.push(null); // exactly 1 placeholder
+  }
 
   return (
-    <View style={styles.pageContainer}>
+    <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <BackButton title={strings.paymentOptions} />
       <ScrollView contentContainerStyle={innerStyle.container}>
         {displaySlots.map((qr, index) => {
+          const imageUrl = qr?.qrImageUrl;
           const isDefault = qr?.id === defaultQRId;
-          const preview = previewImages[index];
-          const imageUrl = preview?.firebaseUrl || qr?.qrImageUrl;
 
           return (
-            <View
-              key={index}
-              style={[
-                innerStyle.qrCard,
-                isDefault && innerStyle.qrCardSelected,
-              ]}
-            >
+            <View key={index} style={innerStyle.qrCard}>
               <Text style={innerStyle.qrTitle}>
                 {strings.qrCode} {index + 1} {isDefault ? '(Default)' : ''}
               </Text>
 
               {imageUrl ? (
-                <View style={innerStyle.qrImageContainer}>
+                <TouchableOpacity
+                  style={innerStyle.qrImageContainer}
+                  activeOpacity={0.8}
+                  onPress={() => handleOpenModal(imageUrl)}
+                >
                   {uploadingIndex === index ? (
-                    // Loader dikhega jab image upload ho rahi ho
                     <ActivityIndicator size="large" color={Colors.primary} />
                   ) : (
                     <Image
                       source={{ uri: imageUrl }}
                       style={innerStyle.qrImage}
                       resizeMode="contain"
+                      blurRadius={8}
                     />
                   )}
-
-                  {/* Remove icon sirf tab dikhe jab upload complete ho */}
-                  {preview && uploadingIndex !== index && (
-                    <TouchableOpacity
-                      style={innerStyle.removeIcon}
-                      onPress={() => handleRemoveImage(index)}
-                    >
-                      <Ionicons
-                        name="close-circle"
-                        size={24}
-                        color={Colors.reject}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
+                </TouchableOpacity>
               ) : (
                 <TouchableOpacity
                   style={innerStyle.qrPlaceholder}
                   onPress={() => handlePickImage(index)}
-                  disabled={uploadingIndex === index} // pick image button disable during upload
+                  disabled={uploadingIndex === index}
                 >
                   {uploadingIndex === index ? (
                     <ActivityIndicator size="large" color={Colors.primary} />
@@ -244,56 +180,10 @@ const PaymentOptions = () => {
                   )}
                 </TouchableOpacity>
               )}
-              {!previewImages[index]?.firebaseUrl && !qr?.qrImageUrl && (
-                <TouchableOpacity
-                  style={[
-                    innerStyle.uploadBtn,
-                    { backgroundColor: Colors.borderColor },
-                  ]}
-                  disabled
-                >
-                  <Feather name="upload" size={16} color={Colors.white} />
-                  <Text style={innerStyle.uploadBtnText}>
-                    {strings.uploadQr}
-                  </Text>
-                </TouchableOpacity>
-              )}
 
-              {/* Upload new QR (for newly picked image) */}
-              {previewImages[index]?.firebaseUrl && (
-                <TouchableOpacity
-                  style={innerStyle.uploadBtn}
-                  onPress={async () => await handleUploadImage(index, qr)}
-                  disabled={uploadingIndex === index}
-                >
-                  <Feather name="upload" size={16} color={Colors.white} />
-                  <Text style={innerStyle.uploadBtnText}>
-                    {strings.uploadQr}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Change QR (for already uploaded QR) */}
-              {!previewImages[index]?.firebaseUrl && qr?.qrImageUrl && (
-                <TouchableOpacity
-                  style={[
-                    innerStyle.uploadBtn,
-                    uploadingIndex === index
-                      ? { backgroundColor: Colors.borderColor }
-                      : {},
-                  ]}
-                  onPress={async () => await handlePickImage(index)}
-                  disabled={uploadingIndex === index}
-                >
-                  <Feather name="upload" size={16} color={Colors.white} />
-                  <Text style={innerStyle.uploadBtnText}>
-                    {strings.changeQr}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              {qr?.id && (
+              {imageUrl && (
                 <View style={innerStyle.actionRow}>
+                  {/* Set Default Button */}
                   <TouchableOpacity
                     style={[
                       innerStyle.secondaryBtn,
@@ -310,21 +200,24 @@ const PaymentOptions = () => {
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={[
-                      innerStyle.secondaryBtn,
-                      { backgroundColor: Colors.reject },
-                    ]}
-                    onPress={() => {
-                      setQrToDelete(qr.id);
-                      setAlertVisible(true);
-                    }}
-                  >
-                    <Feather name="trash-2" size={14} color={Colors.white} />
-                    <Text style={innerStyle.secondaryBtnText}>
-                      {strings.delete}
-                    </Text>
-                  </TouchableOpacity>
+                  {/* Delete Button – only show if NOT default */}
+                  {!isDefault && (
+                    <TouchableOpacity
+                      style={[
+                        innerStyle.secondaryBtn,
+                        { backgroundColor: Colors.reject },
+                      ]}
+                      onPress={() => {
+                        setQrToDelete(qr.id);
+                        setAlertVisible(true);
+                      }}
+                    >
+                      <Feather name="trash-2" size={14} color={Colors.white} />
+                      <Text style={innerStyle.secondaryBtnText}>
+                        {strings.delete}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </View>
@@ -344,6 +237,19 @@ const PaymentOptions = () => {
           setAlertVisible(false);
         }}
       />
+
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <Pressable
+          style={innerStyle.modalBackground}
+          onPress={handleCloseModal}
+        >
+          <Image
+            source={{ uri: modalImage }}
+            style={innerStyle.modalImage}
+            resizeMode="contain"
+          />
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -368,12 +274,6 @@ const innerStyle = ScaledSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 4 },
   },
-  qrCardSelected: {
-    borderColor: Colors.primary,
-    shadowColor: Colors.primary,
-    elevation: 5,
-    transform: [{ scale: 1.01 }],
-  },
   qrTitle: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
@@ -381,30 +281,19 @@ const innerStyle = ScaledSheet.create({
     marginBottom: '12@ms',
   },
   qrImageContainer: {
-    position: 'relative',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: '14@ms',
     width: '200@ms',
     height: '200@ms',
     borderRadius: '12@ms',
-    borderColor: Colors.borderColor,
-    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: '#F9F9F9',
+    marginBottom: '14@ms',
   },
   qrImage: {
     width: '180@ms',
     height: '180@ms',
-    backgroundColor: Colors.white,
-  },
-  removeIcon: {
-    position: 'absolute',
-    top: '-10@ms',
-    right: '-10@ms',
-    backgroundColor: Colors.white,
-    borderRadius: '30@ms',
-    elevation: 3,
-    padding: '1@ms',
+    borderRadius: '12@ms',
   },
   qrPlaceholder: {
     height: '200@ms',
@@ -421,20 +310,6 @@ const innerStyle = ScaledSheet.create({
     marginTop: '8@ms',
     fontSize: Fonts.sizes.sm,
     color: Colors.secondary,
-  },
-  uploadBtn: {
-    flexDirection: 'row',
-    gap: '8@ms',
-    backgroundColor: Colors.primary,
-    paddingVertical: '10@ms',
-    borderRadius: '8@ms',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  uploadBtnText: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.base,
-    fontWeight: '600',
   },
   actionRow: {
     flexDirection: 'row',
@@ -455,5 +330,16 @@ const innerStyle = ScaledSheet.create({
     color: Colors.white,
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalImage: {
+    width: '90%',
+    height: '80%',
+    borderRadius: '12@ms',
   },
 });

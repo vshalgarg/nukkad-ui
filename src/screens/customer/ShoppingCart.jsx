@@ -109,11 +109,7 @@ const ShoppingCart = () => {
   const totalItemsInCart = cartItems?.length;
 
   const handleAddItems = () => {
-    if (fromRepeatOrder) {
-      safeReplace('CustomerDashboard');
-    } else {
-      navigation.goBack();
-    }
+    safeReplace('CustomerDashboard');
   };
 
   const handleAddAddress = () => {
@@ -360,7 +356,7 @@ const innerStyle = StyleSheet.create({
   },
   fixedBottomContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     left: 0,
     right: 0,
     flexDirection: 'row',

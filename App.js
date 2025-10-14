@@ -25,6 +25,8 @@ import { SearchProvider } from './src/contexts/searchContext';
 
 import { DialogProvider } from './src/contexts/DialogContext';
 import GlobalDialog from './src/components/GlobalDialog';
+import { getStorekeeperProfile } from './src/services/storekeeper/storekeeperProfileService';
+import { getCustomerProfile } from './src/services/customer/profileService';
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
   await notifee.displayNotification({
@@ -48,29 +50,6 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 //  🔒 FIX: Use in a component wrapped in SafeAreaProvider
 const AppContent = () => {
   const insets = useSafeAreaInsets();
-  const [initialRoute, setInitialRoute] = useState(null);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = await AsyncStorage.getItem('authToken');
-        const role = await AsyncStorage.getItem('role');
-        const profileCreated = await AsyncStorage.getItem('ProfileCreated');
-        console.log('token', token, 'role', role);
-        if (token && profileCreated === 'true') {
-          if (role === 'STOREKEEPER') setInitialRoute('StorekeeperDashboard');
-          else setInitialRoute('CustomerDashboard');
-        } else {
-          setInitialRoute('Home');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setInitialRoute('Home');
-      }
-    };
-
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     const setupFCM = async () => {
@@ -151,23 +130,12 @@ const AppContent = () => {
       unsubscribeOnOpened();
     };
   }, []);
-  // ⏳ Loader while checking auth
-  if (!initialRoute) {
-    return (
-      <SafeAreaView
-        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-      >
-        <StatusBar backgroundColor="white" barStyle="dark-content" />
-        <ActivityIndicator size="large" color="#000" />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <StatusBar backgroundColor="white" barStyle="dark-content" />
       <NavigationContainer>
-        <AppNavigator initialRoute={initialRoute} />
+        <AppNavigator />
       </NavigationContainer>
       <Toast config={toastConfig} topOffset={insets.top + 10} />
     </SafeAreaView>

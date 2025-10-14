@@ -118,6 +118,13 @@ const StorekeeperDashboard = () => {
       return () => {};
     }, [formState, token]),
   );
+  const orderCounts = {
+    PENDING: orders.filter(o => o.orderStatus === 'PENDING').length,
+    IN_PROGRESS: orders.filter(
+      o => o.orderStatus === 'IN_PROGRESS' || o.orderStatus === 'DISPATCHED',
+    ).length,
+    DELIVERED: orders.filter(o => o.orderStatus === 'DELIVERED').length,
+  };
 
   useEffect(() => {
     console.log(toast);
@@ -345,7 +352,9 @@ const StorekeeperDashboard = () => {
                 formState === index && { color: Colors.white },
               ]}
             >
-              {formatTabLabel(tabItem.label)}
+              {`${formatTabLabel(tabItem.label)} (${
+                orderCounts[tabItem.label] || 0
+              })`}
             </Text>
           </Pressable>
         ))}
@@ -379,10 +388,7 @@ const StorekeeperDashboard = () => {
                 { flex: 1, minHeight: height * 0.65 },
               ]}
             >
-              <Text style={innerStyle.emptyStateText}>
-                {/* No {formatTabLabel(statusTabs[formState].label)} Orders Found. */}
-                No Orders Found.
-              </Text>
+              <Text style={innerStyle.emptyStateText}>No Orders Found.</Text>
             </View>
           )}
           renderItem={({ item: order }) => (

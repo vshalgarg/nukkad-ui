@@ -41,7 +41,7 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
     }
   };
 
-  const pickImage = async index => {
+  const pickImage = async () => {
     if (picking) return;
     setPicking(true);
 
@@ -51,79 +51,90 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
       setPicking(false);
       return;
     }
-    console.time('compress1');
+
     const result = await launchImageLibrary({
       mediaType: 'photo',
       selectionLimit: 1,
     });
-    console.timeEnd('compress1');
     if (result?.assets?.length > 0) {
       const selected = result.assets[0];
       const fileName = `store_${Date.now()}_${
         selected.fileName || 'image.jpg'
       }`;
 
-      // 🔹 Place new image in the **first empty slot** (not necessarily the tapped index)
+      // Normalize images array to always have 4 slots
       setImages(prev => {
-        const updated = prev.filter(Boolean); // remove nulls
-        updated.push({
+        const normalized = [...prev];
+        while (normalized.length < MAX_IMAGES) normalized.push(null);
+
+        const firstEmptyIndex = normalized.findIndex(img => !img);
+        if (firstEmptyIndex === -1) {
+          Alert.alert(
+            'Limit reached',
+            `You can upload maximum ${MAX_IMAGES} images.`,
+          );
+          return normalized;
+        }
+
+        // Show uploading placeholder
+        normalized[firstEmptyIndex] = {
           uri: selected.uri,
           status: 'uploading',
           remoteUrl: null,
           fileName,
-        });
+        };
 
-        // keep max 4 slots
-        while (updated.length < MAX_IMAGES) {
-          updated.push(null);
-        }
-        return updated.slice(0, MAX_IMAGES);
-      });
+        // Compress & upload after setting placeholder
+        (async () => {
+          try {
+            let compressedUri = selected.uri;
+            const stat = await RNFS.stat(selected.uri);
+            if (stat.size >= 200 * 1024) {
+              compressedUri = await CompressorImage.compress(selected.uri, {
+                compressionMethod: 'auto',
+                quality: 0.6,
+              });
+            }
+            const downloadUrl = await uploadImageAsync(compressedUri, fileName);
 
-      try {
-        const originalStat = await RNFS.stat(selected.uri);
-        let compressedUri = selected.uri;
-
-        if (originalStat.size >= 200 * 1024) {
-          console.time('compress');
-          compressedUri = await CompressorImage.compress(selected.uri, {
-            compressionMethod: 'auto',
-            quality: 0.6,
-          });
-          console.timeEnd('compress');
-        }
-        const compressedStat = await RNFS.stat(compressedUri);
-        console.log('Compressed size (KB):', compressedStat.size / 1024);
-        console.time('upload');
-        console.log(`compressedUri" ${compressedUri} fileName:${fileName}`)
-        const downloadUrl = await uploadImageAsync(compressedUri, fileName);
-        console.timeEnd('upload');
-
-        setImages(prev => {
-          const updated = [...prev];
-          updated[index] = {
-            uri: compressedUri,
-            status: 'uploaded',
-            remoteUrl: downloadUrl,
-            fileName,
-          };
-          return updated;
-        });
-      } catch (err) {
-        console.error('Upload failed:', err);
-        Alert.alert('Upload failed', 'Please try again');
-        setImages(prev => {
-          const updated = prev.filter(img => img?.fileName !== fileName);
-          while (updated.length < MAX_IMAGES) {
-            updated.push(null);
+            // Update slot with uploaded image
+            setImages(prev2 => {
+              const updated = [...prev2];
+              const firstEmptyAfterUpload = updated.findIndex(
+                img => img?.fileName === fileName,
+              );
+              if (firstEmptyAfterUpload !== -1) {
+                updated[firstEmptyAfterUpload] = {
+                  uri: compressedUri,
+                  status: 'uploaded',
+                  remoteUrl: downloadUrl,
+                  fileName,
+                };
+              }
+              return updated;
+            });
+          } catch (err) {
+            console.error('Upload failed:', err);
+            Alert.alert('Upload failed', 'Please try again');
+            setImages(prev2 => {
+              const updated = [...prev2];
+              const firstEmptyAfterUpload = updated.findIndex(
+                img => img?.fileName === fileName,
+              );
+              if (firstEmptyAfterUpload !== -1)
+                updated[firstEmptyAfterUpload] = null;
+              return updated;
+            });
           }
-          return updated;
-        });
-      }
+        })();
+
+        return normalized;
+      });
     }
 
     setPicking(false);
   };
+
   const removeImage = async index => {
     const img = images[index];
     if (!img || img.status === 'uploading') return;

@@ -332,9 +332,7 @@ const StorekeeperCreateProfile = () => {
               </View>
 
               <View style={innerStyles.inputContainer}>
-                <Text style={innerStyles.label}>
-                  {strings.gst} <Text style={innerStyles.mandatory}>*</Text>
-                </Text>
+                <Text style={innerStyles.label}>{strings.gst}</Text>
                 <CustomInput
                   ref={gstRef}
                   placeholder="Enter GSTIN Number"
@@ -350,7 +348,7 @@ const StorekeeperCreateProfile = () => {
                     if (hasTriedSubmit) {
                       setErrors(prev => ({
                         ...prev,
-                        gstNum: upper.length === 15 ? false : true,
+                        gstNum: false, // always false, never show error
                       }));
                     }
                   }}
@@ -557,7 +555,7 @@ const innerStyles = ScaledSheet.create({
   header: {
     fontWeight: '600',
     color: Colors.white,
-    fontSize: Fonts.sizes.lg, // or use '18@ms' if not using Fonts
+    fontSize: Fonts.sizes.lg,
   },
   inputContainer: {
     flex: 1,

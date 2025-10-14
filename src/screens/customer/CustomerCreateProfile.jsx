@@ -197,7 +197,6 @@ const CustomerCreateProfile = () => {
       // dispatch(setCartUser(profile.userId));
 
       showToast('success', strings.registeredSuccessfully);
-     
 
       Keyboard.dismiss();
       setTimeout(() => {
@@ -263,20 +262,15 @@ const CustomerCreateProfile = () => {
                   ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
-                  maxLength={35}
+                  maxLength={32}
                   onFocus={() => setOpenDropdown(null)}
                   blurOnSubmit={false}
                   onTextChange={text => {
-                    const cleaned = text.replace(/[^a-zA-Z\s]/g, '');
-                    setName(cleaned);
+                    setName(text); // no restriction
                     if (isSubmitting) {
                       setErrors(prev => ({
                         ...prev,
-                        name:
-                          cleaned.trim().length >= 2 &&
-                          /^[A-Za-z\s]+$/.test(cleaned)
-                            ? false
-                            : true,
+                        name: text.trim().length >= 2 ? false : true,
                       }));
                     }
                   }}
