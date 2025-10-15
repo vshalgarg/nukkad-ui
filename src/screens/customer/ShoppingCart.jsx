@@ -1,5 +1,5 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -37,6 +37,7 @@ import { clearCart, setCartItems } from '../../store/cartSlice';
 import { placeOrder } from '../../services/customer/orderService';
 import { useStore } from '../../contexts/storeContext';
 import strings from '../../constants/string';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 const ShoppingCart = () => {
   const { address, selectedAddressId, setMode, setAddressData } = useAddress();
@@ -45,15 +46,20 @@ const ShoppingCart = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
+  console.log('route.params', fromRepeatOrder);
 
   const dispatch = useDispatch();
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(false);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [orderInProgress, setOrderInProgress] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [showStoreDropdown, setShowStoreDropdown] = useState(false);
+  const [openStoreDropdown, setOpenStoreDropdown] = useState(false);
+  const { storeData, allStores, setStoresList } = useStore();
+  const [storeItems, setStoreItems] = useState([]);
+  const [selectedStore, setSelectedStore] = useState(null);
+  console.log('statestore', allStores);
 
-  const { storeData } = useStore();
   const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
   const selectedAddress =
@@ -72,6 +78,30 @@ const ShoppingCart = () => {
       hideSub.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (allStores.length > 0) {
+      const items = allStores.map(store => ({
+        label: store.storeName,
+        value: store.id,
+      }));
+      setStoreItems(items);
+      console.log('storeItems', storeItems);
+      console.log('route', storeItems);
+      console.log('storeItems', storeItems);
+
+      if (fromRepeatOrder && route.params?.originalStoreId) {
+        setSelectedStore(route.params.originalStoreId);
+        setShowStoreDropdown(true);
+      } else if (storeData) {
+        // preselect store from AsyncStorage
+        setSelectedStore(storeData.id);
+      } else {
+        // fallback to first store
+        setSelectedStore(allStores[0].id);
+      }
+    }
+  }, [allStores, storeData, fromRepeatOrder, route.params]);
 
   const fetchCartItems = useCallback(async () => {
     setLoading(true);
@@ -155,9 +185,11 @@ const ShoppingCart = () => {
       return;
     }
 
+    const finalStoreKeeperId = selectedStore || storeKeeperId;
+
     const payload = {
       deliveryAddressId: selectedAddress?.id,
-      storeKeeperId,
+      storeKeeperId: finalStoreKeeperId,
       orderItem: cartItems.map(item => ({
         itemId: item.product.id,
         quantity: Number(item.product.amount),
@@ -195,17 +227,7 @@ const ShoppingCart = () => {
       <View style={styles.pageContainer}>
         <BackButton title={strings.shoppingCart} />
         <View style={innerStyle.emptyContainer}>
-          <Text
-            style={{
-              fontSize: Fonts.sizes.xxl,
-              fontWeight: '800',
-              marginBottom: 20,
-              color: Colors.secondary,
-              textAlign: 'center',
-            }}
-          >
-            {strings.emptyCart}
-          </Text>
+          <Text style={innerStyle.emptyText}>{strings.emptyCart}</Text>
           <TouchableOpacity
             onPress={handleAddItems}
             style={innerStyle.browseBtn}
@@ -230,22 +252,57 @@ const ShoppingCart = () => {
         title={strings.cartTitle(totalItemsInCart)}
       />
       <View style={{ flex: 1, overflow: 'visible' }}>
+        {showStoreDropdown && (
+          <View
+            style={{ marginVertical: 12, zIndex: 1000, paddingHorizontal: 12 }}
+          >
+            <Text
+              style={[
+                { fontWeight: '600', marginBottom: 6 },
+                innerStyle.heading,
+              ]}
+            >
+              Select Store
+            </Text>
+            <DropDownPicker
+              open={openStoreDropdown}
+              value={selectedStore}
+              items={storeItems}
+              setOpen={setOpenStoreDropdown}
+              setValue={setSelectedStore}
+              setItems={setStoreItems}
+              placeholder="Select a store"
+              containerStyle={{ height: 40 }}
+              style={{
+                backgroundColor: Colors.lightBackground,
+                borderColor: Colors.primary,
+                borderWidth: 2,
+                width: '97%',
+                marginHorizontal: 5,
+              }}
+              dropDownContainerStyle={{
+                backgroundColor: Colors.white,
+                borderColor: Colors.primary,
+                borderWidth: 2,
+                width: '97%',
+                marginHorizontal: 5,
+                borderTopWidth: 1,
+              }}
+            />
+          </View>
+        )}
+
         <FlatList
           data={cartItems}
           keyExtractor={(item, index) =>
             item?.product?.id ? item.product.id.toString() : `fallback-${index}`
           }
           renderItem={({ item }) => (
-            <CartItem
-              item={item}
-              openDropdownId={openDropdownId}
-              setOpenDropdownId={setOpenDropdownId}
-              inputAccessoryViewID="qty"
-            />
+            <CartItem item={item} inputAccessoryViewID="qty" />
           )}
           contentContainerStyle={{
             padding: Fonts.sizes.base,
-            paddingBottom: 100,
+            paddingBottom: 120,
           }}
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
@@ -266,27 +323,8 @@ const ShoppingCart = () => {
                 <Pressable
                   onPress={handleAddAddress}
                   style={({ pressed }) => [
-                    {
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: Colors.lightBackground,
-                      paddingVertical: 10,
-                      paddingHorizontal: 16,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: Colors.primary,
-                      marginVertical: 12,
-
-                      // iOS shadow
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-
-                      // Android shadow (mimic iOS)
-                      // elevation: 1,
-                      transform: pressed ? [{ scale: 0.98 }] : [],
-                    },
+                    innerStyle.addAddressBtn,
+                    { transform: pressed ? [{ scale: 0.98 }] : [] },
                   ]}
                 >
                   <Ionicons
@@ -294,12 +332,7 @@ const ShoppingCart = () => {
                     size={22}
                     color={Colors.primary}
                   />
-                  <Text
-                    style={[
-                      innerStyle.buttonText,
-                      { fontSize: Fonts.sizes.base, color: Colors.secondary },
-                    ]}
-                  >
+                  <Text style={innerStyle.addAddressText}>
                     {strings.addAddress}
                   </Text>
                 </Pressable>
@@ -337,22 +370,21 @@ const innerStyle = StyleSheet.create({
     marginBottom: 8,
     color: Colors.secondary,
   },
-  buttonText: {
+  addAddressBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.lightBackground,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    marginVertical: 12,
+  },
+  addAddressText: {
     fontSize: Fonts.sizes.base,
     marginLeft: 6,
-  },
-  addItemsButton: {
-    backgroundColor: Colors.white,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 30,
-    borderColor: Colors.primary,
-    borderWidth: 1,
-    marginRight: 10,
-  },
-  addItemsButtonText: {
-    color: Colors.primary,
-    fontWeight: '600',
+    color: Colors.secondary,
   },
   fixedBottomContainer: {
     position: 'absolute',
@@ -364,12 +396,19 @@ const innerStyle = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     backgroundColor: Colors.white,
-    padding: '10',
+    padding: 10,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: Fonts.sizes.xxl,
+    fontWeight: '800',
+    marginBottom: 20,
+    color: Colors.secondary,
+    textAlign: 'center',
   },
   browseBtn: {
     backgroundColor: Colors.secondary,

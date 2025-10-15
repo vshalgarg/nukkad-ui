@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts/authContext';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import { useState } from 'react';
+import { formatTabLabel } from '../../utils/formatTabLabel';
 
 const OrderHistory = ({
   order,
@@ -73,7 +74,11 @@ const OrderHistory = ({
       });
       dispatch(setCartItems(cartItems));
       setIsRepeating(false);
-      safePush('ShoppingCart', { fromRepeatOrder: true });
+      safePush('ShoppingCart', {
+        fromRepeatOrder: true,
+        originalStoreId: order.storeKeeperId, // or whatever identifier you have
+        originalStoreName: order.storeName,
+      });
     } catch (err) {
       console.error('Repeat Order Failed:', err.message || err);
       Alert.alert(
@@ -164,7 +169,7 @@ const OrderHistory = ({
                   { color: getStatusTextColor(order.orderStatus) },
                 ]}
               >
-                {order.orderStatus}
+                {formatTabLabel(order.orderStatus)}
               </Text>
             </View>
           </View>

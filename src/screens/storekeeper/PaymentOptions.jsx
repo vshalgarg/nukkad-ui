@@ -190,7 +190,7 @@ const PaymentOptions = () => {
                       {
                         backgroundColor: isDefault
                           ? Colors.borderColor
-                          : Colors.secondary,
+                          : Colors.primary,
                       },
                     ]}
                     onPress={() => handleSetDefault(qr.id)}
@@ -324,7 +324,7 @@ const innerStyle = ScaledSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: '10@ms',
-    borderRadius: '8@ms',
+    borderRadius: '50@ms',
   },
   secondaryBtnText: {
     color: Colors.white,

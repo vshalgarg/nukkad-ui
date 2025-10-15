@@ -75,23 +75,30 @@ const StorekeeperDashboard = () => {
   ];
 
   const orders = useSelector(state => state.storekeeperOrders.orders);
+  const orderCounts = React.useMemo(() => {
+    return {
+      PENDING: orders.filter(o => o.orderStatus === 'PENDING').length,
+      IN_PROGRESS: orders.filter(
+        o => o.orderStatus === 'IN_PROGRESS' || o.orderStatus === 'DISPATCHED',
+      ).length,
+      DELIVERED: orders.filter(o => o.orderStatus === 'DELIVERED').length,
+    };
+  }, [orders]);
 
-  const loadOrders = async (status, page = 0, append = false) => {
+  const loadOrders = async (status, page = 0) => {
     try {
       if (!token) return;
 
-      if (page === 0) {
-        setInitialLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
+      if (page === 0) setInitialLoading(true);
+      else setLoadingMore(true);
 
       const orderData = await getOrders(token, status, page, size);
 
+      // Always append fetched orders to Redux
       dispatch(
         setOrders({
           orders: orderData.orders,
-          append,
+          append: page > 0, // append only for pagination
         }),
       );
 
@@ -104,27 +111,19 @@ const StorekeeperDashboard = () => {
       setRefreshing(false);
     }
   };
-  useFocusEffect(
-    useCallback(() => {
-      const currentStatus = statusTabs[formState].statuses[0];
 
-      setCurrentPage(0);
-      loadOrders(currentStatus, 0, false);
+  // useEffect(() => {
+  //   const currentStatuses = statusTabs[formState].statuses;
 
-      // Fetch storekeeper profile whenever the screen comes into focus
-      fetchStorekeeperProfile();
+  //   // Check if we already have orders for this tab
+  //   const existingOrders = orders.filter(o =>
+  //     currentStatuses.includes(o.orderStatus),
+  //   );
 
-      // Optional cleanup if needed
-      return () => {};
-    }, [formState, token]),
-  );
-  const orderCounts = {
-    PENDING: orders.filter(o => o.orderStatus === 'PENDING').length,
-    IN_PROGRESS: orders.filter(
-      o => o.orderStatus === 'IN_PROGRESS' || o.orderStatus === 'DISPATCHED',
-    ).length,
-    DELIVERED: orders.filter(o => o.orderStatus === 'DELIVERED').length,
-  };
+  //   if (existingOrders.length === 0) {
+  //     loadOrders(currentStatuses[0], 0);
+  //   }
+  // }, [formState]);
 
   useEffect(() => {
     console.log(toast);
@@ -139,6 +138,7 @@ const StorekeeperDashboard = () => {
   }, []);
   useFocusEffect(
     useCallback(() => {
+      fetchStorekeeperProfile();
       const currentStatus = statusTabs[formState].statuses[0];
       dispatch;
       setCurrentPage(0);
@@ -167,9 +167,9 @@ const StorekeeperDashboard = () => {
     setRefreshing(false);
   };
 
-  const filteredOrders = (Array.isArray(orders) ? [...orders] : []).sort(
-    (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt),
-  );
+  const filteredOrders = orders
+    .filter(o => statusTabs[formState].statuses.includes(o.orderStatus))
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
   const safePush = routeObj => {
     try {
@@ -227,7 +227,7 @@ const StorekeeperDashboard = () => {
           showToast(
             'error',
             'Failed to reject order',
-            error?.message || 'Please try again',
+            'error?.message' || 'Please try again',
           );
         }
       },
@@ -353,7 +353,7 @@ const StorekeeperDashboard = () => {
               ]}
             >
               {`${formatTabLabel(tabItem.label)} (${
-                orderCounts[tabItem.label] || 0
+                orderCounts[tabItem.label]
               })`}
             </Text>
           </Pressable>
@@ -388,7 +388,10 @@ const StorekeeperDashboard = () => {
                 { flex: 1, minHeight: height * 0.65 },
               ]}
             >
-              <Text style={innerStyle.emptyStateText}>No Orders Found.</Text>
+              <Text style={innerStyle.emptyStateText}>
+                {/* No {formatTabLabel(statusTabs[formState].label)} Orders Found. */}
+                No Orders Found.
+              </Text>
             </View>
           )}
           renderItem={({ item: order }) => (
@@ -424,9 +427,15 @@ const StorekeeperDashboard = () => {
               {/* Middle Section - Customer Info */}
               <View style={innerStyle.middleSection}>
                 <Text style={innerStyle.orderDetailsHeading}>
+                  Order Date:
+                  <Text style={innerStyle.orderDetails}>
+                    {new Date(order?.orderDate).toLocaleDateString('en-GB')}
+                  </Text>
+                </Text>
+
+                <Text style={innerStyle.orderDetailsHeading}>
                   Customer Name:
                   <Text style={innerStyle.orderDetails}>
-                    {' '}
                     {order?.address?.name}
                   </Text>
                 </Text>
@@ -489,6 +498,13 @@ const StorekeeperDashboard = () => {
                   ]}
                 >
                   {order.orderStatus.toUpperCase()}
+                  {order.orderStatus === 'DELIVERED' && (
+                    <Text style={innerStyle.normalText}>
+                      {' '}
+                      On
+                      {new Date(order?.updatedAt).toLocaleDateString('en-GB')}
+                    </Text>
+                  )}
                 </Text>
                 <View style={innerStyle.actionButtons}>
                   {order.orderStatus !== 'DELIVERED' &&

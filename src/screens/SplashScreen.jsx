@@ -22,7 +22,7 @@ const SplashScreen = ({ navigation }) => {
             const res = await getStorekeeperProfile(token);
             navigation.replace('StorekeeperDashboard');
           } catch (err) {
-            if (err?.response?.data?.responseCode === 1009) {
+            if (err?.response?.data?.responseCode === 1008) {
               navigation.replace('StorekeeperCreateProfile');
             } else {
               navigation.replace('Home');

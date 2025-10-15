@@ -47,7 +47,6 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
   return Promise.resolve();
 });
 
-//  🔒 FIX: Use in a component wrapped in SafeAreaProvider
 const AppContent = () => {
   const insets = useSafeAreaInsets();
 
@@ -152,14 +151,14 @@ export default function App() {
               <StorekeeperProfileProvider>
                 <ProfileProvider>
                   <SearchProvider>
-                    <AddressProvider>
-                      <StoreProvider>
+                    <StoreProvider>
+                      <AddressProvider>
                         <StorekeeperAddressProvider>
                           <AppContent />
                           <GlobalDialog />
                         </StorekeeperAddressProvider>
-                      </StoreProvider>
-                    </AddressProvider>
+                      </AddressProvider>
+                    </StoreProvider>
                   </SearchProvider>
                 </ProfileProvider>
               </StorekeeperProfileProvider>

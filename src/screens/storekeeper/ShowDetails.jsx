@@ -517,6 +517,28 @@ const ShowDetails = () => {
                   </Text>
                 </View>
                 <View style={innerStyle.totalContainer}>
+                  <View>
+                    <Text style={innerStyle.orderDetailsHeading}>
+                      Ordered On:
+                      <Text style={innerStyle.normalText}>
+                        {new Date(order?.orderDate).toLocaleDateString('en-GB')}
+                      </Text>
+                    </Text>
+                  </View>
+                  {isDelivered && (
+                    <View>
+                      <Text style={innerStyle.orderDetailsHeading}>
+                        Delivered On:
+                        <Text style={innerStyle.normalText}>
+                          {new Date(order?.updatedAt).toLocaleDateString(
+                            'en-GB',
+                          )}
+                        </Text>
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View style={innerStyle.totalContainer}>
                   <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
                   <View>
                     <Text style={innerStyle.totalText}>
@@ -639,7 +661,7 @@ const innerStyle = ScaledSheet.create({
     borderWidth: 2,
     borderRadius: '15@s',
     borderColor: Colors.primary,
-    // marginBottom: '5@vs',
+    marginBottom: '5@vs',
   },
   addressCardDetails: {
     lineHeight: '30@vs',
@@ -826,7 +848,7 @@ const innerStyle = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: '15@s',
+    marginVertical: '10@s',
   },
   totalText: {
     fontSize: '16@s',
@@ -838,8 +860,16 @@ const innerStyle = ScaledSheet.create({
     fontWeight: '500',
   },
   orderDetailsHeading: {
-    lineHeight: '25@vs',
-    color: Colors.secondaryText,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: 600,
+    color: Colors.secondary,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  normalText: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.secondary,
+    fontWeight: '400',
   },
   row: {
     flexDirection: 'row',

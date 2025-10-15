@@ -106,9 +106,16 @@ const Orders = () => {
   const toggleExpand = id => {
     setExpandedOrderId(prev => (prev === id ? null : id));
   };
-
-  const applyFilteredOrders = async () => {
+  const applyFilteredOrders = async (noFilter = false) => {
     try {
+      if (noFilter) {
+        setFilterParams({});
+        setIsFilterApplied(false);
+        setPage(0);
+        await fetchOrders(0);
+        return;
+      }
+
       const params = {
         status: selectedStatus,
         startDate: dateFrom
@@ -127,10 +134,11 @@ const Orders = () => {
       setIsFilterApplied(true);
       setPage(0);
       await fetchOrders(0, cleanedParams);
-      setFilterModalVisible(false);
     } catch (err) {
-      console.error(' Filtered Order Fetch Failed:', err);
+      console.error('Filtered Order Fetch Failed:', err);
       Alert.alert('Failed to apply filters');
+    } finally {
+      setFilterModalVisible(false);
     }
   };
 
@@ -153,11 +161,18 @@ const Orders = () => {
 
       <View style={localStyles.filterRow}>
         <TouchableOpacity onPress={() => setFilterModalVisible(true)}>
-          <MaterialIcons
-            name="filter-list"
-            size={24}
-            color={Colors.secondary}
-          />
+          <View
+            style={[
+              localStyles.filterIconContainer,
+              isFilterApplied && { backgroundColor: Colors.primary },
+            ]}
+          >
+            <MaterialIcons
+              name="filter-list"
+              size={24}
+              color={isFilterApplied ? Colors.white : Colors.secondary}
+            />
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -333,5 +348,10 @@ const localStyles = ScaledSheet.create({
   },
   itemText: {
     color: Colors.secondary,
+  },
+  filterIconContainer: {
+    padding: 6,
+    borderRadius: 50,
+    backgroundColor: Colors.white,
   },
 });

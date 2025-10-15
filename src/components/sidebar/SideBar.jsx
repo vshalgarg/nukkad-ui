@@ -122,7 +122,10 @@ const SideBar = ({ isVisible, onClose }) => {
       : { name: 'Order History', icon: 'time' };
   const STOREKEEPERExtraItems =
     userRole === 'STOREKEEPER'
-      ? [{ name: 'Payment Options', icon: 'card' }]
+      ? [
+          { name: 'Payment Options', icon: 'card' },
+          { name: 'QR Code', icon: 'qr-code' },
+        ]
       : [];
 
   const menuItems = [roleBasedItem, ...STOREKEEPERExtraItems, ...baseMenuItems];
@@ -140,6 +143,7 @@ const SideBar = ({ isVisible, onClose }) => {
       'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
       'My Stores': 'MyStores',
+      'QR Code': 'QRCodeScreen',
     };
     if (menuName === 'My Orders' || menuName === 'Order History') {
       return 'Orders';

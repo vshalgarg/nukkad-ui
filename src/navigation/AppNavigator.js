@@ -82,6 +82,13 @@ export default function AppNavigator({ initialRoute }) {
           require('../screens/storekeeper/StorekeeperDashboard.jsx').default
         }
       />
+
+      <Stack.Screen
+        name="QRCodeScreen"
+        getComponent={() =>
+          require('../screens/storekeeper/QRCodeScreen.jsx').default
+        }
+      />
       <Stack.Screen
         name="ShowDetails"
         getComponent={() =>

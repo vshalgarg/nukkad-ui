@@ -160,7 +160,7 @@ const MobileOtpScreen = () => {
       await login({ token, role, userId });
       dispatch(setCartUser(userId));
 
-      
+      console.log('*****user Role *****', role);
 
       if (role === 'CUSTOMER') {
         if (returningUser) {
@@ -188,7 +188,6 @@ const MobileOtpScreen = () => {
         }
       } else {
         if (returningUser) {
-          fetchStorekeeperProfile();
           safePush('StorekeeperDashboard');
         } else {
           safePush('StorekeeperCreateProfile', { mobile, role });

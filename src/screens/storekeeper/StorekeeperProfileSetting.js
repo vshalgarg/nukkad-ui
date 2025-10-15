@@ -109,8 +109,7 @@ const StorekeeperProfileScreen = () => {
   const [selectedCity, setSelectedCity] = useState('');
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [uploadingIndex, setUploadingIndex] = useState(null); // loader state
-
+  const [uploadingIndex, setUploadingIndex] = useState(null); 
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     storeName: '',
@@ -229,15 +228,14 @@ const StorekeeperProfileScreen = () => {
         const fileName = asset.fileName || `store_${Date.now()}.jpg`;
 
         try {
-          setUploadingIndex(index); // show loader
+          setUploadingIndex(index); 
 
           const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
 
           setProfile(prev => {
-            const images = prev.imageUrls.filter(Boolean); // remove empty slots
-            images.push(firebaseUrl); // add new image at the end
-
-            // Make sure length is always 4
+            const images = prev.imageUrls.filter(Boolean); 
+            images.push(firebaseUrl); 
+         
             while (images.length < 4) images.push(null);
 
             return { ...prev, imageUrls: images };
@@ -270,9 +268,9 @@ const StorekeeperProfileScreen = () => {
       },
       onConfirm: () => {
         setProfile(prev => {
-          const images = prev.imageUrls.filter(Boolean); // remove nulls
-          images.splice(index, 1); // remove selected image
-          while (images.length < 4) images.push(null); // fill up to 4
+          const images = prev.imageUrls.filter(Boolean);
+          images.splice(index, 1); 
+          while (images.length < 4) images.push(null);
           return { ...prev, imageUrls: images };
         });
       },
@@ -469,16 +467,18 @@ const StorekeeperProfileScreen = () => {
         >
           {fieldGroups.map((group, index) => (
             <View key={index} style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{group.title}</Text>
+              {group.title && (
+                <Text style={styles.sectionTitle}>{group.title}</Text>
+              )}
+
               {group.fields.map(field => (
                 <React.Fragment key={field.key}>
                   {renderField(field.label, field.key)}
                 </React.Fragment>
               ))}
-            </View>
+            </View> 
           ))}
 
-          {/* Render Store Image section only if editing OR there are existing images */}
           {(isEditing ||
             (profile.imageUrls && profile.imageUrls.some(url => url))) && (
             <View style={styles.sectionContainer}>
@@ -486,9 +486,9 @@ const StorekeeperProfileScreen = () => {
 
               <View style={styles.imageContainer}>
                 {(isEditing
-                  ? [0, 1, 2, 3] // show all slots in edit mode
+                  ? [0, 1, 2, 3]
                   : profile.imageUrls.filter(url => url)
-                ) // only existing when not editing
+                ) 
                   .map((_, i) => {
                     const image = profile.imageUrls[i];
 
@@ -551,7 +551,7 @@ const StorekeeperProfileScreen = () => {
           <CustomButton
             title={strings.saveChanges}
             onPress={handleSave}
-            disabled={uploadingIndex !== null} // disable while uploading
+            disabled={uploadingIndex !== null} 
           />
         </View>
       )}

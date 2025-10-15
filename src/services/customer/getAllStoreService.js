@@ -1,4 +1,4 @@
-// services/customer/stores.js
+
 import api from '../api';
 
 export const getMyStores = async token => {

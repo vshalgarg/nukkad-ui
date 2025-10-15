@@ -134,8 +134,15 @@ const FilterModal = ({
       Alert.alert('Invalid Date', "'To' date cannot be in the future.");
       return;
     }
+
+    const noFilter =
+      !dateFrom && !dateTo && !minPrice && !maxPrice && !selectedStatus;
+
+    if (typeof onApplyFilter === 'function') {
+      onApplyFilter(noFilter); // pass info whether filters exist
+    }
+
     setFilterModalVisible(false);
-    if (typeof onApplyFilter === 'function') onApplyFilter();
   };
 
   const CustomMarker = ({ currentValue }) => (
