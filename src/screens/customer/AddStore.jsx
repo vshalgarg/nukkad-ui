@@ -10,6 +10,7 @@ import {
   Platform,
   InteractionManager,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import {
   useNavigation,
@@ -39,6 +40,7 @@ import textStyles from '../../styles/textStyles.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import strings from '../../constants/string.js';
 import { ScaledSheet } from 'react-native-size-matters';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const STORAGE_KEY = '@scanned_stores';
 
@@ -51,7 +53,6 @@ export default function AddStore() {
   const [pendingStore, setPendingStore] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigation = useNavigation();
-  const route = useRoute();
 
   const isKeyboardVisible = useKeyboardStatus();
 
@@ -61,6 +62,9 @@ export default function AddStore() {
   const scannerRef = useRef();
   const isScanningRef = useRef(false);
   const isMountedRef = useRef(true); // ✅ declare ref
+
+  const route = useRoute();
+  const hideBackButton = route?.params?.hideBackButton || false;
 
   const { showDialog } = useDialog();
 
@@ -225,13 +229,29 @@ export default function AddStore() {
 
   return (
     <View style={[globalStyles.pageContainer, { flex: 1 }]}>
-      <View style={{ height: 80 }}>
+      <View style={[{ height: 80 }, innerStyle.backcontainer]}>
+        {/* Back Button (absolute, won’t affect layout) */}
+        {!hideBackButton && (
+          <Pressable
+            onPress={handleSkip}
+            style={{
+              position: 'absolute',
+              left: 15,
+              top: '50%',
+              transform: [{ translateY: -12 }], // vertically center
+              zIndex: 2,
+            }}
+          >
+            <Entypo name="chevron-left" size={25} color={Colors.secondary} />
+          </Pressable>
+        )}
+
+        {/* Centered Title */}
         <Text
           style={[
             textStyles.subheading,
             {
               textAlign: 'center',
-              marginTop: '5%',
               textAlignVertical: 'center',
               color: Colors.secondary,
             },
@@ -281,7 +301,10 @@ export default function AddStore() {
             onPress={onPressAddStore}
             disabled={isSubmitting}
           />
-          <CustomButton title={strings.skip} onPress={handleSkip} />
+          {hideBackButton && (
+            // ✅ When coming from Create Profile → show Skip
+            <CustomButton title={strings.skip} onPress={handleSkip} />
+          )}
         </View>
       )}
 
@@ -335,6 +358,11 @@ const innerStyle = ScaledSheet.create({
     paddingBottom: `${height * 0.15}@vs`,
     position: 'relative',
   },
+  backcontainer: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   innercontainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -345,6 +373,13 @@ const innerStyle = ScaledSheet.create({
     marginBottom: '10@vs',
     color: Colors.secondary,
   },
+  backcontainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white', // or your theme color
+    position: 'relative',
+  },
+
   cameraBox: {
     height: boxHeight,
     width: boxHeight,

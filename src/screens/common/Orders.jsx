@@ -271,7 +271,7 @@ const Orders = () => {
                     />
                   </View>
                 ))}
-                {item.storeKeeperNote && (
+                {item.storeKeeperNote?.trim() && (
                   <View style={localStyles.noteColumn}>
                     <Text style={localStyles.noteTitle}>Note : </Text>
                     <Text

@@ -65,10 +65,10 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
 
 export default ConnectPopup;
 const styles = ScaledSheet.create({
-  absoluteFill: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 999,
-  },
+    absoluteFill: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 999,
+    },
   overlay: {
     flex: 1,
     backgroundColor: 'transparent',

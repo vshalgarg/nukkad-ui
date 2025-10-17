@@ -379,7 +379,7 @@ const ShowDetails = () => {
 
           const payload = {
             orderId,
-            storeKeeperNote: storeKeeperNote,
+            storeKeeperNote: storeKeeperNote?.trim(),
             orderItem,
           };
 
@@ -398,8 +398,13 @@ const ShowDetails = () => {
           );
           dispatch(updateOrderStatus({ orderId, newStatus: 'DISPATCHED' }));
 
-          if (storeKeeperNote) {
-            dispatch(updateOrderNote({ orderId, storeKeeperNote }));
+          if (storeKeeperNote?.trim()) {
+            dispatch(
+              updateOrderNote({
+                orderId,
+                storeKeeperNote: storeKeeperNote?.trim(),
+              }),
+            );
           }
           showToast('success', 'Order Dispatched Successfully');
         } catch (error) {

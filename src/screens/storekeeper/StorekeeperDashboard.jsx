@@ -51,6 +51,12 @@ const StorekeeperDashboard = () => {
   const [popupCards, setPopupCards] = useState({ x: 0, y: 0 });
   const dotRefs = useRef({});
   const { token } = useAuth();
+  const [orderCountsFromApi, setOrderCountsFromApi] = useState({
+    pendingOrdersCount: 0,
+    inprogressOrdersCount: 0,
+    deliveredOrdersCount: 0,
+  });
+
   // Component state for pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -93,8 +99,14 @@ const StorekeeperDashboard = () => {
       else setLoadingMore(true);
 
       const orderData = await getOrders(token, status, page, size);
+      console.log('orderData', orderData.pendingOrdersCount);
 
       // Always append fetched orders to Redux
+      setOrderCountsFromApi({
+        pendingOrdersCount: orderData.pendingOrdersCount,
+        inprogressOrdersCount: orderData.inprogressOrdersCount,
+        deliveredOrdersCount: orderData.deliveredOrdersCount,
+      });
       dispatch(
         setOrders({
           orders: orderData.orders,
@@ -353,7 +365,11 @@ const StorekeeperDashboard = () => {
               ]}
             >
               {`${formatTabLabel(tabItem.label)} (${
-                orderCounts[tabItem.label]
+                tabItem.label === 'PENDING'
+                  ? orderCountsFromApi.pendingOrdersCount
+                  : tabItem.label === 'IN_PROGRESS'
+                  ? orderCountsFromApi.inprogressOrdersCount
+                  : orderCountsFromApi.deliveredOrdersCount
               })`}
             </Text>
           </Pressable>
@@ -501,7 +517,7 @@ const StorekeeperDashboard = () => {
                   {order.orderStatus === 'DELIVERED' && (
                     <Text style={innerStyle.normalText}>
                       {' '}
-                      On
+                      ON{' '}
                       {new Date(order?.updatedAt).toLocaleDateString('en-GB')}
                     </Text>
                   )}

@@ -168,7 +168,16 @@ const ProductCard = ({
               amount !== undefined && amount !== null ? String(amount) : ''
             }
             onChangeText={val => {
-              setAmount(val);
+              if (unitOptions.length === 1) {
+                if (/^\d*$/.test(val)) {
+                  setAmount(val);
+                }
+              } else {
+                if (/^\d*\.?\d*$/.test(val)) {
+                  setAmount(val);
+                }
+              }
+
               if (showAmountError && parseFloat(val) > 0) {
                 setShowAmountError(false);
               }
@@ -176,7 +185,7 @@ const ProductCard = ({
             placeholder="Qty."
             keyboardType="number-pad"
             placeholderTextColor={Colors.secondaryText}
-            maxLength={4}
+            maxLength={5}
             inputAccessoryViewID={inputAccessoryViewID}
             style={[styles.textInput, showAmountError && styles.errorInput]}
             onFocus={() => {
