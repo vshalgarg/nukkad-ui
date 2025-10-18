@@ -32,6 +32,7 @@ import { uploadImageAsync } from '../../services/firebase/firebaseConfig.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CameraIcon from '../../../assets/images/Camera.svg';
 import { useAuth } from '../../contexts/authContext.js';
+import { useDialog } from '../../contexts/DialogContext.js';
 
 const formatDate = date => {
   if (!date) return '';
@@ -52,7 +53,7 @@ const ProfileSetting = () => {
   const { safePush } = useSafeRouter();
   const { role } = useAuth();
   const { profile: profileData, updateProfile, createProfile } = useProfile();
-
+  const { showDialog } = useDialog();
   const [profile, setProfile] = useState({
     firstName: profileData?.firstName || '',
     lastName: profileData?.lastName || '',
@@ -151,17 +152,33 @@ const ProfileSetting = () => {
     Keyboard.dismiss();
 
     if (!profile.firstName?.trim()) {
-      return alert('First name cannot be empty');
+      return showDialog({
+        title: 'Warning!',
+        message: 'First name can not be empty!',
+        cancelText: 'OK',
+      });
     }
     if (!profile.lastName?.trim()) {
-      return alert('Last name cannot be empty');
+      return showDialog({
+        title: 'Warning!',
+        message: 'Last name cannot be empty!',
+        cancelText: 'OK',
+      });
     }
     if (!profile.email?.trim()) {
-      return alert('Email cannot be empty');
+      return showDialog({
+        title: 'Warning!',
+        message: 'Email cannot be empty!',
+        cancelText: 'OK',
+      });
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(profile.email.trim())) {
-      return alert('Invalid email format');
+      return showDialog({
+        title: 'Warning!',
+        message: 'Invalid email format!',
+        cancelText: 'OK',
+      });
     }
 
     setIsSaving(true);

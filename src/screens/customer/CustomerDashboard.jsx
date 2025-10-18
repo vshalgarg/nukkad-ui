@@ -248,6 +248,7 @@ const CustomerDashboard = () => {
             </View>
           }
           contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
         />
       )}
 
