@@ -50,13 +50,13 @@ export const ProfileProvider = ({ children }) => {
     if (!profile) throw new Error('Profile does not exist yet.');
     const payload = {
       ...fields,
-      name: `${fields.firstName || profile.firstName} ${
-        fields.lastName || profile.lastName
+      name: `${fields.firstName ?? profile.firstName} ${
+        fields.lastName !== undefined ? fields.lastName : profile.lastName
       }`.trim(),
     };
 
     try {
-      console.log("payload in profilecontext",payload)
+      console.log('payload in profilecontext', payload);
       await updateCustomerProfile(payload, token);
       const updated = { ...profile, ...fields, name: payload.name };
       setProfile(updated);

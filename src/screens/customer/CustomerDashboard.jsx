@@ -8,14 +8,13 @@ import {
   Keyboard,
 } from 'react-native';
 import { PanResponder } from 'react-native';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import CategoryGridLayout from '../../components/category/CategoriesGridLayout.jsx';
 import ProductSlider from '../../components/ProductSlider.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
 import UserToolbar from '../../components/UserToolbar.jsx';
-import SideBar from '../../components/sidebar/SideBar'; // <-- import Sidebar here
+import SideBar from '../../components/sidebar/SideBar';
 import styles from '../../styles/globalStyles.js';
 import { getAllCategories } from '../../services/customer/categoriesService.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
@@ -33,7 +32,7 @@ const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
 
   const route = useRoute();
-  const { toast } = route.params || {}; // only keep toast param
+  const { toast } = route.params || {};
   const { createProfile } = useProfile();
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
@@ -43,10 +42,11 @@ const CustomerDashboard = () => {
   const { saveStore } = useStore();
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const swipeEnabled = useRef(true);
+
   useEffect(() => {
-    // Disable swipe when sidebar is open
     swipeEnabled.current = !sidebarVisible;
   }, [sidebarVisible]);
+
   useEffect(() => {
     if (toast) {
       try {
@@ -63,7 +63,7 @@ const CustomerDashboard = () => {
       const savedStoreString = await AsyncStorage.getItem('@selected_store');
       if (savedStoreString) {
         const savedStore = JSON.parse(savedStoreString);
-        saveStore(savedStore); // put into context
+        saveStore(savedStore);
       }
     })();
   }, []);
@@ -82,6 +82,7 @@ const CustomerDashboard = () => {
     }),
   ).current;
 
+  // ✅ Fetch categories
   const fetchCategories = useCallback(async () => {
     try {
       const response = await getAllCategories();
@@ -93,22 +94,22 @@ const CustomerDashboard = () => {
       }
     } catch (error) {
       console.error('Failed to load categories:', error.message);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
+  // ✅ Fetch store + profile
   const fetchStoreAndProfile = async () => {
     try {
       const userProfile = await getCustomerProfile(token);
       console.log('customer profile in customerDashboard:', userProfile);
+
       await createProfile({
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.profileImage || null,
-        dob: userProfile.dob || '', // 👈 this is fine, lowercase
-        mobile: userProfile.mobileNumber || '', // 👈 should also work
+        dob: userProfile.dob || '',
+        mobile: userProfile.mobileNumber || '',
       });
 
       const stores = await getMyStores(token);
@@ -122,16 +123,21 @@ const CustomerDashboard = () => {
         stores.some(s => s.storeId === savedStore.storeId)
       ) {
         saveStore(savedStore);
+      } else {
+        console.log('Multiple stores found — showing category after load.');
       }
+
+      return stores;
     } catch (err) {
       console.warn('Failed to fetch store/profile:', err.message);
+      return [];
     }
   };
 
+  // ✅ Sync address runs *after UI loads* (in background)
   const syncAddressAndSetDefault = async () => {
     try {
       await syncAddressesFromServer();
-
       const [selected, storedList] = await Promise.all([
         AsyncStorage.getItem('selectedAddressId'),
         AsyncStorage.getItem('address'),
@@ -159,29 +165,81 @@ const CustomerDashboard = () => {
     }
   };
 
+  // ✅ Load only categories + stores first, then UI render
   useEffect(() => {
     (async () => {
-      setLoading(true); // 👈 show full screen loader immediately
-
       try {
-        const cached = await AsyncStorage.getItem('categories');
-        if (cached) {
-          setCategories(JSON.parse(cached));
+        setLoading(true);
+
+        // Step 1️⃣: Load cached categories + store instantly (instant UI)
+        const [cachedCategories, cachedStore] = await Promise.all([
+          AsyncStorage.getItem('categories'),
+          AsyncStorage.getItem('@selected_store'),
+        ]);
+
+        if (cachedCategories) {
+          setCategories(JSON.parse(cachedCategories));
+        }
+        if (cachedStore) {
+          saveStore(JSON.parse(cachedStore));
         }
 
-        // wait until all initial data is fetched
-        await Promise.allSettled([
-          fetchCategories(),
-          syncAddressAndSetDefault(),
-          fetchStoreAndProfile(),
+        // Step 2️⃣: Fetch fresh data (categories + store)
+        const [freshCategories, freshStores] = await Promise.all([
+          getAllCategories(),
+          getMyStores(token),
         ]);
+
+        if (Array.isArray(freshCategories) && freshCategories.length > 0) {
+          setCategories(freshCategories);
+          await AsyncStorage.setItem(
+            'categories',
+            JSON.stringify(freshCategories),
+          );
+        }
+
+        if (Array.isArray(freshStores) && freshStores.length > 0) {
+          // If only one store → select automatically
+          if (freshStores.length === 1) {
+            saveStore(freshStores[0]);
+            await AsyncStorage.setItem(
+              '@selected_store',
+              JSON.stringify(freshStores[0]),
+            );
+          } else {
+            // If multiple stores, don't auto-select, just cache the list
+            await AsyncStorage.setItem(
+              '@all_stores',
+              JSON.stringify(freshStores),
+            );
+          }
+        }
+
+        // Step 3️⃣: Fetch profile + addresses in background (non-blocking)
+        getCustomerProfile(token)
+          .then(profile => {
+            createProfile({
+              firstName: profile.firstName || '',
+              lastName: profile.lastName || '',
+              email: profile.email || '',
+              image: profile.profileImage || null,
+              dob: profile.dob || '',
+              mobile: profile.mobileNumber || '',
+            });
+          })
+          .catch(err =>
+            console.log('Profile fetch (background) failed:', err.message),
+          );
+
+        syncAddressAndSetDefault(); // no await
       } catch (err) {
-        console.warn('Initialization failed:', err.message);
+        console.warn('Dashboard init failed:', err.message);
       } finally {
-        setLoading(false); // 👈 hide loader only when *everything* finishes
+        // Step 4️⃣: Hide loader once category + store ready
+        setLoading(false);
       }
     })();
-  }, [fetchCategories]);
+  }, []);
 
   const handleCategoryPress = category => {
     safePush('ProductPage', {
@@ -205,23 +263,19 @@ const CustomerDashboard = () => {
   ];
 
   const renderItem = ({ item }) => {
-    if (item.type === 'slider') {
-      return <ProductSlider />;
-    }
-    if (item.type === 'categories') {
+    if (item.type === 'slider') return <ProductSlider />;
+    if (item.type === 'categories')
       return (
         <CategoryGridLayout
           categories={item.data}
           onPressCategory={handleCategoryPress}
         />
       );
-    }
     return null;
   };
 
   return (
     <SafeAreaView style={styles.pageContainer} {...panResponder.panHandlers}>
-      {/* UserToolbar can also control sidebar visibility but here sidebar is controlled by swipe */}
       <UserToolbar
         onMenuPress={() => {
           Keyboard.dismiss();
@@ -237,6 +291,9 @@ const CustomerDashboard = () => {
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
           <ActivityIndicator size="large" color="#000" />
+          <Text style={{ marginTop: 10 }}>
+            Loading categories and stores...
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -254,7 +311,6 @@ const CustomerDashboard = () => {
         />
       )}
 
-      {/* Sidebar controlled by swipe */}
       <SideBar
         isVisible={sidebarVisible}
         onClose={() => setSidebarVisible(false)}

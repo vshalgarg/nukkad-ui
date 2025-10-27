@@ -51,10 +51,7 @@ const profileSchema = z.object({
     .string()
     .min(1, 'Contact Number is required')
     .regex(/^\d{10}$/, 'Contact Number must be exactly 10 digits'),
-  gstNum: z
-    .string()
-    .min(15, 'GST Number is required')
-    .max(15, "GST Number can't be more than 15 characters"),
+  gstNum: z.string().optional().or(z.literal('')),
   storeQrId: z.string().optional(),
   addressLine1: z
     .string()
@@ -109,7 +106,7 @@ const StorekeeperProfileScreen = () => {
   const [selectedCity, setSelectedCity] = useState('');
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [uploadingIndex, setUploadingIndex] = useState(null); 
+  const [uploadingIndex, setUploadingIndex] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     storeName: '',
@@ -228,14 +225,14 @@ const StorekeeperProfileScreen = () => {
         const fileName = asset.fileName || `store_${Date.now()}.jpg`;
 
         try {
-          setUploadingIndex(index); 
+          setUploadingIndex(index);
 
           const firebaseUrl = await uploadImageAsync(asset.uri, fileName);
 
           setProfile(prev => {
-            const images = prev.imageUrls.filter(Boolean); 
-            images.push(firebaseUrl); 
-         
+            const images = prev.imageUrls.filter(Boolean);
+            images.push(firebaseUrl);
+
             while (images.length < 4) images.push(null);
 
             return { ...prev, imageUrls: images };
@@ -269,7 +266,7 @@ const StorekeeperProfileScreen = () => {
       onConfirm: () => {
         setProfile(prev => {
           const images = prev.imageUrls.filter(Boolean);
-          images.splice(index, 1); 
+          images.splice(index, 1);
           while (images.length < 4) images.push(null);
           return { ...prev, imageUrls: images };
         });
@@ -476,7 +473,7 @@ const StorekeeperProfileScreen = () => {
                   {renderField(field.label, field.key)}
                 </React.Fragment>
               ))}
-            </View> 
+            </View>
           ))}
 
           {(isEditing ||
@@ -488,58 +485,52 @@ const StorekeeperProfileScreen = () => {
                 {(isEditing
                   ? [0, 1, 2, 3]
                   : profile.imageUrls.filter(url => url)
-                ) 
-                  .map((_, i) => {
-                    const image = profile.imageUrls[i];
+                ).map((_, i) => {
+                  const image = profile.imageUrls[i];
 
-                    return (
-                      <TouchableOpacity
-                        key={i}
-                        onPress={() =>
-                          isEditing && !image && handleImagePick(i)
-                        }
-                        style={{ position: 'relative', marginBottom: 10 }}
-                        activeOpacity={0.8}
-                      >
-                        {image ? (
-                          <View>
-                            <Image
-                              source={{ uri: image }}
-                              style={styles.image}
-                            />
-                            {isEditing && (
-                              <TouchableOpacity
-                                style={styles.removeIcon}
-                                onPress={() => handleRemoveImage(i)}
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() => isEditing && !image && handleImagePick(i)}
+                      style={{ position: 'relative', marginBottom: 10 }}
+                      activeOpacity={0.8}
+                    >
+                      {image ? (
+                        <View>
+                          <Image source={{ uri: image }} style={styles.image} />
+                          {isEditing && (
+                            <TouchableOpacity
+                              style={styles.removeIcon}
+                              onPress={() => handleRemoveImage(i)}
+                            >
+                              <Icon name="x" size={16} color={Colors.white} />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ) : (
+                        isEditing && (
+                          <View style={[styles.image, styles.emptyImage]}>
+                            {uploadingIndex === i ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={Colors.secondary}
+                              />
+                            ) : (
+                              <Text
+                                style={{
+                                  color: Colors.secondaryText,
+                                  fontSize: 20,
+                                }}
                               >
-                                <Icon name="x" size={16} color={Colors.white} />
-                              </TouchableOpacity>
+                                +
+                              </Text>
                             )}
                           </View>
-                        ) : (
-                          isEditing && (
-                            <View style={[styles.image, styles.emptyImage]}>
-                              {uploadingIndex === i ? (
-                                <ActivityIndicator
-                                  size="small"
-                                  color={Colors.secondary}
-                                />
-                              ) : (
-                                <Text
-                                  style={{
-                                    color: Colors.secondaryText,
-                                    fontSize: 20,
-                                  }}
-                                >
-                                  +
-                                </Text>
-                              )}
-                            </View>
-                          )
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
+                        )
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -551,7 +542,7 @@ const StorekeeperProfileScreen = () => {
           <CustomButton
             title={strings.saveChanges}
             onPress={handleSave}
-            disabled={uploadingIndex !== null} 
+            disabled={uploadingIndex !== null}
           />
         </View>
       )}

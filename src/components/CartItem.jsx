@@ -139,7 +139,7 @@ const CartItem = ({ item, openDropdownId, setOpenDropdownId }) => {
             keyboardType="number-pad"
             onChangeText={handleAmountChange}
             placeholder="Qty."
-            maxLength={4}
+            maxLength={5}
             inputAccessoryViewID={
               Platform.OS === 'ios' ? accessoryViewID : undefined
             }
@@ -254,7 +254,7 @@ const styles = ScaledSheet.create({
     marginTop: '8@ms',
   },
   input: {
-    width: '55@ms',
+    width: '60@ms',
     height: '38@ms',
     borderWidth: 1,
     borderColor: Colors.borderColor,

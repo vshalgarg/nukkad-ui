@@ -46,6 +46,8 @@ const ProfileSetting = () => {
   const scrollRef = useRef();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const firstNameRef = useRef(null);
+  const lastNameRef = useRef(null);
+
   const dispatch = useDispatch();
   const { confirmLogout } = useLogout();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -63,7 +65,6 @@ const ProfileSetting = () => {
     dob: profileData?.dob || '',
     mobileNumber: profileData?.mobile || '',
   });
-  console.log('mobileNumber', profileData?.mobile);
   const [DOB, setDOB] = useState(
     profileData?.dob ? formatDate(profileData.dob) : '',
   );
@@ -158,13 +159,7 @@ const ProfileSetting = () => {
         cancelText: 'OK',
       });
     }
-    if (!profile.lastName?.trim()) {
-      return showDialog({
-        title: 'Warning!',
-        message: 'Last name cannot be empty!',
-        cancelText: 'OK',
-      });
-    }
+
     if (!profile.email?.trim()) {
       return showDialog({
         title: 'Warning!',
@@ -265,10 +260,20 @@ const ProfileSetting = () => {
                     style={innerStyle.halfInput}
                     value={profile.firstName}
                     keyboardType="default"
-                    onChangeText={val => handleChange('firstName', val)}
+                    onChangeText={val => {
+                      // if space pressed, move to last name
+                      if (val.endsWith(' ')) {
+                        firstNameRef.current?.blur();
+                        setTimeout(() => lastNameRef.current?.focus(), 100);
+                      } else {
+                        handleChange('firstName', val);
+                      }
+                    }}
                     maxLength={15}
                   />
+
                   <TextInput
+                    ref={lastNameRef}
                     style={innerStyle.halfInput}
                     value={profile.lastName}
                     keyboardType="default"
@@ -348,7 +353,6 @@ const ProfileSetting = () => {
                     loading || isSaving ? Colors.disabled : Colors.primary,
                 }}
               />
-              {console.log('profileRole', profile)}
               {role === 'CUSTOMER' && (
                 <CustomButton
                   title="Delete Account"
@@ -382,7 +386,6 @@ const ProfileSetting = () => {
               </View>
             )
           )}
-          {console.log('profileData?.mobileNumber', profileData?.mobile)}
 
           <DeleteAccount
             visible={showDeleteModal}

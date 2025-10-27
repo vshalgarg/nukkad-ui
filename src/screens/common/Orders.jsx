@@ -350,7 +350,7 @@ const localStyles = ScaledSheet.create({
     color: Colors.secondary,
   },
   filterIconContainer: {
-    padding: 6,
+    padding: 3,
     borderRadius: 50,
     backgroundColor: Colors.white,
   },
