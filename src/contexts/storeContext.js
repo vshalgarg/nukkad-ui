@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getMyStores } from '../services/customer/getAllStoreService';
+import {
+  getMyStores,
+  deleteStore,
+} from '../services/customer/getAllStoreService';
 import { useAuth } from './authContext';
 
 const StoreContext = createContext();
@@ -88,6 +91,53 @@ export const StoreProvider = ({ children }) => {
     if (Array.isArray(stores)) setAllStores(stores);
   };
 
+  // Delete a store and update the allStores list
+  const removeStore = async (storeId, authtoken) => {
+    try {
+      // 1️⃣ Delete store from backend
+      await deleteStore(storeId, authtoken);
+
+      // 2️⃣ Update local state
+      setAllStores(prevStores => {
+        console.log('🗂️ Previous Stores:', prevStores, 'Deleting ID:', storeId);
+
+        const updatedStores = prevStores.filter(s => {
+          console.log('🔍 Comparing IDs:', {
+            storeIdField: s.storeId,
+            id: s.id,
+            storekeeperId: s.storekeeperId,
+            deletingId: storeId,
+          });
+
+          // ✅ Always compare as strings
+          return s.id?.toString() !== storeId?.toString();
+        });
+
+        // 3️⃣ Persist updated list to AsyncStorage
+        AsyncStorage.setItem('@all_stores', JSON.stringify(updatedStores));
+
+        // 4️⃣ If deleted store was selected, clear it
+        if (
+          storeData?.id?.toString() === storeId?.toString() ||
+          storeData?.storeId?.toString() === storeId?.toString()
+        ) {
+          AsyncStorage.removeItem(STORE_KEY);
+          setStoreData(null);
+        }
+
+        console.log('🟢 Updated Stores After Deletion:', updatedStores);
+        return updatedStores; // must return new list
+      });
+
+      console.log(
+        `✅ Store ${storeId} deleted successfully and context updated.`,
+      );
+    } catch (err) {
+      console.error('❌ Failed to delete store:', err.message);
+      throw err;
+    }
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -99,6 +149,8 @@ export const StoreProvider = ({ children }) => {
         allStores,
         setStoresList,
         isLoading,
+        fetchAllStores,
+        removeStore,
       }}
     >
       {children}

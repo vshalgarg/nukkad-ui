@@ -47,7 +47,11 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
 
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Gallery access is required.');
+      showDialog({
+        title: 'Permission Denied',
+        message: 'Gallery access is required to upload images.',
+        confirmText: 'OK',
+      });
       setPicking(false);
       return;
     }
@@ -69,10 +73,11 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
 
         const firstEmptyIndex = normalized.findIndex(img => !img);
         if (firstEmptyIndex === -1) {
-          Alert.alert(
-            'Limit reached',
-            `You can upload maximum ${MAX_IMAGES} images.`,
-          );
+          showDialog({
+            title: 'Limit Reached',
+            message: `You can upload a maximum of ${MAX_IMAGES} images.`,
+            confirmText: 'OK',
+          });
           return normalized;
         }
 
@@ -115,7 +120,11 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
             });
           } catch (err) {
             console.error('Upload failed:', err);
-            Alert.alert('Upload failed', 'Please try again');
+            showDialog({
+              title: 'Upload Failed',
+              message: 'Something went wrong. Please try again.',
+              confirmText: 'OK',
+            });
             setImages(prev2 => {
               const updated = [...prev2];
               const firstEmptyAfterUpload = updated.findIndex(

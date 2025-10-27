@@ -268,6 +268,7 @@ const SideBar = ({ isVisible, onClose }) => {
 
           <TouchableOpacity
             onPress={() => {
+              onClose();
               if (role === 'CUSTOMER') {
                 safePush('ProfileSetting');
               } else {
@@ -275,7 +276,7 @@ const SideBar = ({ isVisible, onClose }) => {
               }
             }}
           >
-            <Ionicons
+            <Ionicons 
               name="settings-sharp"
               size={24}
               color={Colors.secondaryText}

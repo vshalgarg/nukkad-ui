@@ -17,10 +17,13 @@ import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
+
+import { useDialog } from '../../contexts/DialogContext';
 import {
   getMyStores,
   deleteStore,
 } from '../../services/customer/getAllStoreService';
+
 import { useAuth } from '../../contexts/authContext';
 import { useNavigation } from '@react-navigation/native';
 import strings from '../../constants/string';
@@ -30,12 +33,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function MyStores() {
   const { safePush } = useSafeRouter();
   const { token } = useAuth();
-  const { saveStore, storeData } = useStore();
+  const { saveStore, storeData, removeStore, allStores, setStoresList } =
+    useStore();
   const navigation = useNavigation();
   const [stores, setStores] = useState([]);
   const [selectedStoreTemp, setSelectedStoreTemp] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const { showDialog } = useDialog();
   const fetchStores = async () => {
     try {
       setLoading(true);
@@ -68,58 +73,48 @@ export default function MyStores() {
   };
 
   const handleDelete = store => {
-    Alert.alert(
-      'Delete Store',
-      `Are you sure you want to delete "${store.storeName}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const idToDelete =
-                store.id?.toString() || store.storekeeperId?.toString();
+    const idToDelete = store.id?.toString() || store.storekeeperId?.toString();
 
-              await deleteStore(idToDelete, token);
+    showDialog({
+      title: 'Delete Store',
+      message: `Are you sure you want to delete "${store.storeName}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          // ✅ 1. Delete from backend via context
+          await removeStore(idToDelete, token);
 
-              setStores(prev => {
-                const updatedStores = prev.filter(
-                  s =>
-                    (s.id?.toString() || s.storekeeperId?.toString()) !==
-                    idToDelete,
-                );
+          // ✅ 2. Update local state (if using local list)
+          setStores(prev =>
+            prev.filter(
+              s =>
+                (s.id?.toString() || s.storekeeperId?.toString()) !==
+                idToDelete,
+            ),
+          );
 
-                // ✅ If deleted store was selected, pick another store as selected
-                if (
-                  selectedStoreTemp?.storekeeperId === store.storekeeperId &&
-                  updatedStores.length > 0
-                ) {
-                  setSelectedStoreTemp(updatedStores[0]);
-                  saveStore(updatedStores[0]);
-                }
+          // ✅ 3. Clear selected store if needed
+          if (
+            selectedStoreTemp?.storekeeperId === store.storekeeperId &&
+            stores.length === 1
+          ) {
+            setSelectedStoreTemp(null);
+            saveStore(null);
+          }
 
-                return updatedStores;
-              });
-
-              // ✅ If no stores left, clear selection
-              if (
-                selectedStoreTemp?.storekeeperId === store.storekeeperId &&
-                stores.length === 1
-              ) {
-                setSelectedStoreTemp(null);
-                saveStore(null);
-              }
-            } catch (err) {
-              console.error(
-                'Delete failed:',
-                err?.response?.data || err.message,
-              );
-            }
-          },
-        },
-      ],
-    );
+          console.log(`✅ Store "${store.storeName}" deleted successfully.`);
+        } catch (err) {
+          console.error(
+            '❌ Delete failed:',
+            err?.response?.data || err.message,
+          );
+        }
+      },
+      onCancel: () => {
+        console.log('🛑 Delete canceled for store:', store.storeName);
+      },
+    });
   };
 
   const handleChangeStore = () => {

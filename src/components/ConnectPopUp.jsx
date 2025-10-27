@@ -13,9 +13,9 @@ import Fonts from '../styles/font';
 import strings from '../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 
-const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
+const ConnectPopup = ({ onClose, visible, phone, position }) => {
   if (!visible) return null;
-  console.log(position);
+
   const phoneNumber = phone || '9999999999';
 
   const handleCall = () => {
@@ -35,15 +35,19 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
 
   return (
     <View style={styles.absoluteFill}>
+      {/* ✅ Outside area press closes popup */}
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay} />
       </TouchableWithoutFeedback>
 
+      {/* ✅ Popup sits *above* the overlay */}
       <View
         style={[
           styles.popupMenu,
-          styles.popup,
-          { top: position?.y, left: position?.x },
+          {
+            top: position?.y ?? 0,
+            left: position?.x ?? 0,
+          },
         ]}
       >
         <Pressable style={styles.popupItem} onPress={handleCall}>
@@ -52,6 +56,7 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
             <FontAwesome5 name="phone" size={15} color={Colors.secondary} />
           </View>
         </Pressable>
+
         <Pressable style={styles.popupItem} onPress={handleWhatsApp}>
           <View style={styles.row}>
             <Text style={styles.popupText}>{strings.whatsapp}</Text>
@@ -64,14 +69,15 @@ const ConnectPopup = ({ onClose, visible, phone, style, position }) => {
 };
 
 export default ConnectPopup;
+
 const styles = ScaledSheet.create({
-    absoluteFill: {
-      ...StyleSheet.absoluteFillObject,
-      zIndex: 999,
-    },
+  absoluteFill: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+  },
   overlay: {
-    flex: 1,
-    backgroundColor: 'transparent',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent', // can make rgba(0,0,0,0.1) for dim effect
   },
   popupMenu: {
     position: 'absolute',
@@ -81,8 +87,8 @@ const styles = ScaledSheet.create({
     borderWidth: 1,
     elevation: 5,
     width: '140@ms',
+    zIndex: 1000, // ✅ ensures popup is above overlay
   },
-
   popupItem: {
     paddingHorizontal: '16@ms',
     paddingVertical: '8@ms',

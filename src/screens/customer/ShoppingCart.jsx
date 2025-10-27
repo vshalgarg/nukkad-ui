@@ -86,21 +86,18 @@ const ShoppingCart = () => {
         value: store.id,
       }));
       setStoreItems(items);
+      console.log('storeItems', storeItems);
+      console.log('allStores', allStores);
 
-      // ✅ Always preselect a store (from repeat order or stored data)
       if (fromRepeatOrder && route.params?.originalStoreId) {
         setSelectedStore(route.params.originalStoreId);
+        setShowStoreDropdown(true);
       } else if (storeData) {
+        // preselect store from AsyncStorage
         setSelectedStore(storeData.id);
       } else {
+        // fallback to first store
         setSelectedStore(allStores[0].id);
-      }
-
-      // ✅ Show dropdown only if there are multiple stores
-      if (allStores.length > 1) {
-        setShowStoreDropdown(true);
-      } else {
-        setShowStoreDropdown(false);
       }
     }
   }, [allStores, storeData, fromRepeatOrder, route.params]);
