@@ -180,13 +180,14 @@ export default React.memo(AutoSlider);
 
 const styles = ScaledSheet.create({
   slideContainer: {
+    zIndex: 0,
     borderRadius: '16@s',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '20@s',
     height: '150@vs',
-    elevation: 3,
+    elevation: 0,
     shadowColor: Colors.secondary,
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 2 },

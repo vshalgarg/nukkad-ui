@@ -215,7 +215,7 @@ const ProfileSetting = () => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
-          <BackButton title={strings.profileSetting} />
+          <BackButton title={strings.myProfile} />
 
           <View style={innerStyle.container}>
             <View style={innerStyle.profileImageSection}>

@@ -117,6 +117,13 @@ const SearchContainer = ({
       console.warn('Failed to save recent', e);
     }
   };
+  useEffect(() => {
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setFocused(false);
+    });
+
+    return () => hideSub.remove();
+  }, []);
 
   const removeRecent = term => {
     // immediate UI update
@@ -274,7 +281,7 @@ const styles = ScaledSheet.create({
     top: '60@vs', // place it just below the input box
     left: '20@s',
     right: '20@s',
-    zIndex: 999,
+    zIndex: 9,
     elevation: 5, // for Android shadow
     backgroundColor: 'white',
     borderRadius: 8,

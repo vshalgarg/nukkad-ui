@@ -5,6 +5,7 @@ import {
   View,
   FlatList,
   Text,
+  Keyboard,
 } from 'react-native';
 import { PanResponder } from 'react-native';
 
@@ -204,9 +205,6 @@ const CustomerDashboard = () => {
   ];
 
   const renderItem = ({ item }) => {
-    if (item.type === 'search') {
-      return <SearchContainer onSearchSubmit={handleSearchSubmit} />;
-    }
     if (item.type === 'slider') {
       return <ProductSlider />;
     }
@@ -226,9 +224,13 @@ const CustomerDashboard = () => {
       {/* UserToolbar can also control sidebar visibility but here sidebar is controlled by swipe */}
       <UserToolbar
         onMenuPress={() => {
+          Keyboard.dismiss();
           if (!sidebarVisible) setSidebarVisible(true);
         }}
       />
+      <View style={{ zIndex: 9, elevation: 10 }}>
+        <SearchContainer onSearchSubmit={handleSearchSubmit} />
+      </View>
 
       {loading ? (
         <View
