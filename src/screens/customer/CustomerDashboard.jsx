@@ -14,7 +14,7 @@ import CategoryGridLayout from '../../components/category/CategoriesGridLayout.j
 import ProductSlider from '../../components/ProductSlider.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
 import UserToolbar from '../../components/UserToolbar.jsx';
-import SideBar from '../../components/sidebar/SideBar'; // <-- import Sidebar here
+import SideBar from '../../components/sidebar/SideBar'; 
 import styles from '../../styles/globalStyles.js';
 import { getAllCategories } from '../../services/customer/categoriesService.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
@@ -106,8 +106,8 @@ const CustomerDashboard = () => {
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.profileImage || null,
-        dob: userProfile.dob || '', // 👈 this is fine, lowercase
-        mobile: userProfile.mobileNumber || '', // 👈 should also work
+        dob: userProfile.dob || '', // this is fine, lowercase
+        mobile: userProfile.mobileNumber || '', // should also work
       });
 
       const stores = await fetchAllStores(token);

@@ -22,13 +22,13 @@ export const ProfileProvider = ({ children }) => {
           setProfile(parsed);
         }
       } catch (err) {
-        console.log('❌ Failed to load profile from storage', err);
+        console.log(' Failed to load profile from storage', err);
       }
     })();
   }, []);
 
   const resetProfile = async () => {
-    console.log('🔁 resetProfile CALLED');
+    console.log(' resetProfile CALLED');
     setProfile(null);
     await AsyncStorage.removeItem('userProfile');
   };
@@ -42,7 +42,7 @@ export const ProfileProvider = ({ children }) => {
       setProfile(newProfile);
       await AsyncStorage.setItem('userProfile', JSON.stringify(newProfile));
     } catch (err) {
-      console.error('❌ Failed to create profile locally:', err);
+      console.error(' Failed to create profile locally:', err);
     }
   };
 
@@ -62,7 +62,7 @@ export const ProfileProvider = ({ children }) => {
       setProfile(updated);
       await AsyncStorage.setItem('userProfile', JSON.stringify(updated));
     } catch (err) {
-      console.error('❌ Failed to update profile:', err);
+      console.error(' Failed to update profile:', err);
       throw err;
     }
   };

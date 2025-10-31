@@ -29,6 +29,8 @@ import { useNavigation } from '@react-navigation/native';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDefaultStore } from '../../services/customer/addStoreService';
+import { showToast } from '../../utils/toastUtils';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
@@ -44,18 +46,40 @@ export default function MyStores() {
   const fetchStores = async () => {
     try {
       setLoading(true);
+
+      // Fetch all stores
       const response = await getMyStores(token);
       setStores(response);
+
+      //  Fetch default store from backend
+      let defaultStore = null;
+      try {
+        defaultStore = await getDefaultStore();
+      } catch (e) {
+        console.log('No default store set yet');
+      }
+
+      console.log(defaultStore);
+      if (defaultStore) {
+        setSelectedStoreTemp(defaultStore);
+        saveStore(defaultStore); // store in context + AsyncStorage
+        return;
+      }
 
       if (response.length === 1) {
         saveStore(response[0]);
         setSelectedStoreTemp(response[0]);
-      } else {
-        const exists = await AsyncStorage.getItem('@selected_store');
+        return;
+      }
 
-        if (exists) {
-          setSelectedStoreTemp(storeData);
-        }
+      if (storeData) {
+        setSelectedStoreTemp(storeData);
+        return;
+      }
+
+      const exists = await AsyncStorage.getItem('@selected_store');
+      if (exists) {
+        setSelectedStoreTemp(JSON.parse(exists));
       }
     } catch (err) {
       console.error('Failed to fetch stores:', err);
@@ -67,7 +91,13 @@ export default function MyStores() {
   useEffect(() => {
     fetchStores();
   }, []);
+  useEffect(() => {
+    if (storeData) {
+      setSelectedStoreTemp(storeData);
+    }
+  }, [storeData]);
 
+  console.log('selectedStoreTemp', selectedStoreTemp);
   const handleAddStore = () => {
     safePush('AddStore');
   };
@@ -82,10 +112,8 @@ export default function MyStores() {
       cancelText: 'Cancel',
       onConfirm: async () => {
         try {
-          // ✅ 1. Delete from backend via context
           await removeStore(idToDelete, token);
 
-          // ✅ 2. Update local state (if using local list)
           setStores(prev =>
             prev.filter(
               s =>
@@ -94,7 +122,6 @@ export default function MyStores() {
             ),
           );
 
-          // ✅ 3. Clear selected store if needed
           if (
             selectedStoreTemp?.storekeeperId === store.storekeeperId &&
             stores.length === 1
@@ -103,37 +130,40 @@ export default function MyStores() {
             saveStore(null);
           }
 
-          console.log(`✅ Store "${store.storeName}" deleted successfully.`);
+          console.log(` Store "${store.storeName}" deleted successfully.`);
         } catch (err) {
           console.error(
-            '❌ Delete failed:',
+            ' Delete failed:',
             err?.response?.data || err.message,
           );
+          showToast('error', 'Cannot Delete Default Store');
         }
       },
       onCancel: () => {
-        console.log('🛑 Delete canceled for store:', store.storeName);
+        console.log(' Delete canceled for store:', store.storeName);
       },
     });
   };
 
-  const handleChangeStore = () => {
+  const handleChangeStore = async () => {
     if (selectedStoreTemp) {
-      saveStore(selectedStoreTemp);
+      await saveStore(selectedStoreTemp); 
     }
     navigation.goBack();
   };
 
   const handleSelectStoreTemp = store => {
     setSelectedStoreTemp(store);
-    saveStore(selectedStoreTemp);
   };
 
   const renderItem = ({ item }) => {
-    const isSelected =
-      (selectedStoreTemp?.id?.toString() ||
-        selectedStoreTemp?.storekeeperId?.toString()) ===
-      (item.id?.toString() || item.storekeeperId?.toString());
+    const selectedId = String(
+      selectedStoreTemp?.storekeeperId ||
+        selectedStoreTemp?.id ||
+        selectedStoreTemp.storeId,
+    );
+    const itemId = String(item.storekeeperId || item.id);
+    const isSelected = selectedId === itemId;
 
     return (
       <Pressable
@@ -221,12 +251,14 @@ export default function MyStores() {
           <>
             <FlatList
               data={stores}
+              extraData={selectedStoreTemp}
               keyExtractor={item =>
                 item.id?.toString() || item.storekeeperId?.toString()
               }
               renderItem={renderItem}
               contentContainerStyle={{ paddingBottom: 20 }}
             />
+
             <View style={innerStyle.btnContainer}>
               <CustomButton
                 onPress={handleAddStore}
@@ -236,7 +268,7 @@ export default function MyStores() {
               />
               <CustomButton
                 onPress={handleChangeStore}
-                title={strings.changeStore}
+                title={strings.selectStore}
                 className="bg-white"
                 textClassName="text-black"
               />

@@ -1,5 +1,3 @@
-import { isRejected } from '@reduxjs/toolkit';
-import { SuccessToast } from 'react-native-toast-message';
 
 const Colors = {
   primary: '#58BF68',

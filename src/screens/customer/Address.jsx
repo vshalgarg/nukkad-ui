@@ -92,50 +92,7 @@ const Address = () => {
     console.log(storedSelectedId);
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     if (address.length === 0) return; // 💡 Wait for address to be loaded
-
-  //     const syncSelectedAddress = async () => {
-  //       try {
-  //         const storedSelectedId = await AsyncStorage.getItem(
-  //           'selectedAddressId',
-  //         );
-  //         console.log('storedSelectedId', storedSelectedId);
-
-  //         if (
-  //           storedSelectedId &&
-  //           address.some(a => String(a.id) === storedSelectedId)
-  //         ) {
-  //           setSelectedAddressId(storedSelectedId);
-  //         } else {
-  //           const defaultAddr = address.find(a => a.isDefault);
-  //           const fallback = defaultAddr || address[0];
-
-  //           if (fallback) {
-  //             setSelectedAddressId(String(fallback.id));
-  //             await AsyncStorage.setItem(
-  //               'selectedAddressId',
-  //               String(fallback.id),
-  //             );
-  //           } else {
-  //             setSelectedAddressId(null);
-  //             await AsyncStorage.removeItem('selectedAddressId');
-  //           }
-  //         }
-
-  //         if (route.params?.fromCart) {
-  //           navigation.setParams({ fromCart: undefined });
-  //         }
-  //       } catch (err) {
-  //         console.warn('⚠️ Failed to load selected address:', err.message);
-  //       }
-  //     };
-
-  //     syncSelectedAddress();
-  //   }, [address]),
-  // );
-
+ 
   const handleMarkAsDefault = async item => {
     try {
       await handleSelectAddress(item.id);

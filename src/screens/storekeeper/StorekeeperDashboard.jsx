@@ -124,18 +124,7 @@ const StorekeeperDashboard = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const currentStatuses = statusTabs[formState].statuses;
 
-  //   // Check if we already have orders for this tab
-  //   const existingOrders = orders.filter(o =>
-  //     currentStatuses.includes(o.orderStatus),
-  //   );
-
-  //   if (existingOrders.length === 0) {
-  //     loadOrders(currentStatuses[0], 0);
-  //   }
-  // }, [formState]);
 
   useEffect(() => {
     console.log(toast);
@@ -144,7 +133,7 @@ const StorekeeperDashboard = () => {
         const parsedToast = JSON.parse(toast);
         showToast(parsedToast.type, parsedToast.title);
       } catch (e) {
-        console.warn('⚠️ Failed to parse toast:', e.message);
+        console.warn(' Failed to parse toast:', e.message);
       }
     }
   }, []);
@@ -336,11 +325,7 @@ const StorekeeperDashboard = () => {
         <Text style={[innerStyle.heading, textStyles.subheading]}>
           My Orders
         </Text>
-        {/* <TouchableOpacity
-          onPress={() => safePush({ pathname: 'Notification' })}
-        >
-          <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
-        </TouchableOpacity> */}
+       
       </View>
 
       <SideBar
@@ -598,14 +583,14 @@ const innerStyle = ScaledSheet.create({
     color: Colors.secondary,
   },
   orderStatus: {
-    paddingHorizontal: '5@ms',
+    // marginHorizontal: '1@ms',
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: '20@vs',
     marginBottom: '20@vs',
   },
   statusButton: {
-    paddingHorizontal: '20@ms',
+    paddingHorizontal: '5@ms',
     paddingVertical: '8@vs',
     borderRadius: '50@ms',
   },
@@ -641,6 +626,8 @@ const innerStyle = ScaledSheet.create({
   },
   statusText: {
     color: Colors.secondary,
+    fontSize: Fonts.sizes.sm,
+    paddingHorizontal: '5@ms',
   },
   updatedStatus: {
     lineHeight: '20@vs',

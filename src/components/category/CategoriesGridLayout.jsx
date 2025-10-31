@@ -17,7 +17,7 @@ const CategoryGridLayout = ({ categories, onPressCategory }) => {
         numColumns={numColumns}
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={{
-          justifyContent: 'space-between', // ✅ evenly space each row
+          justifyContent: 'space-between',
           paddingHorizontal: spacing,
         }}
         contentContainerStyle={{

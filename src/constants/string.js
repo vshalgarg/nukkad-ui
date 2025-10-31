@@ -47,7 +47,7 @@ const strings = {
   verifiedOtp: 'OTP Verified',
   addStoreViaQR: 'Scan QR to Add Store',
   addStoreViaNumber: 'Add Store By Id',
-  changeStore: 'Change Store',
+  selectStore: 'Select Store',
   skip: 'Skip',
   noStoresFound: 'No stores found',
   myStores: 'My Stores',

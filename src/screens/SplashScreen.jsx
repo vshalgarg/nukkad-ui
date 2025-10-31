@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { View, ActivityIndicator, StatusBar, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCustomerProfile } from '../services/customer/profileService';
 import { getStorekeeperProfile } from '../services/storekeeper/storekeeperProfileService';
@@ -54,7 +54,10 @@ const SplashScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <StatusBar backgroundColor="white" barStyle="dark-content" />
-      <ActivityIndicator size="large" color="#000" />
+      <Image
+        source={require('../../assets/app_icon.png')}
+        style={{ width: 120, height: 120, resizeMode: 'contain' }}
+      />
     </View>
   );
 };

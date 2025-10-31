@@ -101,7 +101,7 @@ const OrderItem = memo(
                 keyboardType="number-pad"
                 inputAccessoryViewID="doneKeyboardAccessory"
                 value={price ? price.toString() : ''}
-                maxLength={4}
+                maxLength={6}
                 onChangeText={value => onPriceChange(itemId, value)}
               />
             )

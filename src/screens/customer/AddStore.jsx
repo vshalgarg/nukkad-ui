@@ -61,14 +61,13 @@ export default function AddStore() {
 
   const scannerRef = useRef();
   const isScanningRef = useRef(false);
-  const isMountedRef = useRef(true); // ✅ declare ref
+  const isMountedRef = useRef(true);
 
   const route = useRoute();
   const hideBackButton = route?.params?.hideBackButton || false;
 
   const { showDialog } = useDialog();
 
-  // ✅ handle mount/unmount
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -76,7 +75,7 @@ export default function AddStore() {
     };
   }, []);
   useEffect(() => {
-    Keyboard.dismiss(); // 👈 Hides the keyboard when screen mounts
+    Keyboard.dismiss(); //  Hides the keyboard when screen mounts
   }, []);
 
   const handleConfirm = () => {
@@ -86,7 +85,7 @@ export default function AddStore() {
   };
   const handleCancel = () => {
     setDialogOpen(false);
-    console.log('❌ Action cancelled');
+    console.log(' Action cancelled');
   };
 
   const persistStoreIfNew = async store => {
@@ -178,7 +177,7 @@ export default function AddStore() {
       Keyboard.dismiss();
       setDialogOpen(true);
     } catch (error) {
-      showToast('error', 'error in adding store');
+      showToast('error', 'Enter a valid store id');
     }
   };
 
@@ -302,7 +301,6 @@ export default function AddStore() {
             disabled={isSubmitting}
           />
           {hideBackButton && (
-            // ✅ When coming from Create Profile → show Skip
             <CustomButton title={strings.skip} onPress={handleSkip} />
           )}
         </View>

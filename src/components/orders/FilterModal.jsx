@@ -148,7 +148,7 @@ const FilterModal = ({
   const CustomMarker = ({ currentValue }) => (
     <View style={styles.markerContainer}>
       <Text numberOfLines={1} style={styles.labelText}>
-        ₹{currentValue}
+        ₹{currentValue >= 5000 ? '5000+' : currentValue}
       </Text>
       <View style={styles.marker} />
     </View>
@@ -221,9 +221,12 @@ const FilterModal = ({
                 <Text style={styles.sectionTitle}>Price Range</Text>
                 <View style={styles.sliderContainer}>
                   <MultiSlider
-                    values={[Number(minPrice) || 0, Number(maxPrice) || 5000]}
+                    values={[
+                      Number(minPrice) || 0,
+                      Number(maxPrice) || 2000000,
+                    ]}
                     min={0}
-                    max={5000}
+                    max={2000000}
                     sliderLength={screenWidth - 70}
                     customMarker={e => (
                       <CustomMarker currentValue={e.currentValue} />

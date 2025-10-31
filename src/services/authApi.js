@@ -5,7 +5,7 @@ export const sendOtp = async (mobileNumber, role = null) => {
   const payload = { mobileNumber };
   if (role) payload.role = role;
 
-  console.log('📤 Sending OTP request with payload:', payload);
+  console.log(' Sending OTP request with payload:', payload);
 
   try {
     const response = await api.post(
@@ -42,7 +42,7 @@ export const verifyOtp = async ({ mobile, firebaseToken }) => {
     deviceToken: FcmToken,
   };
 
-  console.log('📤 Verifying OTP with payload:', payload);
+  console.log(' Verifying OTP with payload:', payload);
 
   try {
     const response = await api.post(
@@ -50,14 +50,14 @@ export const verifyOtp = async ({ mobile, firebaseToken }) => {
       payload,
     );
 
-    console.log('✅ Verify OTP API Success:', {
+    console.log(' Verify OTP API Success:', {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error('❌ Verify OTP API Error:', {
+    console.error(' Verify OTP API Error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

@@ -1,4 +1,5 @@
-import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Grocery from '../../assets/images/grocery-logo.svg';
 import { useSafeRouter } from '../hooks/useSafeRouter';
@@ -7,9 +8,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUserType } from './../store/userSlice.js';
 import strings from '../constants/string.js';
 import Fonts from '../styles/font.js';
-
 import { ScaledSheet } from 'react-native-size-matters';
 import useBackHandlerControl from '../hooks/useBackHandlerControl.jsx';
+import { setupAndStoreFcmToken } from '../utils/fcmHelper.js';
 
 export default function HomeScreen() {
   useBackHandlerControl({ confirmBack: true });
@@ -18,6 +19,12 @@ export default function HomeScreen() {
   const userType = useSelector(state => state.user.userType);
 
   const options = ['I AM CUSTOMER', 'I AM STOREKEEPER'];
+
+  useFocusEffect(
+    useCallback(() => {
+      setupAndStoreFcmToken();
+    }, []),
+  );
 
   return (
     <View style={localStyles.pageContainer}>
@@ -44,7 +51,6 @@ export default function HomeScreen() {
                     : Colors.white,
               },
             ]}
-            accessibilityLabel={`Select ${option}`}
           >
             <Text
               style={[

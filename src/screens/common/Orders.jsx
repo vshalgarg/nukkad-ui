@@ -22,6 +22,7 @@ import { useAuth } from '../../contexts/authContext';
 import { fetchOrderHistory } from '../../services/common/OrderHistoryService';
 import { ScaledSheet } from 'react-native-size-matters';
 import strings from '../../constants/string';
+import ConnectPopup from '../../components/ConnectPopUp';
 
 const Orders = () => {
   const { token, role, loading: authLoading } = useAuth();
@@ -40,25 +41,29 @@ const Orders = () => {
   const [isFilterApplied, setIsFilterApplied] = useState(false);
   const [filterParams, setFilterParams] = useState({});
 
+  const [popupOrderId, setPopupOrderId] = useState(null);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [popupPhone, setPopupPhone] = useState(null);
+
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const size = 10;
 
-  // const fetchOrders = useCallback(async () => {
-  //   if (!token) return;
-  //   try {
-  //     const res = await fetchOrderHistory(token);
 
-  //     setOrders(Array.isArray(res.orders) ? res.orders : []);
-  //   } catch (err) {
-  //     console.error('❌ Failed to fetch orders:', err);
-  //   } finally {
-  //     setLoading(false);
-  //     setRefreshing(false);
-  //   }
-  // }, [token]);
+
+  const handleShowPopup = (order, position) => {
+    setPopupOrderId(order.orderId);
+    setPopupPosition(position);
+    setPopupPhone(
+      role === 'STOREKEEPER'
+        ? order.address?.mobileNumber
+        : order?.storekeeperNumber,
+    );
+  };
+
+  const closePopup = () => setPopupOrderId(null);
 
   const fetchOrders = useCallback(
     async (page = 0, filters = {}) => {
@@ -124,7 +129,7 @@ const Orders = () => {
           : null,
         endDate: dateTo ? new Date(dateTo).toISOString().split('T')[0] : null,
         minPrice: minPrice || 0,
-        maxPrice: maxPrice || 5000,
+        maxPrice: maxPrice || 2000000,
       };
 
       const cleanedParams = Object.fromEntries(
@@ -296,10 +301,20 @@ const Orders = () => {
               {...commonProps}
               totalPrice={totalPrice}
               role={role}
+              popupOrderId={popupOrderId}
+              onShowPopup={handleShowPopup}
             />
           );
         }}
       />
+      {popupOrderId && (
+        <ConnectPopup
+          visible={!!popupOrderId}
+          onClose={closePopup}
+          position={popupPosition}
+          phone={popupPhone}
+        />
+      )}
     </View>
   );
 };

@@ -39,7 +39,7 @@ export const uploadImageAsync = async (filePath, fileName) => {
 export const deleteImageAsync = async fileName => {
   console.log(fileName);
   try {
-    console.log('🗑️ Deleting:', fileName);
+    console.log(' Deleting:', fileName);
 
     const storageRef = storage().ref(`profile_images/${fileName}`);
 

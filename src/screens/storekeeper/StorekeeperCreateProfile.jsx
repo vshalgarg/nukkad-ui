@@ -29,7 +29,7 @@ import StateDropdown from '../../components/StateDropdown';
 import CityDropdown from '../../components/CityDropdown';
 import useKeyboardStatus from '../../hooks/useKeyboardStatus';
 
-let pressLock = false; // ✅ Global lock to prevent rapid repeat taps
+let pressLock = false;
 
 const StorekeeperCreateProfile = () => {
   const isKeyboardVisible = useKeyboardStatus();
@@ -210,7 +210,7 @@ const StorekeeperCreateProfile = () => {
         const parsedToast = JSON.parse(toast);
         showToast(parsedToast.type, parsedToast.title);
       } catch (e) {
-        console.warn('⚠️ Failed to parse toast:', e.message);
+        console.warn(' Failed to parse toast:', e.message);
       }
     }
   }, []);
@@ -476,23 +476,7 @@ const StorekeeperCreateProfile = () => {
                   dropdownKey="city"
                 />
 
-                {/* <Text style={formStyles.label}>
-              {strings.state} <Text style={formStyles.mandatory}>*</Text>
-            </Text>
-            <CustomInput
-              ref={stateRef}
-              placeholder="Enter Your State"
-              value={state}
-              maxLength={20}
-              autoCapitalize="sentences"
-              onTextChange={text => {
-                setState(text);
-                if (errors.state && text.trim().length > 0) {
-                  setErrors(prev => ({ ...prev, state: false }));
-                }
-              }}
-              isError={errors.state}
-            /> */}
+             
               </View>
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>

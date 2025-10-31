@@ -17,7 +17,7 @@ api.interceptors.request.use(async config => {
   const token = await AsyncStorage.getItem('authToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
-  console.log('➡️ API Request:', {
+  console.log(' API Request:', {
     method: config.method,
     url: `${config.baseURL}${config.url}`,
     headers: config.headers,
@@ -32,7 +32,7 @@ api.interceptors.response.use(
   response => {
     const { responseCode, message } = response.data;
 
-    console.log('✅ API Response:', {
+    console.log('API Response:', {
       url: response.config.url,
       status: response.status,
       data: response.data,
@@ -50,7 +50,7 @@ api.interceptors.response.use(
     return response;
   },
   error => {
-    console.error('❌ API Error:', {
+    console.error('API Error:', {
       message: error.message,
       url: error?.config?.url,
       method: error?.config?.method,

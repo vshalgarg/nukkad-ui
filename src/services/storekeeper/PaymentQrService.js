@@ -1,7 +1,7 @@
 // PaymentQrService.js
 import api from '../api';
 
-// 📤 Upload a new QR image
+//  Upload a new QR image
 export const uploadQRImage = async (payload, token) => {
   console.log({ qrCodes: payload.qrCodes }, 'payload');
   try {
@@ -22,9 +22,9 @@ export const uploadQRImage = async (payload, token) => {
   }
 };
 
-// 📥 Get all uploaded QR images
+//  Get all uploaded QR images
 export const fetchPaymentQRs = async token => {
-  console.log('📥 Fetching Payment QRs');
+  console.log(' Fetching Payment QRs');
   try {
     const response = await api.get('/nukkad/api/qr/v1/getAll/qrCodes', {
       headers: {
@@ -40,9 +40,9 @@ export const fetchPaymentQRs = async token => {
   }
 };
 
-// 🗑️ Delete QR by ID
+//  Delete QR by ID
 export const deletePaymentQR = async (qrId, token) => {
-  console.log('🗑️ Deleting Payment QR with ID:', qrId);
+  console.log(' Deleting Payment QR with ID:', qrId);
   try {
     const response = await api.delete(`/nukkad/api/qr/v1/delete/${qrId}`, {
       headers: {
@@ -58,13 +58,13 @@ export const deletePaymentQR = async (qrId, token) => {
   }
 };
 
-// 🔄 Update QR image by ID
+//  Update QR image by ID
 export const updatePaymentQR = async (qrId, payload, token) => {
-  console.log('✏️ Updating Payment QR with ID:', qrId, payload);
+  console.log(' Updating Payment QR with ID:', qrId, payload);
   try {
     const response = await api.put(
       `/nukkad/api/qr/v1/update/${qrId}`,
-      { qrImage: payload.qrCodes }, // ✅ send JSON, not FormData
+      { qrImage: payload.qrCodes },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -73,16 +73,16 @@ export const updatePaymentQR = async (qrId, payload, token) => {
       },
     );
 
-    console.log('✅ Payment QR Update Success:', response.data);
+    console.log(' Payment QR Update Success:', response.data);
     return response.data;
   } catch (error) {
-    console.error('❌ Payment QR Update Error:', error);
+    console.error(' Payment QR Update Error:', error);
     throw new Error('Payment QR Update failed');
   }
 };
 
 export const setDefaultPaymentQR = async (qrId, token) => {
-  console.log('🔧 Setting Default Payment QR with ID:', qrId);
+  console.log(' Setting Default Payment QR with ID:', qrId);
   try {
     const response = await api.put(
       `/nukkad/api/qr/v1/${qrId}/default`,

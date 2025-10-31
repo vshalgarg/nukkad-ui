@@ -113,7 +113,6 @@ const SideBar = ({ isVisible, onClose }) => {
     ...(userRole !== 'STOREKEEPER'
       ? [{ name: 'Rate Store', icon: 'star' }]
       : []),
-    // { name: 'Logout', icon: 'log-out' },
   ];
 
   const roleBasedItem =
@@ -136,9 +135,7 @@ const SideBar = ({ isVisible, onClose }) => {
         'Add Store': 'AddStore',
         Addresses: 'Address',
       }),
-      // Notifications: 'Notification',
-      // Settings: 'settings',
-      // 'Help and Support': 'Help',
+
       'Refer Store to Customer': 'ReferToCustomer',
       'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
@@ -170,43 +167,7 @@ const SideBar = ({ isVisible, onClose }) => {
       return;
     }
 
-    // if (menuName === 'Logout') {
-    //   showDialog({
-    //     title: 'Logout',
-    //     message: 'Are you sure you want to Logout?',
-    //     confirmText: 'Logout',
-    //     cancelText: 'Cancel',
-    //     onCancel: () => {
-    //       console.log('Logout cancelled');
-    //     },
-    //     onConfirm: async () => {
-    //       try {
-    //         setLoggingOut(true); // ✅ Prevents back confirmation
-    //         await persistor.purge();
-    //         await AsyncStorage.removeItem('authToken');
-    //         await AsyncStorage.removeItem('userRole');
-    //         await AsyncStorage.removeItem('storekeeperProfile');
-    //         await AsyncStorage.clear();
-    //         dispatch(clearCart());
-    //         dispatch(resetUser());
-    //         resetProfile();
-    //         resetAddress();
-    //         resetStore();
-    //         safeReplace('Home');
-    //       } catch (error) {
-    //         console.error('Logout failed:', error);
-    //         showToast(
-    //           'error',
-    //           'Failed Logout',
-    //           err?.message || 'Please try again',
-    //         );
-    //       } finally {
-    //         setTimeout(() => setLoggingOut(false), 100);
-    //       }
-    //     },
-
-    //   })
-    // }
+   
 
     const routeName = getRouteForMenuItem(menuName, userRole);
     if (routeName) {
@@ -234,11 +195,7 @@ const SideBar = ({ isVisible, onClose }) => {
                 resizeMode="cover"
               />
             ) : (
-              //  (
-              //   <View style={{ overflow: 'hidden', borderRadius: 30 }}>
-              //     <ProfileImage height={60} width={60} />
-              //   </View>
-              // )
+             
               <Ionicons
                 name="person-circle-outline"
                 color="#000"

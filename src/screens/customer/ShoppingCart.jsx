@@ -38,6 +38,7 @@ import { placeOrder } from '../../services/customer/orderService';
 import { useStore } from '../../contexts/storeContext';
 import strings from '../../constants/string';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { useDialog } from '../../contexts/DialogContext';
 
 const ShoppingCart = () => {
   const { address, selectedAddressId, setMode, setAddressData } = useAddress();
@@ -47,6 +48,7 @@ const ShoppingCart = () => {
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
   console.log('route.params', fromRepeatOrder);
+  const { showDialog } = useDialog();
 
   const dispatch = useDispatch();
   const cartItems = useSelector(state => state.cart.items);
@@ -155,21 +157,17 @@ const ShoppingCart = () => {
 
   const handleCompleteOrder = async () => {
     if (orderInProgress) return;
-    setOrderInProgress(true);
 
     if (!selectedAddress) {
       showToast('error', strings.missingAddress1, strings.missingAddress2);
-      setOrderInProgress(false);
       return;
     }
     if (!storeKeeperId) {
       showToast('error', strings.missingStore1, strings.missingStore2);
-      setOrderInProgress(false);
       return;
     }
     if (cartItems.length === 0) {
       showToast('error', strings.missingItems1, strings.missingItems2);
-      setOrderInProgress(false);
       return;
     }
     if (
@@ -180,32 +178,55 @@ const ShoppingCart = () => {
       )
     ) {
       showToast('error', strings.failedToPlaceOrder, strings.invalidQty);
-      setOrderInProgress(false);
       return;
     }
 
-    const finalStoreKeeperId = selectedStore || storeKeeperId;
+    const storeName =
+      allStores.find(store => store.id === selectedStore)?.storeName ||
+      storeData?.storeName ||
+      'this store';
 
-    const payload = {
-      deliveryAddressId: selectedAddress?.id,
-      storeKeeperId: finalStoreKeeperId,
-      orderItem: cartItems.map(item => ({
-        itemId: item.product.id,
-        quantity: Number(item.product.amount),
-        unit: item.product.selectedUnit,
-      })),
-    };
+    showDialog({
+      title: 'Confirm Order',
+      message: (
+        <Text style={{ color: Colors.secondary }}>
+          Do you want to place order from{' '}
+          <Text style={{ fontWeight: 'bold', color: Colors.secondary }}>
+            {storeName}
+          </Text>
+          ?
+        </Text>
+      ),
+      confirmText: 'Yes',
+      cancelText: 'No',
+      onCancel: () => {
+        console.log('Order cancelled by user');
+      },
+      onConfirm: async () => {
+        setOrderInProgress(true);
 
-    safePush('PlaceOrder');
+        const finalStoreKeeperId = selectedStore || storeKeeperId;
+        const payload = {
+          deliveryAddressId: selectedAddress?.id,
+          storeKeeperId: finalStoreKeeperId,
+          orderItem: cartItems.map(item => ({
+            itemId: item.product.id,
+            quantity: Number(item.product.amount),
+            unit: item.product.selectedUnit,
+          })),
+        };
 
-    try {
-      await placeOrder(payload, token);
-      dispatch(clearCart());
-    } catch (error) {
-      showToast('error', error.message || 'Failed to place order');
-    } finally {
-      setOrderInProgress(false);
-    }
+        try {
+          safePush('PlaceOrder');
+          await placeOrder(payload, token);
+          dispatch(clearCart());
+        } catch (error) {
+          showToast('error', error.message || 'Failed to place order');
+        } finally {
+          setOrderInProgress(false);
+        }
+      },
+    });
   };
 
   if (loading) {

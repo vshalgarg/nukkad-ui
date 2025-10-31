@@ -71,7 +71,7 @@ const MobileOtpScreen = () => {
     return () => clearInterval(interval);
   }, [sendOtpClicked, canResend]);
 
-  // 🔹 Send OTP: backend + Firebase
+  //  Send OTP: backend + Firebase
   const sendOtpRequest = async (isResend = false) => {
     Keyboard.dismiss();
     // setSendingOtp(true); // show "Sending..."
@@ -97,7 +97,6 @@ const MobileOtpScreen = () => {
     } catch (error) {
       console.error('Send OTP Error:', error);
 
-      // ✅ Handle no internet explicitly
       if (error.message === 'No Internet Connection') {
         showToast(
           'error',
@@ -128,7 +127,7 @@ const MobileOtpScreen = () => {
     sendOtpRequest(true);
   };
 
-  // 🔹 Verify OTP: Firebase + backend
+  //  Verify OTP: Firebase + backend
   const handleLogin = async () => {
     if (!otp || otp.length < 6) {
       showToast('error', strings.invalidOtp, strings.tryAgain);

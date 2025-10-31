@@ -29,7 +29,7 @@ export const deleteStore = async (storeId, token) => {
         },
       },
     );
-    console.log(` deleteStore response for ID ${storeId}:`, response.data); // 👈 log here
+    console.log(` deleteStore response for ID ${storeId}:`, response.data); // log here
     return response.data;
   } catch (err) {
     console.error(

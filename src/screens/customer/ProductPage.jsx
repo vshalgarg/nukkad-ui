@@ -111,7 +111,6 @@ const ProductPage = () => {
     };
   }, []);
 
-  // ✅ Actual search logic
   const handleSearch = async (keyword, page = 0) => {
     if (!keyword.trim()) return;
     setSearching(true);
@@ -126,11 +125,10 @@ const ProductPage = () => {
       setGroupedResults([]);
     } finally {
       setSearching(false);
-      setHasSearched(true); // ✅ Add this line
+      setHasSearched(true);
     }
   };
 
-  // ✅ Debounced search
   const debouncedSearch = useCallback(
     debounce(query => {
       if (query.trim().length > 0) {

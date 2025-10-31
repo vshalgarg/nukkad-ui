@@ -47,7 +47,7 @@ export const AddressProvider = ({ children }) => {
       AsyncStorage.setItem('selectedAddressId', String(selectedAddressId));
   }, [selectedAddressId]);
 
-  // 🔥 ADD NEW ADDRESS
+  //  ADD NEW ADDRESS
   const addAddress = async data => {
     const tempId = `temp-${Date.now()}`;
     const optimisticAddress = {
@@ -80,7 +80,7 @@ export const AddressProvider = ({ children }) => {
     }
   };
 
-  // 🔥 UPDATE EXISTING ADDRESS
+  //  UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {
     // 1. Optimistically update local state
     setAddress(prev =>
@@ -99,7 +99,7 @@ export const AddressProvider = ({ children }) => {
     }
   };
 
-  // 🔥 DELETE ADDRESS
+  //  DELETE ADDRESS
   const deleteAddress = async id => {
     await deleteAddressFromServer(id);
     const filtered = address.filter(a => a.id !== id);
@@ -111,15 +111,14 @@ export const AddressProvider = ({ children }) => {
     }
   };
 
-  // 🔥 MARK DEFAULT
+  //  MARK DEFAULT
   const markAsDefault = async id => {
     await markAddressAsDefault(id);
-    await syncAddressesFromServer(); // ✅ will handle setting default + selected
+    await syncAddressesFromServer(); 
   };
 
-  // 🔄 SYNC FROM SERVER
   const syncAddressesFromServer = async () => {
-    const fresh = await getAllAddresses(); // ✅ fetch from server
+    const fresh = await getAllAddresses(); 
     setAddress(fresh);
     await AsyncStorage.setItem('address', JSON.stringify(fresh));
   };

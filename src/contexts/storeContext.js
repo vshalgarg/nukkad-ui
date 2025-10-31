@@ -1,16 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  getMyStores,
-  deleteStore,
-} from '../services/customer/getAllStoreService';
+
 import { useAuth } from './authContext';
+import {
+  getDefaultStore,
+  setDefaultStore,
+} from '../services/customer/addStoreService';
+import {
+  deleteStore,
+  getMyStores,
+} from '../services/customer/getAllStoreService';
 
 const StoreContext = createContext();
 const STORE_KEY = '@selected_store';
 
 export const StoreProvider = ({ children }) => {
-  const { token, role } = useAuth(); // get auth info from AuthContext
+  const { token, role } = useAuth();
   const [storeData, setStoreData] = useState(null);
   const [allStores, setAllStores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +34,23 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Fetch stores from API
+  // Fetch default store from API
+  const fetchDefaultStore = async () => {
+    try {
+      const defaultStore = await getDefaultStore();
+      if (defaultStore) {
+        setStoreData(defaultStore);
+        await AsyncStorage.setItem(STORE_KEY, JSON.stringify(defaultStore));
+        console.log('Fetched and saved default store:', defaultStore);
+      }
+    } catch (err) {
+      console.error('Failed to fetch default store:', err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all stores (kept for backward compatibility)
   const fetchAllStores = async authtoken => {
     try {
       const stores = await getMyStores(authtoken);
@@ -44,13 +65,21 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Save or remove selected store
+  // Save or remove selected store and set as default
   const saveStore = async store => {
     try {
       if (store) {
+        // Set as default on backend
+        const storeId = store.id || store.storeId || store.storekeeperId;
+        await setDefaultStore(storeId);
+
+        // Save to AsyncStorage
         await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
         setStoreData(store);
-        console.log('Store saved to AsyncStorage', store);
+        console.log(
+          'Store saved as default to AsyncStorage and backend:',
+          store,
+        );
       } else {
         await AsyncStorage.removeItem(STORE_KEY);
         setStoreData(null);
@@ -71,21 +100,21 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Initialize StoreProvider
+  // Initialize StoreProvider - fetch default store only
   useEffect(() => {
     const init = async () => {
       await loadStoreFromStorage();
 
-      // Only fetch stores if token exists and user is CUSTOMER
+      // Only fetch default store if token exists and user is CUSTOMER
       if (token && role === 'CUSTOMER') {
-        await fetchAllStores(token);
+        await fetchDefaultStore();
       } else {
-        setIsLoading(false); // no token, stop loading
+        setIsLoading(false);
       }
     };
 
     init();
-  }, [token, role]); // <-- listen to token & role changes
+  }, [token, role]);
 
   const setStoresList = stores => {
     if (Array.isArray(stores)) setAllStores(stores);
@@ -94,46 +123,47 @@ export const StoreProvider = ({ children }) => {
   // Delete a store and update the allStores list
   const removeStore = async (storeId, authtoken) => {
     try {
-      // 1️⃣ Delete store from backend
+      //  Delete store from backend
       await deleteStore(storeId, authtoken);
 
-      // 2️⃣ Update local state
+      // Update local state
       setAllStores(prevStores => {
-        console.log('🗂️ Previous Stores:', prevStores, 'Deleting ID:', storeId);
+        console.log('Previous Stores:', prevStores, 'Deleting ID:', storeId);
 
         const updatedStores = prevStores.filter(s => {
-          console.log('🔍 Comparing IDs:', {
+          console.log('Comparing IDs:', {
             storeIdField: s.storeId,
             id: s.id,
             storekeeperId: s.storekeeperId,
             deletingId: storeId,
           });
 
-          // ✅ Always compare as strings
           return s.id?.toString() !== storeId?.toString();
         });
 
-        // 3️⃣ Persist updated list to AsyncStorage
+        //  Persist updated list to AsyncStorage
         AsyncStorage.setItem('@all_stores', JSON.stringify(updatedStores));
 
-        // 4️⃣ If deleted store was selected, clear it
+        //  If deleted store was selected, clear it and fetch new default
         if (
           storeData?.id?.toString() === storeId?.toString() ||
           storeData?.storeId?.toString() === storeId?.toString()
         ) {
           AsyncStorage.removeItem(STORE_KEY);
           setStoreData(null);
+          // Fetch new default store
+          fetchDefaultStore();
         }
 
-        console.log('🟢 Updated Stores After Deletion:', updatedStores);
-        return updatedStores; // must return new list
+        console.log(' Updated Stores After Deletion:', updatedStores);
+        return updatedStores;
       });
 
       console.log(
-        `✅ Store ${storeId} deleted successfully and context updated.`,
+        ` Store ${storeId} deleted successfully and context updated.`,
       );
     } catch (err) {
-      console.error('❌ Failed to delete store:', err.message);
+      console.error(' Failed to delete store:', err.message);
       throw err;
     }
   };
@@ -150,6 +180,7 @@ export const StoreProvider = ({ children }) => {
         setStoresList,
         isLoading,
         fetchAllStores,
+        fetchDefaultStore,
         removeStore,
       }}
     >

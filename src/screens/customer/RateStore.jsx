@@ -1,4 +1,3 @@
-// No change in imports
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -24,7 +23,6 @@ import Fonts from '../../styles/font';
 import { rateStore } from '../../services/customer/ratingService';
 import { useAuth } from '../../contexts/authContext';
 
-// ✅ SVG for success modal
 import TickIcon from '../../../assets/images/review.svg';
 import { useStore } from '../../contexts/storeContext';
 import strings from '../../constants/string';
@@ -62,7 +60,7 @@ const RateStore = () => {
       return;
     }
 
-    // ❗️Check if store info is available
+    // Check if store info is available
     const storeKeeperId = storeData?.storekeeperId || storeData?.id;
     if (!storeKeeperId) {
       showToast('error', strings.noStoresFound, strings.noStoresFound2);

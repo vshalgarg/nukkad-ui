@@ -23,6 +23,8 @@ const OrderHistory = ({
   expandedView,
   role,
   totalPrice,
+  popupOrderId,
+  onShowPopup,
 }) => {
   const { safePush } = useSafeRouter();
   const dispatch = useDispatch();
@@ -31,8 +33,8 @@ const OrderHistory = ({
   const [isRepeating, setIsRepeating] = useState(false);
 
   // 3-dot popup state
-  const [popupOrderId, setPopupOrderId] = useState(null);
-  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  // const [popupOrderId, setPopupOrderId] = useState(null);
+  // const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const dotRef = useRef(null);
 
   const formattedDate = new Date(order.orderDate).toLocaleDateString('en-GB', {
@@ -127,12 +129,15 @@ const OrderHistory = ({
     }
   };
 
-  // Correct showPopup using ref.measureInWindow
+
   const showPopup = () => {
     if (!dotRef.current) return;
+
     dotRef.current.measureInWindow((x, y, width, height) => {
-      setPopupPosition({ x: x / 2 + x / 10, y: height + 20 });
-      setPopupOrderId(order.orderId);
+      const popupX = x - 150; 
+      const popupY = y + height + 4; 
+
+      onShowPopup(order, { x: popupX, y: popupY });
     });
   };
 
@@ -210,16 +215,7 @@ const OrderHistory = ({
         {isExpanded && <View style={styles.expanded}>{expandedView}</View>}
       </TouchableOpacity>
 
-      <ConnectPopup
-        visible={!!popupOrderId}
-        onClose={() => setPopupOrderId(null)}
-        position={popupPosition}
-        phone={
-          role === 'STOREKEEPER'
-            ? order.address?.mobileNumber
-            : order?.storekeeperNumber
-        }
-      />
+     
     </>
   );
 };

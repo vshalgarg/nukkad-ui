@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StatusBar, Platform, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, Platform } from 'react-native';
 import {
   SafeAreaView,
   SafeAreaProvider,
@@ -20,13 +20,9 @@ import { AddressProvider } from './src/contexts/addressContext';
 import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressContext';
 import { StorekeeperProfileProvider } from './src/contexts/storeKeeperProfileContext';
 import { toastConfig } from './src/utils/toastConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SearchProvider } from './src/contexts/searchContext';
-
 import { DialogProvider } from './src/contexts/DialogContext';
 import GlobalDialog from './src/components/GlobalDialog';
-import { getStorekeeperProfile } from './src/services/storekeeper/storekeeperProfileService';
-import { getCustomerProfile } from './src/services/customer/profileService';
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
   await notifee.displayNotification({
@@ -36,10 +32,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
       channelId: 'default',
       smallIcon: 'ic_notification',
       color: '#FF0000',
-      pressAction: {
-        id: 'default',
-        launchActivity: 'default',
-      },
+      pressAction: { id: 'default', launchActivity: 'default' },
       sound: 'default',
     },
     data: remoteMessage.data,
@@ -51,27 +44,6 @@ const AppContent = () => {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const setupFCM = async () => {
-      try {
-        await notifee.requestPermission();
-        if (Platform.OS === 'android') {
-          await notifee.createChannel({
-            id: 'default',
-            name: 'Default Channel',
-            importance: AndroidImportance.HIGH,
-            sound: 'default',
-            vibration: true,
-          });
-        }
-
-        const token = await messaging().getToken();
-        await AsyncStorage.setItem('FcmToken', token);
-        console.log('FCM Token:', token);
-      } catch (error) {
-        console.error('FCM Setup Error:', error);
-      }
-    };
-
     const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
       try {
         await notifee.displayNotification({
@@ -83,10 +55,7 @@ const AppContent = () => {
             smallIcon: 'ic_notification',
             color: '#FF0000',
             importance: AndroidImportance.HIGH,
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default',
-            },
+            pressAction: { id: 'default', launchActivity: 'default' },
             sound: 'default',
           },
           data: remoteMessage.data,
@@ -112,17 +81,12 @@ const AppContent = () => {
             android: {
               channelId: 'default',
               smallIcon: 'ic_notification',
-              pressAction: {
-                id: 'default',
-                launchActivity: 'default',
-              },
+              pressAction: { id: 'default', launchActivity: 'default' },
             },
             data: remoteMessage.data,
           });
         }
       });
-
-    setupFCM();
 
     return () => {
       unsubscribeOnMessage();

@@ -35,12 +35,10 @@ const ConnectPopup = ({ onClose, visible, phone, position }) => {
 
   return (
     <View style={styles.absoluteFill}>
-      {/* ✅ Outside area press closes popup */}
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay} />
       </TouchableWithoutFeedback>
 
-      {/* ✅ Popup sits *above* the overlay */}
       <View
         style={[
           styles.popupMenu,
@@ -87,7 +85,7 @@ const styles = ScaledSheet.create({
     borderWidth: 1,
     elevation: 5,
     width: '140@ms',
-    zIndex: 1000, // ✅ ensures popup is above overlay
+    zIndex: 1000, 
   },
   popupItem: {
     paddingHorizontal: '16@ms',

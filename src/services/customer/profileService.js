@@ -61,10 +61,10 @@ export const updateCustomerProfile = async (payload, token) => {
       },
     );
 
-    console.log('✅ Update success:', response.data);
+    console.log(' Update success:', response.data);
     return response.data?.data;
   } catch (error) {
-    console.error('❌ Update error:', {
+    console.error(' Update error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

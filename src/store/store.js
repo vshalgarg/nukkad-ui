@@ -11,7 +11,7 @@ import storekeeperOrdersReducer from './storekeeperOrdersSlice';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['cart', 'order', 'storekeeperOrders'], // ✅ Add 'order'
+  whitelist: ['cart', 'order', 'storekeeperOrders'], 
 };
 
 const rootReducer = combineReducers({
