@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StatusBar, Platform } from 'react-native';
+import { StatusBar } from 'react-native';
 import {
   SafeAreaView,
   SafeAreaProvider,
@@ -23,6 +23,7 @@ import { toastConfig } from './src/utils/toastConfig';
 import { SearchProvider } from './src/contexts/searchContext';
 import { DialogProvider } from './src/contexts/DialogContext';
 import GlobalDialog from './src/components/GlobalDialog';
+import RNBootSplash from 'react-native-bootsplash';
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
   await notifee.displayNotification({
@@ -37,6 +38,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
     },
     data: remoteMessage.data,
   });
+
   return Promise.resolve();
 });
 
@@ -97,9 +99,16 @@ const AppContent = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <StatusBar backgroundColor="white" barStyle="dark-content" />
-      <NavigationContainer>
+
+      <NavigationContainer
+        onReady={() => {
+          // ✅ Hide bootsplash only when RN navigation is ready
+          RNBootSplash.hide({ fade: true });
+        }}
+      >
         <AppNavigator />
       </NavigationContainer>
+
       <Toast config={toastConfig} topOffset={insets.top + 10} />
     </SafeAreaView>
   );

@@ -1,0 +1,12 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/white" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:scaleType="centerInside"
+            android:src="@drawable/bootsplash_logo"
+            android:antialias="true"
+            android:filter="true" />
+    </item>
+</layer-list>
+ 

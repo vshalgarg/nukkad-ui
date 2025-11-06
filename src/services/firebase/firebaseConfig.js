@@ -24,7 +24,6 @@ export const uploadImageAsync = async (filePath, fileName) => {
 
     await task;
 
-    // Get download URL
     const downloadURL = await storageRef.getDownloadURL();
     console.log('Upload complete. URL:', downloadURL);
 

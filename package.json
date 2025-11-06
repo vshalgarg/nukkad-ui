@@ -32,6 +32,7 @@
     "country-state-city": "^3.2.1",
     "react": "19.1.0",
     "react-native": "0.80.0",
+    "react-native-bootsplash": "^6.3.11",
     "react-native-camera-kit": "^15.1.0",
     "react-native-compressor": "^1.13.0",
     "react-native-dotenv": "^3.4.11",
