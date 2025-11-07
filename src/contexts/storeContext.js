@@ -20,7 +20,6 @@ export const StoreProvider = ({ children }) => {
   const [allStores, setAllStores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load selected store from AsyncStorage
   const loadStoreFromStorage = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORE_KEY);
@@ -34,7 +33,6 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Fetch default store from API
   const fetchDefaultStore = async () => {
     try {
       const defaultStore = await getDefaultStore();
@@ -50,7 +48,6 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Fetch all stores (kept for backward compatibility)
   const fetchAllStores = async authtoken => {
     try {
       const stores = await getMyStores(authtoken);
@@ -65,15 +62,11 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Save or remove selected store and set as default
   const saveStore = async store => {
     try {
       if (store) {
-        // Set as default on backend
         const storeId = store.id || store.storeId || store.storekeeperId;
         await setDefaultStore(storeId);
-
-        // Save to AsyncStorage
         await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
         setStoreData(store);
         console.log(
@@ -90,7 +83,6 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Reset selected store
   const resetStore = async () => {
     try {
       await AsyncStorage.removeItem(STORE_KEY);
@@ -100,12 +92,9 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  // Initialize StoreProvider - fetch default store only
   useEffect(() => {
     const init = async () => {
       await loadStoreFromStorage();
-
-      // Only fetch default store if token exists and user is CUSTOMER
       if (token && role === 'CUSTOMER') {
         await fetchDefaultStore();
       } else {
@@ -119,14 +108,9 @@ export const StoreProvider = ({ children }) => {
   const setStoresList = stores => {
     if (Array.isArray(stores)) setAllStores(stores);
   };
-
-  // Delete a store and update the allStores list
   const removeStore = async (storeId, authtoken) => {
     try {
-      //  Delete store from backend
       await deleteStore(storeId, authtoken);
-
-      // Update local state
       setAllStores(prevStores => {
         console.log('Previous Stores:', prevStores, 'Deleting ID:', storeId);
 
@@ -140,18 +124,13 @@ export const StoreProvider = ({ children }) => {
 
           return s.id?.toString() !== storeId?.toString();
         });
-
-        //  Persist updated list to AsyncStorage
         AsyncStorage.setItem('@all_stores', JSON.stringify(updatedStores));
-
-        //  If deleted store was selected, clear it and fetch new default
         if (
           storeData?.id?.toString() === storeId?.toString() ||
           storeData?.storeId?.toString() === storeId?.toString()
         ) {
           AsyncStorage.removeItem(STORE_KEY);
           setStoreData(null);
-          // Fetch new default store
           fetchDefaultStore();
         }
 

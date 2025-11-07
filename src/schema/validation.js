@@ -1,11 +1,9 @@
-// customerProfileSchema.js
 import { z } from 'zod';
 
 export const customerProfileSchema = z.object({
   name: z
     .string()
     .max(32, 'Name cannot exceed 32 characters')
-    // Allow letters, numbers, special chars, and single spaces (no double spaces)
     .regex(
       /^(?!.*\s{2,})[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~\s]+$/,
       'Name can include letters, numbers, and special characters, but not multiple spaces',
@@ -18,18 +16,6 @@ export const customerProfileSchema = z.object({
       invalid_type_error: 'Enter a valid date',
     }),
   ),
-
-  // addressLine1: z.string().min(2, 'Enter valid Address'),
-  // landmark: z.string().min(2, 'Please enter a landmark'),
-  // city: z
-  //   .string()
-  //   .min(2, 'Enter valid name')
-  //   .regex(/^[A-Za-z\s]+$/, 'City must contain only letters'),
-  // state: z
-  //   .string()
-  //   .min(2, 'Enter valid name')
-  //   .regex(/^[A-Za-z\s]+$/, 'State must contain only letters'),
-  // pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
 });
 
 export const storekeeperProfileSchema = z.object({

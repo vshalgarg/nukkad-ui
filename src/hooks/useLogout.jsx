@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDialog } from '../contexts/DialogContext';
-import { useAuth } from '../contexts/authContext';
 import { useProfile } from '../contexts/profileContext';
 import { useAddress } from '../contexts/addressContext';
 import { useStore } from '../contexts/storeContext';
@@ -39,7 +38,7 @@ export const useLogout = () => {
     } catch (error) {
       console.error('Logout failed:', error);
       showToast('error', 'Logout Failed', error?.message || 'Please try again');
-      throw error; // Re-throw if needed
+      throw error; 
     } finally {
       setTimeout(() => setLoggingOut(false), 100);
     }
@@ -60,7 +59,7 @@ export const useLogout = () => {
 
   return {
     confirmLogout,
-    performLogout, // Direct logout without confirmation
+    performLogout, 
     loggingOut,
   };
 };

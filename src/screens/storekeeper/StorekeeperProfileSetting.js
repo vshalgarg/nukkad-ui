@@ -176,7 +176,9 @@ const StorekeeperProfileScreen = () => {
   const handleStateChange = value => {
     setSelectedState(value);
     setSelectedCity('');
+    setProfile(prev => ({ ...prev, city: '' }));
     setFieldErrors(prev => ({ ...prev, state: '', city: '' }));
+    setOpenDropdown(null); // ✅ closes dropdown immediately
   };
 
   const handleCityChange = value => {
@@ -393,6 +395,7 @@ const StorekeeperProfileScreen = () => {
           <Text style={styles.label}>{label}</Text>
           {isEditing ? (
             <CityDropdown
+              key={selectedState}
               selectedState={selectedState}
               selectedCity={selectedCity}
               onSelectCity={handleCityChange}

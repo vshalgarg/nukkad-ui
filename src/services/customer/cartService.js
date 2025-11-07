@@ -7,7 +7,6 @@ export const addToCartAPI = async (itemId, quantity, unit, token) => {
     let payload;
 
     if (Array.isArray(itemId)) {
-      // Batch request
       payload = {
         items: itemId.map(item => ({
           itemId: item.itemId,
@@ -16,7 +15,6 @@ export const addToCartAPI = async (itemId, quantity, unit, token) => {
         })),
       };
     } else {
-      // Single item request
       payload = {
         items: [
           {
@@ -147,7 +145,6 @@ export const clearCartAPI = async token => {
     const errorMessage =
       error?.response?.data?.message || error?.message || 'Unknown error';
 
-    // 🔇 Suppress "No item found in cart" as a valid case
     if (errorMessage.includes('No item found in cart')) {
       console.warn(' Cart already empty. Proceeding without error.');
       return { message: 'Cart already empty' };

@@ -53,7 +53,6 @@ const ProductCard = ({
   const units = product.unit || [];
   const unitOptions = units.map(q => ({ label: q.trim(), value: q }));
 
-  // Sync local state when cartItem or product changes
   useEffect(() => {
     if (cartItem) {
       const newAmount = cartItem.product.amount?.toString() || '';
@@ -114,7 +113,6 @@ const ProductCard = ({
       dispatch(addToCart(newItem));
     }
 
-    // showToast('success', 'Added to cart');
 
     try {
       if (isInCart) {

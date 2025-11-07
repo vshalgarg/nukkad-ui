@@ -10,13 +10,10 @@ export const uploadImageAsync = async (filePath, fileName) => {
     console.log('Current Firebase bucket:', storage().ref().bucket);
     console.log(' Uploading:', fileName, filePath);
 
-    //Correct way: use storage.ref directly
     const storageRef = storage().ref(`profile_images/${fileName}`);
 
-    // Upload local file
     const task = storageRef.putFile(filePath);
 
-    // Track progress
     task.on('state_changed', snapshot => {
       const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
       console.log(`Progress: ${progress.toFixed(2)}%`);

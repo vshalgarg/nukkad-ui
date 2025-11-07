@@ -1,14 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Modal,
-  Alert,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FilterModal from '../../components/orders/FilterModal';
 import { FlashList } from '@shopify/flash-list';
@@ -23,9 +14,12 @@ import { fetchOrderHistory } from '../../services/common/OrderHistoryService';
 import { ScaledSheet } from 'react-native-size-matters';
 import strings from '../../constants/string';
 import ConnectPopup from '../../components/ConnectPopUp';
+import { useDialog } from '../../contexts/DialogContext';
 
 const Orders = () => {
   const { token, role, loading: authLoading } = useAuth();
+  const showDialog = useDialog();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,18 +34,14 @@ const Orders = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isFilterApplied, setIsFilterApplied] = useState(false);
   const [filterParams, setFilterParams] = useState({});
-
   const [popupOrderId, setPopupOrderId] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [popupPhone, setPopupPhone] = useState(null);
-
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const size = 10;
-
-
 
   const handleShowPopup = (order, position) => {
     setPopupOrderId(order.orderId);
@@ -87,6 +77,11 @@ const Orders = () => {
         setHasMore(fetchedOrders.length === size);
       } catch (err) {
         console.error('Failed to fetch orders:', err);
+        showDialog({
+          title: 'Error',
+          message: 'Unable to fetch orders. Please try again later.',
+          confirmText: 'OK',
+        });
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -142,7 +137,11 @@ const Orders = () => {
       await fetchOrders(0, cleanedParams);
     } catch (err) {
       console.error('Filtered Order Fetch Failed:', err);
-      Alert.alert('Failed to apply filters');
+      showDialog({
+        title: 'Filter Error',
+        message: 'Failed to apply filters. Please try again.',
+        confirmText: 'OK',
+      });
     } finally {
       setFilterModalVisible(false);
     }
@@ -219,7 +218,7 @@ const Orders = () => {
             });
           }
         }}
-        onEndReachedThreshold={0.5} // when 50% near bottom
+        onEndReachedThreshold={0.5}
         ListFooterComponent={
           isLoadingMore ? (
             <ActivityIndicator size="small" color={Colors.primary} />

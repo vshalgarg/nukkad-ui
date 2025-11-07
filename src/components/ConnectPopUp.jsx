@@ -75,7 +75,7 @@ const styles = ScaledSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'transparent', // can make rgba(0,0,0,0.1) for dim effect
+    backgroundColor: 'transparent', 
   },
   popupMenu: {
     position: 'absolute',

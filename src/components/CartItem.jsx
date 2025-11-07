@@ -241,7 +241,6 @@ const styles = ScaledSheet.create({
     flex: 1,
     marginLeft: '10@ms',
     marginBottom: '15@vs',
-    // justifyContent: 'space-around',
   },
   name: {
     fontSize: Fonts.sizes.base,
@@ -290,7 +289,6 @@ const styles = ScaledSheet.create({
   },
   dropdown: {
     position: 'absolute',
-    // top: '40@ms', // a bit below the input box
     width: '55@ms',
     backgroundColor: Colors.white,
     borderWidth: 1,

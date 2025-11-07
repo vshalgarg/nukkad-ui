@@ -276,7 +276,6 @@ const AddressForm = () => {
               />
             </View>
 
-            {/* Address Line 1 */}
             <View>
               <Text style={formStyles.label}>
                 {strings.addressLine1}{' '}
@@ -299,7 +298,6 @@ const AddressForm = () => {
               />
             </View>
 
-            {/* Address Line 2 */}
             <View>
               <Text style={formStyles.label}>{strings.addressLine2}</Text>
               <CustomInput
@@ -312,7 +310,6 @@ const AddressForm = () => {
               />
             </View>
 
-            {/* Landmark */}
             <View>
               <Text style={formStyles.label}>
                 {strings.landmark} <Text style={formStyles.mandatory}>*</Text>
@@ -334,7 +331,6 @@ const AddressForm = () => {
               />
             </View>
 
-            {/* StateS */}
             <View>
               <Text style={formStyles.label}>
                 {strings.state} <Text style={formStyles.mandatory}>*</Text>
@@ -343,11 +339,11 @@ const AddressForm = () => {
                 selectedState={state}
                 onSelectState={val => {
                   setState(val);
-                  setCity(''); // Reset city if state changes
+                  setCity('');
                   setErrors(prev => ({
                     ...prev,
                     state: prev.state ? !val : false,
-                    city: false, // reset city error if any
+                    city: false,
                   }));
                 }}
                 error={errors.state}
@@ -357,12 +353,12 @@ const AddressForm = () => {
               />
             </View>
 
-            {/* City */}
             <View>
               <Text style={formStyles.label}>
                 {strings.city} <Text style={formStyles.mandatory}>*</Text>
               </Text>
               <CityDropdown
+                key={state}
                 selectedState={state}
                 selectedCity={city}
                 onSelectCity={val => {
@@ -377,43 +373,8 @@ const AddressForm = () => {
                 setOpenDropdown={setOpenDropdown}
                 dropdownKey="city"
               />
-
-              {/* <Text style={formStyles.label}>
-              {strings.state} <Text style={formStyles.mandatory}>*</Text>
-            </Text>
-            <CustomInput
-              ref={stateRef}
-              placeholder="Enter Your State"
-              value={state}
-              maxLength={20}
-              autoCapitalize="sentences"
-              onTextChange={text => {
-                setState(text);
-                if (errors.state && text.trim().length > 0) {
-                  setErrors(prev => ({ ...prev, state: false }));
-                }
-              }}
-              isError={errors.state}
-            /> */}
             </View>
-            {/* <Text style={formStyles.label}>
-              {strings.city} <Text style={formStyles.mandatory}>*</Text>
-            </Text>
-            <CustomInput
-              ref={cityRef}
-              placeholder="Enter Your City"
-              value={city}
-              maxLength={20}
-              autoCapitalize="sentences"
-              onTextChange={text => {
-                setCity(text);
-                if (errors.city && text.trim().length > 0) {
-                  setErrors(prev => ({ ...prev, city: false }));
-                }
-              }}
-              isError={errors.city}
-            /> */}
-            {/* Pincode */}
+
             <View>
               <Text style={formStyles.label}>
                 {strings.pincode} <Text style={formStyles.mandatory}>*</Text>

@@ -102,22 +102,18 @@ const ProfileSetting = () => {
 
       const asset = result.assets?.[0];
       if (asset?.uri) {
-        // show local preview immediately
         setProfile(prev => ({ ...prev, image: asset.uri }));
 
-        // start loader
         setLoading(true);
 
         const fileName = `profile_${Date.now()}.jpg`;
         const downloadURL = await uploadImageAsync(asset.uri, fileName);
 
-        // replace local uri with firebase url
         setProfile(prev => ({ ...prev, image: downloadURL }));
       }
     } catch (error) {
       console.log('Image Picker / Firebase Error:', error);
     } finally {
-      // stop loader
       setLoading(false);
     }
   };
@@ -190,7 +186,12 @@ const ProfileSetting = () => {
         await AsyncStorage.setItem('profileImage', updatedProfile.image);
       }
       setIsEditing(false);
-      safePush('CustomerDashboard');
+      safePush('CustomerDashboard', {
+        toast: JSON.stringify({
+          type: 'success',
+          title: 'Profile updated successfully!',
+        }),
+      });
     } catch (err) {
       console.log(err);
     } finally {
@@ -261,7 +262,6 @@ const ProfileSetting = () => {
                     value={profile.firstName}
                     keyboardType="default"
                     onChangeText={val => {
-                      // if space pressed, move to last name
                       if (val.endsWith(' ')) {
                         firstNameRef.current?.blur();
                         setTimeout(() => lastNameRef.current?.focus(), 100);
@@ -345,7 +345,7 @@ const ProfileSetting = () => {
                 title="Save Changes"
                 onPress={saveProfile}
                 loading={isSaving}
-                disabled={loading || isSaving} // disable while uploading or saving
+                disabled={loading || isSaving}
                 style={{
                   backgroundColor:
                     loading || isSaving ? Colors.disabled : Colors.primary,
@@ -457,7 +457,6 @@ const ProfileSetting = () => {
               </TouchableWithoutFeedback>
             </Modal>
           )}
-
           {isEditing && showPicker && Platform.OS === 'android' && (
             <DateTimePicker
               value={dobDate}
@@ -499,7 +498,6 @@ const innerStyle = ScaledSheet.create({
     height: '120@s',
     borderRadius: '65@s',
     borderColor: 'black',
-    // borderWidth:"3@s",
     resizeMode: 'cover',
     overflow: 'hidden',
     alignItems: 'center',
@@ -523,6 +521,10 @@ const innerStyle = ScaledSheet.create({
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     borderColor: Colors.secondaryText,
+    lineHeight: 20,
+    textAlignVertical: 'center',
+    textAlignVertical: 'center',
+    height: 50,
   },
   fullInput: {
     marginBottom: '16@vs',
@@ -533,19 +535,22 @@ const innerStyle = ScaledSheet.create({
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     borderColor: Colors.secondaryText,
+    lineHeight: 20,
+    height: 50,
+    textAlignVertical: 'center',
+    paddingVertical: 10,
+    textAlignVertical: 'center',
   },
   halfLabel: {
     flex: 1,
-
     marginHorizontal: '10@s',
-    // marginTop: '10@vs',
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     borderColor: Colors.secondaryText,
   },
   fullLabel: {
     marginHorizontal: '25@s',
-    marginTop: '10@vs',
+    // marginTop: '10@vs',
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     borderColor: Colors.secondaryText,
@@ -559,6 +564,9 @@ const innerStyle = ScaledSheet.create({
     fontSize: Fonts.sizes.base,
     color: Colors.secondary,
     borderColor: Colors.secondaryText,
+    height: 50,
+    textAlignVertical: 'center',
+    lineHeight: 20,
   },
   buttonContainer: {
     justifyContent: 'space-around',

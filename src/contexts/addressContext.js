@@ -17,7 +17,6 @@ export const AddressProvider = ({ children }) => {
   const [mode, setMode] = useState('add');
   const [addressData, setAddressData] = useState(null);
 
-  // Load from AsyncStorage initially
   useEffect(() => {
     const load = async () => {
       const stored = await AsyncStorage.getItem('address');
@@ -34,20 +33,17 @@ export const AddressProvider = ({ children }) => {
     load();
   }, []);
 
-  // Update AsyncStorage when address changes
   useEffect(() => {
     AsyncStorage.setItem('address', JSON.stringify(address));
     const def = address.find(a => a.default);
     setDefaultAddress(def || null);
   }, [address]);
 
-  // Update AsyncStorage when selected changes
   useEffect(() => {
     if (selectedAddressId)
       AsyncStorage.setItem('selectedAddressId', String(selectedAddressId));
   }, [selectedAddressId]);
 
-  //  ADD NEW ADDRESS
   const addAddress = async data => {
     const tempId = `temp-${Date.now()}`;
     const optimisticAddress = {
@@ -56,50 +52,41 @@ export const AddressProvider = ({ children }) => {
       default: address.length === 0,
     };
 
-    // Instant UI update
     setAddress(prev => [...prev, optimisticAddress]);
     setSelectedAddressId(tempId);
 
     try {
       const res = await addNewAddress(data);
 
-      // Replace tempId with real id in local state before sync
       setAddress(prev =>
         prev.map(a => (a.id === tempId ? { ...a, id: res.id } : a)),
       );
 
-      // Keep selected consistent
       setSelectedAddressId(res.id);
       await AsyncStorage.setItem('selectedAddressId', String(res.id));
 
-      // Final sync (will keep selection intact)
       await syncAddressesFromServer();
     } catch (err) {
       console.error('Failed to add address:', err);
-      setAddress(prev => prev.filter(a => a.id !== tempId)); // rollback
+      setAddress(prev => prev.filter(a => a.id !== tempId)); 
     }
   };
 
-  //  UPDATE EXISTING ADDRESS
   const updateAddress = async updated => {
-    // 1. Optimistically update local state
     setAddress(prev =>
       prev.map(a => (a.id === updated.id ? { ...a, ...updated } : a)),
     );
-
-    // 2. Save to backend
+  
     try {
       const res = await updateExistingAddress(updated.id, updated);
       setSelectedAddressId(res.id);
       await AsyncStorage.setItem('selectedAddressId', String(res.id));
-      await syncAddressesFromServer(); // Ensure final sync
+      await syncAddressesFromServer(); 
     } catch (err) {
       console.error('Failed to update address:', err);
-      // Optional: rollback logic here if needed
     }
   };
 
-  //  DELETE ADDRESS
   const deleteAddress = async id => {
     await deleteAddressFromServer(id);
     const filtered = address.filter(a => a.id !== id);
@@ -110,8 +97,6 @@ export const AddressProvider = ({ children }) => {
       await AsyncStorage.removeItem('selectedAddressId');
     }
   };
-
-  //  MARK DEFAULT
   const markAsDefault = async id => {
     await markAddressAsDefault(id);
     await syncAddressesFromServer(); 
@@ -123,7 +108,6 @@ export const AddressProvider = ({ children }) => {
     await AsyncStorage.setItem('address', JSON.stringify(fresh));
   };
 
-  // CLEAR EVERYTHING
   const resetAddress = async () => {
     setAddress([]);
     setSelectedAddressId(null);

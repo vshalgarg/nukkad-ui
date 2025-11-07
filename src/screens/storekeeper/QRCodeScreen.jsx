@@ -16,7 +16,6 @@ import Colors from '../../styles/colors';
 import Fonts from '../../styles/font';
 import BackButton from '../../components/BackButton';
 import { showToast } from '../../utils/toastUtils';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const StorekeeperQRCode = () => {
   const { token } = useAuth();
@@ -54,7 +53,6 @@ const StorekeeperQRCode = () => {
         <View style={styles.content}>
           <Text style={styles.title}>Default Payment QR</Text>
 
-          {/* 👉 Tap to enlarge */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setIsModalVisible(true)}
@@ -70,7 +68,6 @@ const StorekeeperQRCode = () => {
 
           <Text style={styles.note}>Tap QR to enlarge</Text>
 
-          {/* Modal for enlarged image */}
           <Modal
             visible={isModalVisible}
             transparent
@@ -139,7 +136,6 @@ const styles = ScaledSheet.create({
     color: Colors.secondaryText,
   },
 
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.8)',

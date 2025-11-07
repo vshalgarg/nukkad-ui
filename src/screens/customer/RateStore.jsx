@@ -60,8 +60,7 @@ const RateStore = () => {
       return;
     }
 
-    // Check if store info is available
-    const storeKeeperId = storeData?.storekeeperId || storeData?.id;
+    const storeKeeperId = storeData?.storekeeperId || storeData?.storeId;
     if (!storeKeeperId) {
       showToast('error', strings.noStoresFound, strings.noStoresFound2);
 
@@ -150,6 +149,7 @@ const RateStore = () => {
             multiline
             value={feedback}
             onChangeText={setFeedback}
+            maxLength={500}
           />
 
           <Text style={styles.wordCount}>

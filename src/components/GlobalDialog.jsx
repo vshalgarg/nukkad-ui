@@ -1,5 +1,4 @@
-// components/GlobalDialog.js
-import React from 'react';
+
 import { useDialog } from '../contexts/DialogContext';
 import ConfirmDialog from './ConfirmDialog';
 

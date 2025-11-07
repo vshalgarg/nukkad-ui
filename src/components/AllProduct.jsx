@@ -47,17 +47,7 @@ const AllProduct = ({ products = [], loading = false }) => {
   }
 
   return (
-    // <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-    //   <KeyboardAvoidingView
-    //   style={{ flex: 1 }}
-    //   behavior={Platform.OS=== 'ios' ? 'padding' : 'height'}
-    //   keyboardVerticalOffset={Platform.OS === 'ios' ? 130 : 0}
-    // >
-
-    // <ScrollView
-    //   contentContainerStyle={[innerStyle.productsContainer,{ flexGrow: 1 }]}
-    //   keyboardShouldPersistTaps="always"
-    // >
+  
     <View style={innerStyle.productsContainer}>
       {rows.map((rowItems, rowIndex) => (
         <View key={rowIndex} style={innerStyle.row}>
@@ -85,10 +75,7 @@ const AllProduct = ({ products = [], loading = false }) => {
       ))}
     </View>
 
-    /*  </ScrollView>
-
-    </KeyboardAvoidingView>
-    </TouchableWithoutFeedback> */
+    
   );
 };
 

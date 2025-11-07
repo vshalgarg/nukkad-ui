@@ -15,11 +15,9 @@ export const fetchOrderHistory = async (token, options = {}) => {
 
   const queryParams = [];
 
-  // Pagination always added
   queryParams.push(`page=${page}`);
   queryParams.push(`size=${size}`);
 
-  // Optional filters
   if (status) queryParams.push(`status=${encodeURIComponent(status)}`);
   if (startDate) queryParams.push(`startDate=${startDate}`);
   if (endDate) queryParams.push(`endDate=${endDate}`);

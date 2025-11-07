@@ -61,9 +61,9 @@ export default function useBackHandlerControl({
             },
             onConfirm: () => {
               if (Platform.OS === 'android') {
-                BackHandler.exitApp(); // Android only
+                BackHandler.exitApp(); 
               } else {
-                navigation.dispatch(e.data.action); // iOS: perform the original back navigation
+                navigation.dispatch(e.data.action); 
               }
             },
           });
@@ -72,7 +72,7 @@ export default function useBackHandlerControl({
 
       return () => {
         backHandler.remove();
-        beforeRemove(); // remove listener
+        beforeRemove(); 
       };
     }, [blockBack, confirmBack, navigation]),
   );

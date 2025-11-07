@@ -1,4 +1,3 @@
-// services/customer/profile.js
 import api from '../api';
 
 //  Get Customer Profile

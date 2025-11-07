@@ -1,12 +1,10 @@
 import React, { useState, memo, useEffect } from 'react';
 import {
   Alert,
-  FlatList,
   Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,7 +13,6 @@ import {
   ScrollView,
   InputAccessoryView,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -96,7 +93,7 @@ const OrderItem = memo(
                 placeholderTextColor={Colors.secondaryText}
                 style={[
                   innerStyle.input,
-                  hasError && innerStyle.inputError, // this applies red border if error exists
+                  hasError && innerStyle.inputError, 
                 ]}
                 keyboardType="number-pad"
                 inputAccessoryViewID="doneKeyboardAccessory"
@@ -110,11 +107,11 @@ const OrderItem = memo(
               style={[
                 innerStyle.input,
                 price === null
-                  ? { fontSize: Fonts.sizes.xxs } // out of stock styling
+                  ? { fontSize: Fonts.sizes.xxs } 
                   : {
                       color: Colors.secondary,
                       borderColor: Colors.borderColor,
-                    }, // normal styling
+                    }, 
               ]}
               placeholder="Price"
               value={price === null ? 'Out of Stock' : `${price}`}
@@ -238,12 +235,12 @@ const ShowDetails = () => {
   };
 
   const handlePriceChange = (id, value) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
+    const numericValue = value.replace(/[^0-9.]/g, '');
     setPrices(prev => ({ ...prev, [id]: numericValue }));
 
     setPriceErrors(prevErrors => ({
       ...prevErrors,
-      [id]: !numericValue, // true = error if empty
+      [id]: !numericValue, 
     }));
   };
 
@@ -320,25 +317,21 @@ const ShowDetails = () => {
             <Text style={innerStyle.value}>{order?.address.name}</Text>
           </View>
 
-          {/* Address */}
           <View style={innerStyle.row}>
             <Text style={innerStyle.label}>Address:</Text>
             <Text style={innerStyle.value}>{order.address.addressLine1}</Text>
           </View>
 
-          {/* Landmark */}
           <View style={innerStyle.row}>
             <Text style={innerStyle.label}>Landmark:</Text>
             <Text style={innerStyle.value}>{order.address.landmark}</Text>
           </View>
 
-          {/* Quantity */}
           <View style={innerStyle.row}>
             <Text style={innerStyle.label}>Quantity:</Text>
             <Text style={innerStyle.value}>{order.items.length}</Text>
           </View>
 
-          {/* Price */}
           <View style={innerStyle.row}>
             <Text style={innerStyle.label}>Price:</Text>
             <Text
@@ -459,7 +452,6 @@ const ShowDetails = () => {
     const price = prices[itemId];
     return !price || parseFloat(price) === 0;
   });
-  // Calculate total amount (add right before return statement)
   const totalAmount = parsedItems.reduce((sum, item) => {
     const itemId = item.itemId || item.id || item.productId;
     return sum + (parseFloat(prices[itemId]) || 0);
@@ -495,8 +487,8 @@ const ShowDetails = () => {
                           dotRef.current?.measureInWindow(
                             (x, y, width, height) => {
                               setPopupPosition({
-                                x: x + width - 160, // shift left so popup doesn't go off-screen
-                                y: y + height + 5, // place just below the dots
+                                x: x + width - 160, 
+                                y: y + height + 5,
                               });
                               setShowPopup(true);
                             },
@@ -606,8 +598,6 @@ const ShowDetails = () => {
                         color: Colors.secondary,
                         fontSize: 15,
                       }}
-                      // numberOfLines={1}
-                      // ellipsizeMode="tail"
                     >
                       {` ${storeKeeperNote} `}
                     </Text>
@@ -671,7 +661,7 @@ const innerStyle = ScaledSheet.create({
   addressCardDetails: {
     lineHeight: '30@vs',
     color: Colors.secondary,
-    fontSize: Fonts.sizes.sm, // already responsive from Fonts
+    fontSize: Fonts.sizes.sm, 
     fontWeight: Fonts.weights.bold,
   },
   label: {
@@ -684,7 +674,6 @@ const innerStyle = ScaledSheet.create({
   heading: {
     fontSize: Fonts.sizes.base,
     fontWeight: 'bold',
-    // marginBottom: '10@vs',
     color: Colors.secondary,
   },
   heading1: {
@@ -694,14 +683,11 @@ const innerStyle = ScaledSheet.create({
     color: Colors.secondary,
   },
   card: {
-    // Android shadow
     elevation: 2,
-    // Add iOS shadow for parity
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    // rest styles
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -735,10 +721,6 @@ const innerStyle = ScaledSheet.create({
     fontWeight: '600',
   },
   fixedButtonWrapper: {
-    // position: 'absolute',
-    // bottom: 0,
-    // left: 0,
-    // right: 0,
     backgroundColor: Colors.white,
     paddingVertical: '10@vs',
     borderTopWidth: 1,
@@ -746,15 +728,13 @@ const innerStyle = ScaledSheet.create({
   },
   noteInput: {
     color: Colors.secondary,
-    height: '100@vs', // vertical scaling for height
+    height: '100@vs',
     borderWidth: 1,
     borderColor: Colors.borderColor,
-    borderRadius: '10@ms', // moderate scaling for border radius
-    padding: '10@ms', // padding scaled
-    // textAlignVertical: 'top',
+    borderRadius: '10@ms', 
+    padding: '10@ms',
     backgroundColor: Colors.white,
 
-    // marginBottom: '50@vs',
   },
 
   image: {
@@ -826,8 +806,6 @@ const innerStyle = ScaledSheet.create({
     paddingHorizontal: 10,
     textAlign: 'center',
     color: Colors.secondary,
-    // lineHeight: 20,
-    // includeFontPadding: false,
     textAlignVertical: 'center',
   },
   rejectedText: {

@@ -1,5 +1,3 @@
-// components/DOBPicker.js
-
 import React, { useState } from 'react';
 import {
   View,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import BackButton from '../../components/BackButton';
 import Fonts from '../../styles/font';

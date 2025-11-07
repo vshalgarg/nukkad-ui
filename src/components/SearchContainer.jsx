@@ -28,19 +28,16 @@ const SearchContainer = ({
   const { queryInput, setQueryInput } = useContext(SearchContext);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
-  // suggestions
   const [recentSearches, setRecentSearches] = useState([]);
   const [visibleSuggestions, setVisibleSuggestions] = useState([]);
   const [focused, setFocused] = useState(false);
 
   const inputRef = useRef(null);
 
-  // Sync incoming query prop into context state
   useEffect(() => {
     setQueryInput(query || '');
   }, [query]);
 
-  // Load recents on mount
   useFocusEffect(
     React.useCallback(() => {
       (async () => {
@@ -63,7 +60,6 @@ const SearchContainer = ({
     }, []),
   );
 
-  // Update visible suggestions when focus or queryInput or recents change
   useEffect(() => {
     if (!focused) {
       setVisibleSuggestions([]);
@@ -73,16 +69,13 @@ const SearchContainer = ({
     const q = (queryInput || '').trim().toLowerCase();
 
     if (q.length === 0) {
-      // show last recents when empty
       setVisibleSuggestions(recentSearches);
     } else {
-      // filter recents by substring (YouTube like behaviour)
       const filtered = recentSearches.filter(r => r.toLowerCase().includes(q));
       setVisibleSuggestions(filtered);
     }
   }, [focused, queryInput, recentSearches]);
 
-  // If autoSearchOnThreeLetters is enabled, trigger search automatically with debounce
   useEffect(() => {
     if (!autoSearchOnThreeLetters) return;
 
@@ -91,7 +84,7 @@ const SearchContainer = ({
     if (queryInput.length >= 3) {
       const timeout = setTimeout(() => {
         handleSubmit(queryInput);
-      }, 500); // 500ms debounce
+      }, 500);
 
       setDebounceTimeout(timeout);
     } else if (queryInput.length === 0) {
@@ -101,10 +94,8 @@ const SearchContainer = ({
     return () => {
       if (debounceTimeout) clearTimeout(debounceTimeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryInput, autoSearchOnThreeLetters]);
 
-  // Save recent (dedupe, move to front, cap length)
   const saveRecent = async term => {
     try {
       if (!term || !term.trim()) return;
@@ -126,10 +117,8 @@ const SearchContainer = ({
   }, []);
 
   const removeRecent = term => {
-    // immediate UI update
     setRecentSearches(prev => prev.filter(r => r !== term));
     setVisibleSuggestions(prev => prev.filter(r => r !== term));
-    // async storage update
     AsyncStorage.setItem(
       RECENT_KEY,
       JSON.stringify(recentSearches.filter(r => r !== term)),
@@ -152,16 +141,16 @@ const SearchContainer = ({
     setQueryInput(value);
     onSearchSubmit?.(value);
     saveRecent(value);
-    setFocused(false); // hide suggestions after submitting
-    setTimeout(() => Keyboard.dismiss(), 50); // dismiss keyboard after submit
+    setFocused(false);
+    setTimeout(() => Keyboard.dismiss(), 50);
   };
 
   const onSelectSuggestion = text => {
     setQueryInput(text);
     onSearchSubmit?.(text);
     saveRecent(text);
-    setFocused(false); // hide suggestions after selection
-    setTimeout(() => Keyboard.dismiss(), 50); // dismiss keyboard after tap
+    setFocused(false);
+    setTimeout(() => Keyboard.dismiss(), 50);
   };
 
   return (
@@ -197,7 +186,6 @@ const SearchContainer = ({
         </View>
       </View>
 
-      {/* Suggestions dropdown */}
       {focused && visibleSuggestions.length > 0 && (
         <View style={styles.suggestionsWrap}>
           <View style={styles.suggestionsHeader}>
@@ -242,7 +230,6 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@s',
     flexDirection: 'column',
     width: '100%',
-    // justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
@@ -275,14 +262,13 @@ const styles = ScaledSheet.create({
     fontSize: Fonts.sizes.sm,
   },
 
-  // Suggestions
   suggestionsWrap: {
     position: 'absolute',
-    top: '60@vs', // place it just below the input box
+    top: '60@vs',
     left: '20@s',
     right: '20@s',
     zIndex: 9,
-    elevation: 5, // for Android shadow
+    elevation: 5,
     backgroundColor: 'white',
     borderRadius: 8,
     borderWidth: 0.5,
@@ -304,7 +290,7 @@ const styles = ScaledSheet.create({
   },
   clearAllText: {
     fontSize: Fonts.sizes.xs,
-    color: Colors.primary, // adjust as needed
+    color: Colors.primary,
   },
   suggestionRow: {
     flexDirection: 'row',

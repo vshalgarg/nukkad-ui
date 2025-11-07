@@ -31,7 +31,7 @@ const CustomInput = forwardRef(function CustomInput(
     isError = false,
     editable = true,
     autoFocus,
-    inputAccessoryViewID, // default ID for InputAccessoryView
+    inputAccessoryViewID, 
     ...props
   },
   ref,
@@ -47,8 +47,6 @@ const CustomInput = forwardRef(function CustomInput(
 
   const actualKeyboardType = keyboardType || 'default';
 
-  // Show Done button only on iOS and when keyboardType is number-pad
-  // Show Done button only on iOS and when keyboardType is number-pad
   const showDoneButton =
     Platform.OS === 'ios' &&
     actualKeyboardType === 'number-pad' &&
@@ -113,9 +111,7 @@ const CustomInput = forwardRef(function CustomInput(
 export default CustomInput;
 
 const styles = ScaledSheet.create({
-  wrapper: {
-    // marginBottom: '12@vs',
-  },
+
   countryCodeContainer: {
     position: 'absolute',
     left: '12@ms',

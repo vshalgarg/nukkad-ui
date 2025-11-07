@@ -10,8 +10,7 @@ const StorekeeperProfileContext = createContext();
 
 export const StorekeeperProfileProvider = ({ children }) => {
   const [storekeeperProfile, setStorekeeperProfile] = useState(null);
-  const [loading, setLoading] = useState(true); // Optional: helpful in screens
-
+  const [loading, setLoading] = useState(true); 
 
   const resetStorekeeperProfile = async () => {
     setStorekeeperProfile(null);

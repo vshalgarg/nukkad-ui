@@ -15,7 +15,7 @@ import CustomButton from './CustomButton';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import auth from '@react-native-firebase/auth';
-import { sendOtp, verifyOtp } from '../services/authApi'; // verifyOtp will be used as backend-verification/deactivate
+import { sendOtp, verifyOtp } from '../services/authApi';
 import { showToast } from '../utils/toastUtils';
 import { useSafeRouter } from '../hooks/useSafeRouter';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,16 +32,13 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
   const timerRef = useRef(null);
   const { safePush } = useSafeRouter();
 
-  // normalize the phone number for Firebase (only add +91 if missing)
   const normalizePhone = raw => {
     if (!raw) return '';
     const digits = raw.replace(/\D/g, '');
-    if (raw.startsWith('+')) return raw; // assume already full prefixed
-    // change this prefix if you support other countries
+    if (raw.startsWith('+')) return raw;
     return `+91${digits}`;
   };
 
-  // countdown timer logic (same approach as MobileOtpScreen)
   useEffect(() => {
     if (!sendOtpClicked || canResend) return;
 
@@ -76,8 +73,7 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
     const phoneForFirebase = normalizePhone(phoneNumber);
 
     try {
-      // notify backend if you want (optional). Many backends want to record OTP send
-      await sendOtp(phoneNumber); // keep the backend call (adjust signature if your backend expects role)
+      await sendOtp(phoneNumber);
       setSendOtpClicked(true);
       setOtpEnabled(true);
       setTimer(30);
@@ -89,7 +85,6 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
         `OTP ${isResend ? 'resent' : 'sent'} to ${phoneNumber}`,
       );
 
-      // Trigger Firebase SMS (returns a confirmation object)
       const firebaseConfirmation = await auth().signInWithPhoneNumber(
         phoneForFirebase,
       );
@@ -112,7 +107,6 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
   const handleDeleteAccount = async () => {
     if (Keyboard.isVisible) Keyboard.dismiss();
 
-    // small delay to allow keyboard to fully close
     setTimeout(async () => {
       if (!otp || otp.length < 6) {
         Alert.alert('Invalid OTP', 'Please enter the 6-digit OTP.');
@@ -147,7 +141,7 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
       } finally {
         setLoading(false);
       }
-    }, 100); // 100ms delay lets keyboard fully dismiss
+    }, 100);
   };
 
   const handleCancel = () => {

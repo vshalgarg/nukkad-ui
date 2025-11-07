@@ -14,7 +14,6 @@ import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import { formatTabLabel } from '../../utils/formatTabLabel';
 import Entypo from 'react-native-vector-icons/Entypo';
-import ConnectPopup from '../../components/ConnectPopUp';
 
 const OrderHistory = ({
   order,
@@ -32,16 +31,21 @@ const OrderHistory = ({
   const { token } = useAuth();
   const [isRepeating, setIsRepeating] = useState(false);
 
-  // 3-dot popup state
-  // const [popupOrderId, setPopupOrderId] = useState(null);
-  // const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  console.log(order, 'order');
   const dotRef = useRef(null);
 
-  const formattedDate = new Date(order.orderDate).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  const formatDate = dateString => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date)) return 'Invalid Date';
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+  const formattedOrderDate = formatDate(order.orderDate);
+  const formattedDeliveryDate = formatDate(order.deliveryAt);
 
   const handleRepeatOrder = async () => {
     if (!order.items?.length) {
@@ -129,13 +133,12 @@ const OrderHistory = ({
     }
   };
 
-
   const showPopup = () => {
     if (!dotRef.current) return;
 
     dotRef.current.measureInWindow((x, y, width, height) => {
-      const popupX = x - 150; 
-      const popupY = y + height + 4; 
+      const popupX = x - 150;
+      const popupY = y + height + 4;
 
       onShowPopup(order, { x: popupX, y: popupY });
     });
@@ -170,13 +173,38 @@ const OrderHistory = ({
                 <Text style={styles.values}>₹{totalPrice}</Text>
               </Text>
             )}
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: getStatusBg(order.orderStatus),
+                  alignSelf: 'flex-start',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: getStatusTextColor(order.orderStatus) },
+                ]}
+              >
+                {order.orderStatus === 'DELIVERED'
+                  ? formatTabLabel(order.orderStatus) +
+                    ' on ' +
+                    formattedDeliveryDate
+                  : formatTabLabel(order.orderStatus)}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.columnRight}>
             <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              style={{
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: 10,
+              }}
             >
-              <Text style={styles.date}>{formattedDate}</Text>
               <TouchableOpacity ref={dotRef} onPress={showPopup}>
                 <Entypo
                   name="dots-three-vertical"
@@ -184,24 +212,9 @@ const OrderHistory = ({
                   color={Colors.secondary}
                 />
               </TouchableOpacity>
+              <Text style={styles.date}>{formattedOrderDate}</Text>
             </View>
-            <View style={styles.statusBadgeWrapper}>
-              <View
-                style={[
-                  styles.statusBadge,
-                  { backgroundColor: getStatusBg(order.orderStatus) },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusText,
-                    { color: getStatusTextColor(order.orderStatus) },
-                  ]}
-                >
-                  {formatTabLabel(order.orderStatus)}
-                </Text>
-              </View>
-            </View>
+            <View style={styles.statusBadgeWrapper}></View>
             {role === 'CUSTOMER' && (
               <TouchableOpacity onPress={handleRepeatOrder}>
                 <Text style={styles.repeat}>
@@ -214,8 +227,6 @@ const OrderHistory = ({
 
         {isExpanded && <View style={styles.expanded}>{expandedView}</View>}
       </TouchableOpacity>
-
-     
     </>
   );
 };

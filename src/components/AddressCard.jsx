@@ -6,7 +6,6 @@ import Fonts from '../styles/font.js';
 import strings from '../constants/string.js';
 import { ScaledSheet } from 'react-native-size-matters';
 
-const { width } = Dimensions.get('window');
 
 const AddressCard = ({
   item,

@@ -1,5 +1,4 @@
-// components/ConfirmDialog.js
-import React from 'react';
+
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Colors from '../../src/styles/colors';
 
@@ -21,17 +20,14 @@ const ConfirmDialog = ({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* Title */}
 
           {title ? <Text style={styles.title}>{title}</Text> : null}
-          {/* Message */}
           {typeof message === 'string' ? (
             <Text style={styles.message}>{message}</Text>
           ) : (
             message
           )}
         </View>
-        {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
             onPress={onCancel}
@@ -65,7 +61,6 @@ const styles = StyleSheet.create({
   container: {
     width: '90%',
     backgroundColor: '#fff',
-    // backgroundColor: "#5d1a1aff",
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
@@ -94,7 +89,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 50,
     alignItems: 'center',
-    // marginHorizontal: 5,
   },
   confirmBtn: {
     backgroundColor: Colors.primary,

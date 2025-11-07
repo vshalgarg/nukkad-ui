@@ -1,12 +1,5 @@
-// components/StoreSelector.js
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
@@ -53,7 +46,6 @@ const StoreSelector = ({
                 onPress={() => handleSelect(item)}
               >
                 <Text style={styles.optionText}>{item.storeName}</Text>
-                {/* <Text style={styles.optionId}>{item.storeId}</Text> */}
               </TouchableOpacity>
             )}
             nestedScrollEnabled={true}
@@ -111,7 +103,6 @@ const styles = ScaledSheet.create({
   },
   optionText: {
     fontSize: Fonts.sizes.base,
-    // fontWeight: '500',
     color: Colors.secondary,
   },
   optionId: {

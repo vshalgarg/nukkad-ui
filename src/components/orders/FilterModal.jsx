@@ -7,6 +7,7 @@ import {
   Alert,
   Dimensions,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Colors from '../../styles/colors';
@@ -158,111 +159,122 @@ const FilterModal = ({
     <>
       <Modal
         visible={visible}
-        animationType="none"
+        animationType="fade"
         transparent
         onRequestClose={onClose}
       >
-        <View style={styles.overlay}>
-          <View style={styles.modalContainer}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={styles.title}>Filter Orders</Text>
-              <TouchableOpacity onPress={handleClearFilter}>
-                <Text style={styles.subtitle}>Clear</Text>
-              </TouchableOpacity>
-            </View>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContainer}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={styles.title}>Filter Orders</Text>
+                  <TouchableOpacity onPress={handleClearFilter}>
+                    <Text style={styles.subtitle}>Clear</Text>
+                  </TouchableOpacity>
+                </View>
 
-            <TouchableOpacity
-              style={styles.dateSelect}
-              onPress={() => openDatePicker('from')}
-            >
-              <Text style={styles.dateLabel}>From: {formatDate(dateFrom)}</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dateSelect}
+                  onPress={() => openDatePicker('from')}
+                >
+                  <Text style={styles.dateLabel}>
+                    From: {formatDate(dateFrom)}
+                  </Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.dateSelect}
-              onPress={() => openDatePicker('to')}
-            >
-              <Text style={styles.dateLabel}>To: {formatDate(dateTo)}</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.dateSelect}
+                  onPress={() => openDatePicker('to')}
+                >
+                  <Text style={styles.dateLabel}>To: {formatDate(dateTo)}</Text>
+                </TouchableOpacity>
 
-            <Text style={styles.sectionTitle}>Order Status</Text>
-            <View style={[styles.statusRow, { marginBottom: open ? 10 : 0 }]}>
-              <DropDownPicker
-                open={open}
-                value={selectedStatus}
-                items={statusItems}
-                setOpen={setOpen}
-                setValue={setSelectedStatus}
-                setItems={setStatusItems}
-                placeholder="Select a status"
-                dropDownDirection="BOTTOM"
-                style={{
-                  borderColor: Colors.borderColor,
-                  marginBottom: open ? 180 : 20,
-                }}
-                dropDownContainerStyle={{ borderColor: Colors.borderColor }}
-                textStyle={{
-                  color: Colors.secondary,
-                  fontSize: Fonts.sizes.base,
-                }}
-                zIndex={1000}
-              />
-            </View>
-
-            {(selectedStatus === 'DISPATCHED' ||
-              selectedStatus === 'DELIVERED') && (
-              <>
-                <Text style={styles.sectionTitle}>Price Range</Text>
-                <View style={styles.sliderContainer}>
-                  <MultiSlider
-                    values={[
-                      Number(minPrice) || 0,
-                      Number(maxPrice) || 2000000,
-                    ]}
-                    min={0}
-                    max={2000000}
-                    sliderLength={screenWidth - 70}
-                    customMarker={e => (
-                      <CustomMarker currentValue={e.currentValue} />
-                    )}
-                    step={500}
-                    onValuesChangeFinish={([min, max]) => {
-                      setMinPrice(min.toString());
-                      setMaxPrice(max.toString());
+                <Text style={styles.sectionTitle}>Order Status</Text>
+                <View
+                  style={[styles.statusRow, { marginBottom: open ? 10 : 0 }]}
+                >
+                  <DropDownPicker
+                    open={open}
+                    value={selectedStatus}
+                    items={statusItems}
+                    setOpen={setOpen}
+                    setValue={setSelectedStatus}
+                    setItems={setStatusItems}
+                    placeholder="Select a status"
+                    dropDownDirection="BOTTOM"
+                    style={{
+                      borderColor: Colors.borderColor,
+                      marginBottom: open ? 180 : 20,
                     }}
-                    selectedStyle={{ backgroundColor: Colors.primary }}
-                    markerStyle={{
-                      backgroundColor: Colors.primary,
-                      height: 20,
-                      width: 20,
+                    dropDownContainerStyle={{ borderColor: Colors.borderColor }}
+                    textStyle={{
+                      color: Colors.secondary,
+                      fontSize: Fonts.sizes.base,
                     }}
+                    zIndex={1000}
                   />
                 </View>
-              </>
-            )}
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => {
-                  onClose();
-                  handleClearFilter();
-                }}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalBtn} onPress={applyFilter}>
-                <Text style={styles.buttonText}>Apply</Text>
-              </TouchableOpacity>
-            </View>
+                {(selectedStatus === 'DISPATCHED' ||
+                  selectedStatus === 'DELIVERED') && (
+                  <>
+                    <Text style={styles.sectionTitle}>Price Range</Text>
+                    <View style={styles.sliderContainer}>
+                      <MultiSlider
+                        values={[
+                          Number(minPrice) || 0,
+                          Number(maxPrice) || 2000000,
+                        ]}
+                        min={0}
+                        max={2000000}
+                        sliderLength={screenWidth - 70}
+                        customMarker={e => (
+                          <CustomMarker currentValue={e.currentValue} />
+                        )}
+                        step={500}
+                        onValuesChangeFinish={([min, max]) => {
+                          setMinPrice(min.toString());
+                          setMaxPrice(max.toString());
+                        }}
+                        selectedStyle={{ backgroundColor: Colors.primary }}
+                        markerStyle={{
+                          backgroundColor: Colors.primary,
+                          height: 20,
+                          width: 20,
+                        }}
+                      />
+                    </View>
+                  </>
+                )}
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => {
+                      onClose();
+                      handleClearFilter();
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.modalBtn}
+                    onPress={applyFilter}
+                  >
+                    <Text style={styles.buttonText}>Apply</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {Platform.OS !== 'ios' && showDatePicker && (

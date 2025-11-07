@@ -10,8 +10,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { findNodeHandle, UIManager, InteractionManager } from 'react-native';
-
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import { useProfile } from '../../contexts/profileContext';
@@ -24,16 +22,13 @@ import { useRoute } from '@react-navigation/native';
 import { createCustomerProfile } from '../../services/customer/customerProfileService';
 import { useAuth } from '../../contexts/authContext';
 import { useDispatch } from 'react-redux';
-import Fonts from '../../styles/font';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl';
-// import { setCartUser } from '../../store/cartSlice';
 import { validateCustomerProfile } from '../../schema/validation';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
 import DatePicker from '../../components/DatePicker';
 import StateDropdown from '../../components/StateDropdown';
 import CityDropdown from '../../components/CityDropdown';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let pressLock = false;
 
@@ -50,7 +45,7 @@ const CustomerCreateProfile = () => {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [errors, setErrors] = useState({});
-  const [openDropdown, setOpenDropdown] = useState(null); // 'state' | 'city' | null
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -103,26 +98,6 @@ const CustomerCreateProfile = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // const handleDobChange = (event, selectedDate) => {
-  //   setShowDatePicker(false);
-
-  //   if (event.type === 'dismissed') return; // prevent setting date if dismissed
-
-  //   const currentDate = selectedDate || dob;
-  //   const today = new Date();
-
-  //   // Optional: Validate that DOB is not in the future and user is at least 13 years old
-  //   const age = today.getFullYear() - currentDate.getFullYear();
-  //   const isFutureDate = currentDate > today;
-
-  //   if (isFutureDate || age < 13) {
-  //     setErrors(prev => ({ ...prev, dob: true }));
-  //   } else {
-  //     setDob(currentDate);
-  //     setErrors(prev => ({ ...prev, dob: false }));
-  //   }
-  // };
-
   const handleContinue = async () => {
     if (pressLock) return;
     pressLock = true;
@@ -150,12 +125,6 @@ const CustomerCreateProfile = () => {
 
       if (fieldErrors.name) scrollToInput(nameRef);
       else if (fieldErrors.email) scrollToInput(emailRef);
-      // else if (fieldErrors.addressLine1) scrollToInput(address1ref);
-      // else if (fieldErrors.landmark) scrollToInput(landmarkRef);
-      // else if (fieldErrors.city) scrollToInput(cityRef);
-      // else if (fieldErrors.state) scrollToInput(stateRef);
-      // else if (fieldErrors.pincode) scrollToInput(pincodeRef);
-
       pressLock = false;
       return;
     }
@@ -194,8 +163,6 @@ const CustomerCreateProfile = () => {
       };
 
       await createProfile(newProfile);
-      // dispatch(setCartUser(profile.userId));
-
       showToast('success', strings.registeredSuccessfully);
 
       Keyboard.dismiss();
@@ -234,7 +201,7 @@ const CustomerCreateProfile = () => {
           marginBottom: '100@vs',
         }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 30} // adjust if you have header/navbar
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 30}
       >
         <View style={localStyles.createProfileStyling}>
           <Text style={[localStyles.header, textStyles.subheading]}>
@@ -266,7 +233,7 @@ const CustomerCreateProfile = () => {
                   onFocus={() => setOpenDropdown(null)}
                   blurOnSubmit={false}
                   onTextChange={text => {
-                    setName(text); // no restriction
+                    setName(text);
                     if (isSubmitting) {
                       setErrors(prev => ({
                         ...prev,
@@ -332,12 +299,6 @@ const CustomerCreateProfile = () => {
                   onTextChange={text => {
                     const cleaned = text.replace(/[^a-zA-Z0-9\s,\/-]/g, '');
                     setAddressLine1(cleaned);
-                    // if (isSubmitting) {
-                    //   setErrors(prev => ({
-                    //     ...prev,
-                    //     addressLine1: cleaned.trim().length > 0 ? false : true,
-                    //   }));
-                    // }
                   }}
                   isError={errors.addressLine1}
                   returnKeyType="next"
@@ -366,12 +327,6 @@ const CustomerCreateProfile = () => {
                   placeholder="Enter Landmark"
                   onTextChange={text => {
                     setLandmark(text);
-                    // if (isSubmitting) {
-                    //   setErrors(prev => ({
-                    //     ...prev,
-                    //     landmark: text.trim().length >= 2 ? false : true,
-                    //   }));
-                    // }
                   }}
                   maxLength={20}
                   onFocus={() => setOpenDropdown(null)}
@@ -394,12 +349,12 @@ const CustomerCreateProfile = () => {
 
                 <Text style={localStyles.label}>{strings.city}</Text>
                 <CityDropdown
+                  key={state}
                   selectedState={state}
                   selectedCity={city}
                   onSelectCity={val => {
                     setCity(val);
                   }}
-                  // error={errors.city}
                   openDropdown={openDropdown}
                   setOpenDropdown={setOpenDropdown}
                   dropdownKey="city"
@@ -417,12 +372,6 @@ const CustomerCreateProfile = () => {
                   onTextChange={text => {
                     const cleaned = text.replace(/\D/g, '');
                     setPincode(cleaned);
-                    // if (isSubmitting) {
-                    //   setErrors(prev => ({
-                    //     ...prev,
-                    //     pincode: /^\d{6}$/.test(cleaned) ? false : true,
-                    //   }));
-                    // }
                   }}
                   isError={errors.pincode}
                 />

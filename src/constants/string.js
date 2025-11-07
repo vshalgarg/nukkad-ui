@@ -51,6 +51,7 @@ const strings = {
   skip: 'Skip',
   noStoresFound: 'No stores found',
   myStores: 'My Stores',
+  selectStoreToShare:'Select store to share',
 
   productCount: totalItems =>
     `${totalItems} item${totalItems > 1 ? 's' : ''} in cart`,
@@ -176,4 +177,13 @@ const strings = {
   failedToUpdateProfile: 'Failed to update profile',
 };
 
+export const shareStrings = {
+  title: storeName => `Share ${storeName} QR`,
+
+  message: (storeName, storeId, playStoreUrl) =>
+    `🛍️ Add ${storeName} to start shopping on Nukkad App ${playStoreUrl}\n\n` +
+    '📲 Scan the QR code to add the store instantly.\n' +
+    `🆔 Or enter Store ID: ${storeId} manually in the app.\n\n` +
+    "Let's start shopping today!",
+};
 export default strings;

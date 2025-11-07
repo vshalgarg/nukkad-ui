@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Pressable,
-  StyleSheet,
   Text,
   View,
   ActivityIndicator,
@@ -21,7 +19,6 @@ import Fonts from '../../styles/font';
 import { useDialog } from '../../contexts/DialogContext';
 import {
   getMyStores,
-  deleteStore,
 } from '../../services/customer/getAllStoreService';
 
 import { useAuth } from '../../contexts/authContext';
@@ -46,12 +43,8 @@ export default function MyStores() {
   const fetchStores = async () => {
     try {
       setLoading(true);
-
-      // Fetch all stores
       const response = await getMyStores(token);
       setStores(response);
-
-      //  Fetch default store from backend
       let defaultStore = null;
       try {
         defaultStore = await getDefaultStore();
@@ -62,7 +55,7 @@ export default function MyStores() {
       console.log(defaultStore);
       if (defaultStore) {
         setSelectedStoreTemp(defaultStore);
-        saveStore(defaultStore); // store in context + AsyncStorage
+        saveStore(defaultStore);
         return;
       }
 
@@ -224,7 +217,6 @@ export default function MyStores() {
           </View>
         ) : stores.length === 0 ? (
           <View style={innerStyle.noStoresContainer}>
-            {/* Icon or Illustration */}
             <Ionicons
               name="storefront-outline"
               size={80}

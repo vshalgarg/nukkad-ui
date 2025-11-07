@@ -57,7 +57,6 @@ const StorekeeperDashboard = () => {
     deliveredOrdersCount: 0,
   });
 
-  // Component state for pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -81,16 +80,6 @@ const StorekeeperDashboard = () => {
   ];
 
   const orders = useSelector(state => state.storekeeperOrders.orders);
-  const orderCounts = React.useMemo(() => {
-    return {
-      PENDING: orders.filter(o => o.orderStatus === 'PENDING').length,
-      IN_PROGRESS: orders.filter(
-        o => o.orderStatus === 'IN_PROGRESS' || o.orderStatus === 'DISPATCHED',
-      ).length,
-      DELIVERED: orders.filter(o => o.orderStatus === 'DELIVERED').length,
-    };
-  }, [orders]);
-
   const loadOrders = async (status, page = 0) => {
     try {
       if (!token) return;
@@ -101,7 +90,6 @@ const StorekeeperDashboard = () => {
       const orderData = await getOrders(token, status, page, size);
       console.log('orderData', orderData.pendingOrdersCount);
 
-      // Always append fetched orders to Redux
       setOrderCountsFromApi({
         pendingOrdersCount: orderData.pendingOrdersCount,
         inprogressOrdersCount: orderData.inprogressOrdersCount,
@@ -110,7 +98,7 @@ const StorekeeperDashboard = () => {
       dispatch(
         setOrders({
           orders: orderData.orders,
-          append: page > 0, // append only for pagination
+          append: page > 0,
         }),
       );
 
@@ -123,8 +111,6 @@ const StorekeeperDashboard = () => {
       setRefreshing(false);
     }
   };
-
-
 
   useEffect(() => {
     console.log(toast);
@@ -241,7 +227,7 @@ const StorekeeperDashboard = () => {
       },
       onPanResponderRelease: (evt, gestureState) => {
         if (gestureState.dx > 50) {
-          setIsSideBarOpen(true); // Open sidebar on right swipe
+          setIsSideBarOpen(true);
         }
       },
     }),
@@ -285,9 +271,9 @@ const StorekeeperDashboard = () => {
       const screenHeight = Dimensions.get('window').height;
 
       let popupX = x - popupWidth + width;
-      if (popupX < 10) popupX = 10; // prevent overflow left
+      if (popupX < 10) popupX = 10;
       if (popupX + popupWidth > screenWidth - 10) {
-        popupX = screenWidth - popupWidth - 10; // prevent overflow right
+        popupX = screenWidth - popupWidth - 10;
       }
 
       let popupY = y + height + 5;
@@ -325,7 +311,6 @@ const StorekeeperDashboard = () => {
         <Text style={[innerStyle.heading, textStyles.subheading]}>
           My Orders
         </Text>
-       
       </View>
 
       <SideBar
@@ -389,10 +374,7 @@ const StorekeeperDashboard = () => {
                 { flex: 1, minHeight: height * 0.65 },
               ]}
             >
-              <Text style={innerStyle.emptyStateText}>
-                {/* No {formatTabLabel(statusTabs[formState].label)} Orders Found. */}
-                No Orders Found.
-              </Text>
+              <Text style={innerStyle.emptyStateText}>No Orders Found.</Text>
             </View>
           )}
           renderItem={({ item: order }) => (
@@ -401,7 +383,6 @@ const StorekeeperDashboard = () => {
               style={innerStyle.orderCard}
               onPress={() => handleDetails(order)}
             >
-              {/* Top Section - Order Number + Icons */}
               <View style={innerStyle.topSection}>
                 <Text style={innerStyle.orderText}>Order #{order.orderId}</Text>
                 {order.orderStatus !== 'DELIVERED' &&
@@ -425,7 +406,6 @@ const StorekeeperDashboard = () => {
                   )}
               </View>
 
-              {/* Middle Section - Customer Info */}
               <View style={innerStyle.middleSection}>
                 <Text style={innerStyle.orderDetailsHeading}>
                   Order Date:
@@ -481,7 +461,6 @@ const StorekeeperDashboard = () => {
                 )}
               </View>
 
-              {/* Bottom Section - Status + Actions */}
               <View style={innerStyle.bottomSection}>
                 <Text
                   style={[
@@ -572,7 +551,6 @@ const innerStyle = ScaledSheet.create({
     padding: '10@ms',
     flexDirection: 'row',
     alignItems: 'center',
-    // justifyContent: 'center',
   },
 
   heading: {
@@ -583,7 +561,6 @@ const innerStyle = ScaledSheet.create({
     color: Colors.secondary,
   },
   orderStatus: {
-    // marginHorizontal: '1@ms',
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: '20@vs',

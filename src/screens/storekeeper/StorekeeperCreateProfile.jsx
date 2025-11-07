@@ -98,7 +98,7 @@ const StorekeeperCreateProfile = () => {
             },
             (x, y) => {
               scrollViewRef.current.scrollTo({ y: y - 40, animated: true });
-              ref.current.focus?.(); // safer optional chaining
+              ref.current.focus?.();
             },
           );
         });
@@ -151,17 +151,14 @@ const StorekeeperCreateProfile = () => {
         console.log('Zod validation errors:', result.error.format());
       }
 
-      // Auto-scroll
       if (fieldErrors.name) scrollToInput(nameRef);
       else if (fieldErrors.storeName) scrollToInput(storeNameRef);
       else if (fieldErrors.contactNumber) scrollToInput(contactNumberRef);
       else if (fieldErrors.gstNum) scrollToInput(gstRef);
       else if (fieldErrors.addressLine1) scrollToInput(address1Ref);
       else if (fieldErrors.landmark) scrollToInput(landmarkRef);
-      else if (fieldErrors.state)
-        scrollToInput(stateRef); // Optional: assign a ref to state
-      else if (fieldErrors.city)
-        scrollToInput(cityRef); // Optional: assign a ref to city
+      else if (fieldErrors.state) scrollToInput(stateRef);
+      else if (fieldErrors.city) scrollToInput(cityRef);
       else if (fieldErrors.pincode) scrollToInput(pincodeRef);
 
       setIsSubmitting(false);
@@ -251,7 +248,6 @@ const StorekeeperCreateProfile = () => {
                   ref={nameRef}
                   placeholder="Enter Your Name"
                   value={name}
-                  // style={{ width: '100%' }}
                   maxLength={30}
                   onFocus={() => setOpenDropdown(null)}
                   autoCapitalize="words"
@@ -285,7 +281,6 @@ const StorekeeperCreateProfile = () => {
                   ref={storeNameRef}
                   placeholder="Enter Store Name"
                   value={storeName}
-                  // style={{ width: '100%' }}
                   maxLength={30}
                   onFocus={() => setOpenDropdown(null)}
                   onTextChange={text => {
@@ -311,7 +306,6 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={contactNumberRef}
                   placeholder="Enter Contact Number"
-                  // style={{ width: '100%' }}
                   value={contactNumber}
                   onFocus={() => setOpenDropdown(null)}
                   keyboardType="number-pad"
@@ -337,7 +331,6 @@ const StorekeeperCreateProfile = () => {
                   ref={gstRef}
                   placeholder="Enter GSTIN Number"
                   value={gstNum}
-                  // style={{ width: '100%' }}
                   autoCapitalize="characters"
                   onChange={text => setGstNum(text)}
                   maxLength={15}
@@ -348,7 +341,7 @@ const StorekeeperCreateProfile = () => {
                     if (hasTriedSubmit) {
                       setErrors(prev => ({
                         ...prev,
-                        gstNum: false, // always false, never show error
+                        gstNum: false,
                       }));
                     }
                   }}
@@ -367,7 +360,6 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={address1Ref}
                   placeholder="Enter Address"
-                  // style={{ width: '100%' }}
                   value={addressLine1}
                   maxLength={40}
                   onFocus={() => setOpenDropdown(null)}
@@ -392,7 +384,6 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={address2Ref}
                   placeholder="Enter Address Line 2"
-                  // style={{ width: '100%' }}
                   value={addressLine2}
                   maxLength={40}
                   onFocus={() => setOpenDropdown(null)}
@@ -413,7 +404,6 @@ const StorekeeperCreateProfile = () => {
                 <CustomInput
                   ref={landmarkRef}
                   placeholder="Enter Landmark"
-                  // style={{ width: '100%' }}
                   value={landmark}
                   maxLength={40}
                   onFocus={() => setOpenDropdown(null)}
@@ -441,11 +431,11 @@ const StorekeeperCreateProfile = () => {
                   selectedState={state}
                   onSelectState={val => {
                     setState(val);
-                    setCity(''); // Reset city when state changes
+                    setCity('');
                     setErrors(prev => ({
                       ...prev,
                       state: hasTriedSubmit ? (val ? false : true) : prev.state,
-                      city: hasTriedSubmit ? true : prev.city, // force city error highlight if submit already pressed
+                      city: hasTriedSubmit ? true : prev.city,
                     }));
                   }}
                   error={errors.state}
@@ -461,6 +451,7 @@ const StorekeeperCreateProfile = () => {
                   {strings.city} <Text style={innerStyles.mandatory}>*</Text>
                 </Text>
                 <CityDropdown
+                  key={state}
                   selectedState={state}
                   selectedCity={city}
                   onSelectCity={val => {
@@ -475,8 +466,6 @@ const StorekeeperCreateProfile = () => {
                   setOpenDropdown={setOpenDropdown}
                   dropdownKey="city"
                 />
-
-             
               </View>
               <View style={innerStyles.inputContainer}>
                 <Text style={innerStyles.label}>
@@ -486,7 +475,6 @@ const StorekeeperCreateProfile = () => {
                   ref={pincodeRef}
                   placeholder="Enter Pincode"
                   value={pincode}
-                  // style={{ width: '100%' }}
                   keyboardType="number-pad"
                   inputAccessoryViewID="pincode"
                   maxLength={6}
@@ -554,18 +542,15 @@ const innerStyles = ScaledSheet.create({
     flex: 1,
     alignItems: 'center',
     width: '100%',
-    // backgroundColor:"black"
   },
   formContainer: {
-    //maxWidth: '500@ms0.3', // smaller scaling factor to prevent extreme width
     width: '80%',
-    // backgroundColor:'red'
   },
   label: {
     alignSelf: 'flex-start',
     marginTop: '5@vs',
     marginBottom: '5@vs',
-    fontSize: Fonts.sizes.base, // Assuming this is already scaled
+    fontSize: Fonts.sizes.base,
     fontWeight: '500',
     color: Colors.secondary,
   },
@@ -573,7 +558,6 @@ const innerStyles = ScaledSheet.create({
     color: Colors.reject,
   },
   buttonWrapper: {
-    // marginTop: '30@ms',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: '10@ms',

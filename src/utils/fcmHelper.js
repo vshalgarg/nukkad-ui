@@ -5,10 +5,8 @@ import { Platform } from 'react-native';
 
 export const setupAndStoreFcmToken = async () => {
   try {
-    // Ask permission
     await notifee.requestPermission();
 
-    // Create Android channel if needed
     if (Platform.OS === 'android') {
       await notifee.createChannel({
         id: 'default',
@@ -19,7 +17,6 @@ export const setupAndStoreFcmToken = async () => {
       });
     }
 
-    // Get FCM token
     const token = await messaging().getToken();
 
     if (token) {

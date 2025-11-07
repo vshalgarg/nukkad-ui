@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Image,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Dimensions,
-  ScrollView,
-} from 'react-native';
-import Entypo from 'react-native-vector-icons/Entypo';
+import { Image, View, Text, Dimensions } from 'react-native';
+
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import ViewShot from 'react-native-view-shot';
@@ -23,13 +15,13 @@ import CustomButton from '../../components/CustomButton';
 import StoreSelector from '../../components/StoreSelector';
 import { getMyStores } from '../../services/customer/getAllStoreService';
 import { useAuth } from '../../contexts/authContext';
+import strings, { shareStrings } from '../../constants/string';
 
 const ReferToCustomer = () => {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState(null);
   const [currentRole, setCurrentRole] = useState(null);
   const [loading, setLoading] = useState(true);
-  const qrRef = useRef();
   const viewShotRef = useRef();
   const playStoreUrl = 'https://www.google.com';
   const { token } = useAuth();
@@ -61,14 +53,12 @@ const ReferToCustomer = () => {
       const uri = await viewShotRef.current.capture();
 
       await Share.open({
-        title: `Share ${selectedStore.storeName} QR`,
-        message:
-          `🛍️ Add ${selectedStore.storeName} to start shopping on Nukkad App ${playStoreUrl}\n\n` +
-          '📲 Scan the QR code to add the store instantly.\n' +
-          '🆔 Or enter Store ID: ' +
-          selectedStore.storeId +
-          ' manually in the app.\n\n' +
-          "Let's start shopping today!",
+        title: shareStrings.title(selectedStore.storeName),
+        message: shareStrings.message(
+          selectedStore.storeName,
+          selectedStore.storeId,
+          playStoreUrl,
+        ),
         url: `file://${uri}`,
         type: 'image/png',
       });
@@ -86,10 +76,6 @@ const ReferToCustomer = () => {
     }
   };
 
-  const getAllStores = async () => {
-    const response = await getMyStores(token);
-  };
-
   useEffect(() => {
     const fetchStores = async () => {
       try {
@@ -98,12 +84,10 @@ const ReferToCustomer = () => {
         let storesData = [];
 
         if (role == 'CUSTOMER') {
-          // Get all saved stores for customer
           const response = await getMyStores(token);
           console.log(response);
           storesData = response;
         } else {
-          // For storekeeper, get their own store
           const rawData = await AsyncStorage.getItem('storekeeperProfile');
           if (rawData) {
             const parsedData = JSON.parse(rawData);
@@ -121,7 +105,6 @@ const ReferToCustomer = () => {
 
         setStores(storesData);
 
-        // Set initially selected store
         if (storesData.length > 0) {
           const selectedStoreJson = await AsyncStorage.getItem(
             '@selected_store',
@@ -178,7 +161,9 @@ const ReferToCustomer = () => {
       <View style={innerStyle.container}>
         {currentRole === 'CUSTOMER' ? (
           <View style={innerStyle.selectorContainer}>
-            <Text style={innerStyle.selectorLabel}>Select Store to Share:</Text>
+            <Text style={innerStyle.selectorLabel}>
+              {strings.selectStoreToShare}
+            </Text>
             <StoreSelector
               stores={stores}
               selectedStore={selectedStore}
@@ -190,12 +175,12 @@ const ReferToCustomer = () => {
           ''
         )}
 
-        {selectedStore && (
+        {selectedStore ? (
           <>
             <View style={innerStyle.qrSection}>
-              <Text style={innerStyle.heading}>{selectedStore.storeName}</Text>
+              <Text style={innerStyle.heading}>{selectedStore?.storeName}</Text>
 
-              {selectedStore.image && (
+              {selectedStore?.image && (
                 <Image
                   source={{ uri: selectedStore.image }}
                   style={innerStyle.storeImage}
@@ -209,7 +194,7 @@ const ReferToCustomer = () => {
                 style={innerStyle.imageContainer}
               >
                 <QRCode
-                  value={selectedStore.storeId}
+                  value={String(selectedStore?.storeId || '')}
                   size={200}
                   color={Colors.secondary}
                   backgroundColor={Colors.white}
@@ -218,10 +203,14 @@ const ReferToCustomer = () => {
 
               <View style={innerStyle.storeIdContainer}>
                 <Text style={innerStyle.label}>Store ID:</Text>
-                <Text style={innerStyle.id}>{selectedStore.storeId}</Text>
+                <Text style={innerStyle.id}>
+                  {selectedStore?.storeId ?? 'N/A'}
+                </Text>
               </View>
             </View>
           </>
+        ) : (
+          <Text style={{ color: 'gray' }}>No store selected</Text>
         )}
       </View>
 
@@ -315,7 +304,7 @@ const innerStyle = ScaledSheet.create({
   storeIdContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center', // center horizontally
+    justifyContent: 'center',
     backgroundColor: Colors.backgroundLight,
     padding: '12@s',
     borderRadius: '8@s',
@@ -343,8 +332,6 @@ const innerStyle = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    // borderTopWidth: 1,
-    // borderTopColor: Colors.reject,
   },
 });
 

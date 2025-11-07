@@ -13,7 +13,7 @@ import {
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import {  useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDialog } from '../../contexts/DialogContext';
 import AddressCard from '../../components/AddressCard';
@@ -172,14 +172,9 @@ const innerStyle = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-    // position: 'relative',
     justifyContent: 'space-between',
   },
   btnContainer: {
-    // position: 'absolute',
-    // bottom: 0,
-    // left: 0,
-    // right: 0,
     padding: '12@s',
     alignItems: 'center',
   },
@@ -191,7 +186,7 @@ const innerStyle = ScaledSheet.create({
     paddingHorizontal: '20@s',
   },
   emptyText: {
-    fontSize: Fonts.sizes.base, // assuming already scaled
+    fontSize: Fonts.sizes.base, 
     color: Colors.secondaryText,
     marginBottom: '20@vs',
     textAlign: 'center',
@@ -206,7 +201,7 @@ const innerStyle = ScaledSheet.create({
   },
   addButtonText: {
     color: Colors.white,
-    fontSize: Fonts.sizes.base, // assuming already scaled
+    fontSize: Fonts.sizes.base, 
     fontWeight: '500',
     marginLeft: '8@s',
   },

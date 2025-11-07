@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Platform,
   PermissionsAndroid,
   ActivityIndicator,
@@ -66,7 +65,6 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
         selected.fileName || 'image.jpg'
       }`;
 
-      // Normalize images array to always have 4 slots
       setImages(prev => {
         const normalized = [...prev];
         while (normalized.length < MAX_IMAGES) normalized.push(null);
@@ -81,7 +79,6 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
           return normalized;
         }
 
-        // Show uploading placeholder
         normalized[firstEmptyIndex] = {
           uri: selected.uri,
           status: 'uploading',
@@ -89,7 +86,6 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
           fileName,
         };
 
-        // Compress & upload after setting placeholder
         (async () => {
           try {
             let compressedUri = selected.uri;
@@ -102,7 +98,6 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
             }
             const downloadUrl = await uploadImageAsync(compressedUri, fileName);
 
-            // Update slot with uploaded image
             setImages(prev2 => {
               const updated = [...prev2];
               const firstEmptyAfterUpload = updated.findIndex(
@@ -192,17 +187,14 @@ const StoreImageUploader = ({ images, setImages, editable = true }) => {
           >
             {img ? (
               <View>
-                {/* Always show local URI to avoid flicker */}
                 <Image source={{ uri: img.uri }} style={styles.image} />
 
-                {/* Loader overlay while uploading */}
                 {img.status === 'uploading' && (
                   <View style={styles.loaderOverlay}>
                     <ActivityIndicator size="small" color="#fff" />
                   </View>
                 )}
 
-                {/* Remove button only when editable and not uploading */}
                 {editable && img.status !== 'uploading' && (
                   <TouchableOpacity
                     style={styles.removeIcon}

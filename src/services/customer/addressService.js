@@ -1,5 +1,6 @@
-// Save New Address
 import api from '../api';
+
+// Save New Address
 export const addNewAddress = async addressData => {
   console.log('Saving New Address with payload:', addressData);
 

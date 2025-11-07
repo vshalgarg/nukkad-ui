@@ -5,7 +5,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import Colors from '../styles/colors';
 import Fonts from '../styles/font';
 import { ScaledSheet } from 'react-native-size-matters';
-// import FruitBasket from '../../assets/images/fruit-basket.svg';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -36,8 +35,6 @@ const originalSlides = [
     backgroundColor: '#005942',
   },
 ];
-
-// Cloned first/last slides for infinite loop illusion
 const slides = [
   originalSlides[originalSlides.length - 1],
   ...originalSlides,
@@ -85,13 +82,12 @@ const AutoSlider = () => {
     }
   };
 
-  // Ensure initial scroll position and start timer
   useFocusEffect(
     useCallback(() => {
       const timeout = setTimeout(() => {
         scrollToIndex(indexRef.current, false);
         startAutoScroll();
-      }, 100); // Delay helps layout settle (esp. iOS)
+      }, 100);
 
       return () => {
         clearTimeout(timeout);
@@ -133,7 +129,6 @@ const AutoSlider = () => {
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
-            {/* <FruitBasket width={140} height={140} />  */}
           </View>
         ))}
       </Animated.ScrollView>

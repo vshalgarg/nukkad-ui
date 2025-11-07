@@ -42,10 +42,9 @@ const MobileOtpScreen = () => {
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
   const [confirmResult, setConfirmResult] = useState(null);
-  // const [sendingOtp, setSendingOtp] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const userType = useSelector(state => state.user.userType);
-  const { fetchStorekeeperProfile } = useStorekeeperProfile();
 
   useEffect(() => {
     setSendOtpClicked(false);
@@ -71,14 +70,11 @@ const MobileOtpScreen = () => {
     return () => clearInterval(interval);
   }, [sendOtpClicked, canResend]);
 
-  //  Send OTP: backend + Firebase
   const sendOtpRequest = async (isResend = false) => {
     Keyboard.dismiss();
-    // setSendingOtp(true); // show "Sending..."
     try {
       const role = userType === 'I AM CUSTOMER' ? 'CUSTOMER' : 'STOREKEEPER';
 
-      // 1. Notify backend
       await sendOtp(mobile, role);
       setSendOtpClicked(true);
       setOtpEnabled(true);
@@ -91,7 +87,6 @@ const MobileOtpScreen = () => {
       );
       const phoneNumber = `+91${mobile}`;
 
-      // 2. Trigger Firebase OTP
       const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
       setConfirmResult(confirmation);
     } catch (error) {
@@ -104,7 +99,6 @@ const MobileOtpScreen = () => {
           'Please check your network connection.',
         );
       } else {
-        // fallback for other errors
         showToast(
           'error',
           error.message || 'Failed to send OTP',
@@ -127,7 +121,6 @@ const MobileOtpScreen = () => {
     sendOtpRequest(true);
   };
 
-  //  Verify OTP: Firebase + backend
   const handleLogin = async () => {
     if (!otp || otp.length < 6) {
       showToast('error', strings.invalidOtp, strings.tryAgain);
@@ -135,6 +128,8 @@ const MobileOtpScreen = () => {
     }
 
     try {
+      setIsLoggingIn(true);
+      Keyboard.dismiss();
       let firebaseUser = auth().currentUser;
 
       if (!firebaseUser) {
@@ -195,6 +190,8 @@ const MobileOtpScreen = () => {
     } catch (error) {
       console.error('OTP Verify Error:', error.message);
       showToast('error', strings.otpFailed, 'Please enter a correct OTP');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -288,16 +285,15 @@ const MobileOtpScreen = () => {
           <CustomButton
             onPress={sendOtpClicked ? handleLogin : handleSendOtp}
             title={
-              // sendingOtp
-              //   ? 'Sending...' // while sending
-              //   :
-              sendOtpClicked
-                ? strings.login // after OTP field editable
-                : strings.sendOtp // initial state
+              isLoggingIn
+                ? 'Logging in...'
+                : sendOtpClicked
+                ? strings.login
+                : strings.sendOtp
             }
             disabled={
-              // sendingOtp || // disable while sending
-              sendOtpClicked ? !otpEnabled : mobile.length !== 10
+              isLoggingIn ||
+              (sendOtpClicked ? !otpEnabled : mobile.length !== 10)
             }
           />
         </View>

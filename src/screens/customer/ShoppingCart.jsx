@@ -47,7 +47,6 @@ const ShoppingCart = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { fromRepeatOrder } = route.params || {};
-  console.log('route.params', fromRepeatOrder);
   const { showDialog } = useDialog();
 
   const dispatch = useDispatch();
@@ -60,9 +59,8 @@ const ShoppingCart = () => {
   const { storeData, allStores, setStoresList } = useStore();
   const [storeItems, setStoreItems] = useState([]);
   const [selectedStore, setSelectedStore] = useState(null);
-  console.log('statestore', allStores);
 
-  const storeKeeperId = storeData?.storekeeperId || storeData?.id;
+  const storeKeeperId = storeData?.storekeeperId || storeData?.storeId;
 
   const selectedAddress =
     address.find(item => item.id.toString() === String(selectedAddressId)) ||
@@ -88,17 +86,13 @@ const ShoppingCart = () => {
         value: store.id,
       }));
       setStoreItems(items);
-      console.log('storeItems', storeItems);
-      console.log('allStores', allStores);
 
       if (fromRepeatOrder && route.params?.originalStoreId) {
         setSelectedStore(route.params.originalStoreId);
         setShowStoreDropdown(true);
       } else if (storeData) {
-        // preselect store from AsyncStorage
-        setSelectedStore(storeData.id);
+        setSelectedStore(storeData.id||storeData.storeId);
       } else {
-        // fallback to first store
         setSelectedStore(allStores[0].id);
       }
     }
@@ -108,6 +102,8 @@ const ShoppingCart = () => {
     setLoading(true);
     try {
       const res = await getCartItemsAPI(token);
+      console.log('APi called');
+
       const formattedItems = (res || []).map(item => ({
         cartItemId: item.id,
         product: {
@@ -127,14 +123,10 @@ const ShoppingCart = () => {
     }
   }, [dispatch, token]);
 
-  useEffect(() => {
-    fetchCartItems();
-  }, [fetchCartItems]);
-
   useFocusEffect(
     useCallback(() => {
-      if (!fromRepeatOrder) fetchCartItems();
-    }, [fetchCartItems, fromRepeatOrder]),
+      fetchCartItems();
+    }, [fetchCartItems]),
   );
 
   const totalItemsInCart = cartItems?.length;
@@ -197,6 +189,7 @@ const ShoppingCart = () => {
           ?
         </Text>
       ),
+
       confirmText: 'Yes',
       cancelText: 'No',
       onCancel: () => {

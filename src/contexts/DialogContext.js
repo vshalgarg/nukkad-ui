@@ -7,18 +7,14 @@ export const DialogProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState({});
 
-  // Function to show dialog
   const showDialog = (config) => {
     setDialogConfig(config);
     setIsOpen(true);
   };
 
-  // Function to hide dialog
   const hideDialog = () => {
     setIsOpen(false);
   };
-
-  // Value that will be available to all components
   const value = {
     isOpen,
     dialogConfig,
@@ -33,7 +29,6 @@ export const DialogProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the dialog context
 export const useDialog = () => {
   const context = useContext(DialogContext);
   if (!context) {

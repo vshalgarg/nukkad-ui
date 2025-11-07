@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Colors from '../styles/colors.js';
-import Fonts from '../styles/font.js'; // Adjust path if necessary
+import Fonts from '../styles/font.js'; 
 
 const NoInternetScreen = ({ onRetry }) => {
   return (
@@ -23,28 +23,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'white', // Match ProductPage background
+    backgroundColor: 'white', 
   },
   title: {
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
-    color: Colors.secondary, // Match ProductPage innerStyle.noInternetText
+    color: Colors.secondary, 
     marginBottom: 10,
   },
   subtitle: {
     fontSize: Fonts.sizes.base,
-    color: Colors.secondaryText, // Match ProductPage innerStyle.noInternetSubText
+    color: Colors.secondaryText, 
     marginBottom: 20,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: Colors.primary, // Match ProductPage innerStyle.retryButton
+    backgroundColor: Colors.primary, 
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 25,
   },
   retryText: {
-    color: Colors.white, // Match ProductPage innerStyle.retryText
+    color: Colors.white, 
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
   },

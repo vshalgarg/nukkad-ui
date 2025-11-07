@@ -22,7 +22,6 @@ export default function CategorySlider({ selectedCategoryId }) {
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const [categories, setCategories] = useState([]);
-  // const [loading, setLoading] = useState(true);
 
 const fetchCategories = async () => {
   try {

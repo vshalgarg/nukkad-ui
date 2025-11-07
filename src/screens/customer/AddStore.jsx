@@ -2,24 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Dimensions,
   ScrollView,
-  StyleSheet,
   Text,
   View,
-  BackHandler,
   KeyboardAvoidingView,
-  Platform,
   InteractionManager,
   Keyboard,
   Pressable,
 } from 'react-native';
-import {
-  useNavigation,
-  useFocusEffect,
-  useRoute,
-} from '@react-navigation/native';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useEffect, useRef, useState } from 'react';
 import ConfirmDialog from '../../components/ConfirmDialog.jsx';
-import { useDialog } from '../../contexts/DialogContext';
 
 import CustomButton from '../../components/CustomButton';
 import QRScannerBox from '../../components/QRScannerBox.jsx';
@@ -66,8 +58,6 @@ export default function AddStore() {
   const route = useRoute();
   const hideBackButton = route?.params?.hideBackButton || false;
 
-  const { showDialog } = useDialog();
-
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -75,7 +65,7 @@ export default function AddStore() {
     };
   }, []);
   useEffect(() => {
-    Keyboard.dismiss(); //  Hides the keyboard when screen mounts
+    Keyboard.dismiss();
   }, []);
 
   const handleConfirm = () => {
@@ -163,7 +153,6 @@ export default function AddStore() {
       setIsSubmitting(false);
     }
   };
-  // NEW: open confirmation dialog instead of calling API
   const onPressAddStore = async () => {
     const id = storeId.trim().toUpperCase();
     if (!id) {
@@ -229,7 +218,6 @@ export default function AddStore() {
   return (
     <View style={[globalStyles.pageContainer, { flex: 1 }]}>
       <View style={[{ height: 80 }, innerStyle.backcontainer]}>
-        {/* Back Button (absolute, won’t affect layout) */}
         {!hideBackButton && (
           <Pressable
             onPress={handleSkip}
@@ -237,7 +225,7 @@ export default function AddStore() {
               position: 'absolute',
               left: 15,
               top: '50%',
-              transform: [{ translateY: -12 }], // vertically center
+              transform: [{ translateY: -12 }],
               zIndex: 2,
             }}
           >
@@ -245,7 +233,6 @@ export default function AddStore() {
           </Pressable>
         )}
 
-        {/* Centered Title */}
         <Text
           style={[
             textStyles.subheading,
@@ -295,21 +282,15 @@ export default function AddStore() {
 
       {!isKeyboardVisible && (
         <View style={innerStyle.btnContainer}>
-          <CustomButton
-            title={strings.addStore}
-            onPress={onPressAddStore}
-            disabled={isSubmitting}
-          />
+          <CustomButton title={strings.addStore} onPress={onPressAddStore} />
           {hideBackButton && (
             <CustomButton title={strings.skip} onPress={handleSkip} />
           )}
         </View>
       )}
 
-      {/* Custom popup */}
       <ConfirmDialog
         isOpen={isDialogOpen}
-        // title="Sure?"
         message={
           <View style={{ marginVertical: 20 }}>
             <Text
@@ -374,7 +355,7 @@ const innerStyle = ScaledSheet.create({
   backcontainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white', // or your theme color
+    backgroundColor: 'white',
     position: 'relative',
   },
 

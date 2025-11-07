@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -99,12 +93,6 @@ const UserToolbar = ({
               )}
             </Pressable>
           )}
-
-          {/* {!hideNotification && (
-            <Pressable onPress={handleNotification}>
-              <Feather name="bell" size={24} color={Colors.secondary} />
-            </Pressable>
-          )} */}
         </View>
       </View>
     </>
@@ -144,7 +132,6 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    // backgroundColor: 'red',
     width: '25%',
   },
   iconWrapper: {

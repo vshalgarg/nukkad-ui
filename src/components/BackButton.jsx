@@ -6,8 +6,6 @@ import textStyles from '../styles/textStyles';
 import Colors from '../styles/colors';
 import { ScaledSheet } from 'react-native-size-matters';
 
-const screenWidth = Dimensions.get('window').width;
-
 const BackButton = ({ title, onPress }) => {
   const navigation = useNavigation();
 
@@ -17,20 +15,18 @@ const BackButton = ({ title, onPress }) => {
     } else if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate('CustomerDashboard'); // fallback
+      navigation.navigate('CustomerDashboard');
     }
   };
 
   return (
     <View style={[innerStyle.container]}>
-      {/* Back arrow with 5% left margin */}
       <View style={innerStyle.backIconWrapper}>
         <Pressable onPress={handlePress} style={innerStyle.backIconWrapper}>
           <Entypo name="chevron-left" size={25} color={Colors.secondary} />
         </Pressable>
       </View>
 
-      {/* Title centered absolutely */}
       <Text style={[innerStyle.title, textStyles.subheading]}>{title}</Text>
     </View>
   );
@@ -48,7 +44,7 @@ const innerStyle = ScaledSheet.create({
     backgroundColor: Colors.white,
   },
   backIconWrapper: {
-    marginLeft: '1%', // Since this is percentage-based, no scaling is applied
+    marginLeft: '1%',
     zIndex: 10,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',

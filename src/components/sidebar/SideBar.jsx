@@ -13,21 +13,14 @@ import {
   View,
 } from 'react-native';
 import Share from 'react-native-share';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useDialog } from '../../contexts/DialogContext.js';
-import { showToast } from '../../utils/toastUtils.js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import ProfileImage from '../../../assets/images/ProfileImage.svg';
 import { useProfile } from '../../contexts/profileContext.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import { useDispatch } from 'react-redux';
-import { clearCart } from '../../store/cartSlice.js';
-import { resetUser } from '../../store/userSlice.js';
 import { useAddress } from '../../contexts/addressContext.js';
 import { useStore } from '../../contexts/storeContext.js';
 import Fonts from '../../styles/font.js';
 import Colors from '../../styles/colors.js';
-import { persistor } from '../../store/store.js';
 import { useAuth } from '../../contexts/authContext.js';
 import { useStorekeeperProfile } from '../../contexts/storeKeeperProfileContext.js';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -52,11 +45,6 @@ const SideBar = ({ isVisible, onClose }) => {
   const email = profile?.email ?? '';
   const mobile = profile?.mobileNumber || profile?.mobile;
 
-  const dispatch = useDispatch();
-  const { resetProfile } = useProfile();
-  const { resetAddress } = useAddress();
-  const { resetStore } = useStore();
-  const { showDialog } = useDialog();
 
   useEffect(() => {
     Animated.timing(slideAnimation, {
@@ -103,8 +91,6 @@ const SideBar = ({ isVisible, onClose }) => {
           { name: 'Addresses', icon: 'location-sharp' },
         ]
       : []),
-    // { name: 'Notifications', icon: 'notifications' },
-    // { name: 'Settings', icon: 'settings-sharp' },
     { name: `${refer}`, icon: 'share-social-sharp' },
     { name: 'Refer Store to Customer', icon: 'share-social-sharp' },
     { name: 'Help and Support', icon: 'help-circle' },
@@ -300,7 +286,6 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: '20@vs',
-    // gap: '10@s',
     width: '100%',
   },
   details: {

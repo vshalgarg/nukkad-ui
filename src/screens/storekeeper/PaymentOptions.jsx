@@ -95,10 +95,8 @@ const PaymentOptions = () => {
 
   const handleDeleteQR = async id => {
     try {
-      // Optimistically remove the QR from the state first
       setQrCodes(prev => prev.filter(qr => qr.id !== id));
 
-      // Call backend to delete
       await deletePaymentQR(id, token);
 
       showToast('success', strings.deleteSuccess);
@@ -106,25 +104,25 @@ const PaymentOptions = () => {
       console.error(err);
       showToast('error', strings.failedToDeleteQR);
 
-      // If backend fails, reload QR codes to restore state
       await loadQRs();
     }
   };
 
   const handleSetDefault = async id => {
     try {
+      if (id === defaultQRId) return;
+
       await setDefaultPaymentQR(id, token);
       await loadQRs();
-      showToast('success', strings.defaultSetSuccess);
+      showToast('success', 'This Qr code has been set to default');
     } catch (err) {
       console.error(err);
       showToast('error', strings.failedToUpdateQR);
     }
   };
-  // Only show uploaded QR images + 1 placeholder if total < 3
   const displaySlots = [...qrCodes];
   if (qrCodes.length < 3) {
-    displaySlots.push(null); // exactly 1 placeholder
+    displaySlots.push(null);
   }
 
   return (
@@ -195,7 +193,14 @@ const PaymentOptions = () => {
                     ]}
                     onPress={() => handleSetDefault(qr.id)}
                   >
-                    <Text style={innerStyle.secondaryBtnText}>
+                    <Text
+                      style={[
+                        innerStyle.secondaryBtnText,
+                        {
+                          color: isDefault ? Colors.secondary : Colors.white,
+                        },
+                      ]}
+                    >
                       {isDefault ? strings.default : strings.setDefault}
                     </Text>
                   </TouchableOpacity>

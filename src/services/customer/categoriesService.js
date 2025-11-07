@@ -1,4 +1,3 @@
-// services/category.js
 import api from '../api';
 
 //  Get All Categories
@@ -13,7 +12,7 @@ export const getAllCategories = async () => {
       data: response.data,
     });
 
-    return response.data; //  Return only the category array
+    return response.data; 
   } catch (error) {
     console.error(' Get All Categories API Error:', {
       message: error.message,
@@ -27,8 +26,6 @@ export const getAllCategories = async () => {
   }
 };
 
-
-// services/category.js (same file)
 
 export const getCategoryById = async (id) => {
   console.log(` Fetching Category by ID: ${id}`);

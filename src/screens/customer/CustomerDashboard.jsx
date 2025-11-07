@@ -43,7 +43,6 @@ const CustomerDashboard = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const swipeEnabled = useRef(true);
   useEffect(() => {
-    // Disable swipe when sidebar is open
     swipeEnabled.current = !sidebarVisible;
   }, [sidebarVisible]);
   useEffect(() => {
@@ -62,7 +61,7 @@ const CustomerDashboard = () => {
       const savedStoreString = await AsyncStorage.getItem('@selected_store');
       if (savedStoreString) {
         const savedStore = JSON.parse(savedStoreString);
-        saveStore(savedStore); // put into context
+        saveStore(savedStore);
       }
     })();
   }, []);
@@ -106,8 +105,8 @@ const CustomerDashboard = () => {
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.profileImage || null,
-        dob: userProfile.dob || '', // this is fine, lowercase
-        mobile: userProfile.mobileNumber || '', // should also work
+        dob: userProfile.dob || '', 
+        mobile: userProfile.mobileNumber || '', 
       });
 
       const stores = await fetchAllStores(token);
@@ -167,8 +166,6 @@ const CustomerDashboard = () => {
         if (cached) {
           setCategories(JSON.parse(cached));
         }
-
-        // wait until all initial data is fetched
         await Promise.allSettled([
           fetchCategories(),
           syncAddressAndSetDefault(),
@@ -220,7 +217,6 @@ const CustomerDashboard = () => {
 
   return (
     <SafeAreaView style={styles.pageContainer} {...panResponder.panHandlers}>
-      {/* UserToolbar can also control sidebar visibility but here sidebar is controlled by swipe */}
       <UserToolbar
         onMenuPress={() => {
           if (!sidebarVisible) setSidebarVisible(true);
@@ -255,7 +251,6 @@ const CustomerDashboard = () => {
         />
       )}
 
-      {/* Sidebar controlled by swipe */}
       <SideBar
         isVisible={sidebarVisible}
         onClose={() => setSidebarVisible(false)}
