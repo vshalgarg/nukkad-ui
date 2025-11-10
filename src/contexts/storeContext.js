@@ -38,6 +38,7 @@ export const StoreProvider = ({ children }) => {
       const defaultStore = await getDefaultStore();
       if (defaultStore) {
         setStoreData(defaultStore);
+        console.log('defaultStore', defaultStore);
         await AsyncStorage.setItem(STORE_KEY, JSON.stringify(defaultStore));
         console.log('Fetched and saved default store:', defaultStore);
       }
@@ -103,7 +104,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     init();
-  }, [token, role]);
+  }, []);
 
   const setStoresList = stores => {
     if (Array.isArray(stores)) setAllStores(stores);

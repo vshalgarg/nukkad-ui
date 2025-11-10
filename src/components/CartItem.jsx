@@ -76,8 +76,23 @@ const CartItem = ({ item, openDropdownId, setOpenDropdownId }) => {
   };
 
   const handleAmountChange = val => {
-    setAmountInput(val);
-    if (val.trim() === '' || isNaN(Number(val)) || Number(val) <= 0) {
+    let formattedValue = val;
+
+    if (selectedUnit === 'PKT') {
+      formattedValue = val.replace(/[^0-9]/g, '');
+    } else {
+      formattedValue = val
+        .replace(/[^0-9.]/g, '')
+        .replace(/^(\d*\.\d*).*$/, '$1'); 
+    }
+
+    setAmountInput(formattedValue);
+
+    if (
+      formattedValue.trim() === '' ||
+      isNaN(Number(formattedValue)) ||
+      Number(formattedValue) <= 0
+    ) {
       setShowAmountError(true);
     } else {
       setShowAmountError(false);
@@ -136,7 +151,7 @@ const CartItem = ({ item, openDropdownId, setOpenDropdownId }) => {
           <TextInput
             style={[styles.input, showAmountError && styles.errorInput]}
             value={amountInput}
-            keyboardType="number-pad"
+            keyboardType={selectedUnit === 'pkt' ? 'number-pad' : 'decimal-pad'}
             onChangeText={handleAmountChange}
             placeholder="Qty."
             maxLength={5}

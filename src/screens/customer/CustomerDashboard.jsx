@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -14,32 +20,32 @@ import CategoryGridLayout from '../../components/category/CategoriesGridLayout.j
 import ProductSlider from '../../components/ProductSlider.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
 import UserToolbar from '../../components/UserToolbar.jsx';
-import SideBar from '../../components/sidebar/SideBar'; 
+import SideBar from '../../components/sidebar/SideBar';
 import styles from '../../styles/globalStyles.js';
 import { getAllCategories } from '../../services/customer/categoriesService.js';
 import { useSafeRouter } from '../../hooks/useSafeRouter.js';
 import { useAddress } from '../../contexts/addressContext.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import { useStore } from '../../contexts/storeContext.js';
-import { getMyStores } from '../../services/customer/getAllStoreService.js';
 import { useAuth } from '../../contexts/authContext.js';
 import { getCustomerProfile } from '../../services/customer/profileService.js';
 import { useProfile } from '../../contexts/profileContext.js';
 import { showToast } from '../../utils/toastUtils.js';
 import strings from '../../constants/string.js';
+import { getDefaultStore } from '../../services/customer/addStoreService.js';
 
 const CustomerDashboard = () => {
   useBackHandlerControl({ confirmBack: true });
 
   const route = useRoute();
-  const { toast } = route.params || {}; // only keep toast param
+  const { toast } = route.params || {};
   const { createProfile } = useProfile();
   const { safePush } = useSafeRouter();
   const { syncAddressesFromServer, setSelectedAddressId } = useAddress();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
-  const { saveStore, fetchAllStores } = useStore();
+  const { saveStore, fetchDefaultStore } = useStore();
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const swipeEnabled = useRef(true);
   useEffect(() => {
@@ -58,10 +64,11 @@ const CustomerDashboard = () => {
 
   useEffect(() => {
     (async () => {
-      const savedStoreString = await AsyncStorage.getItem('@selected_store');
-      if (savedStoreString) {
-        const savedStore = JSON.parse(savedStoreString);
-        saveStore(savedStore);
+      try {
+        const store = await fetchDefaultStore(); 
+        if (store) saveStore(store); 
+      } catch (err) {
+        console.warn('Failed to fetch default store:', err.message);
       }
     })();
   }, []);
@@ -84,7 +91,12 @@ const CustomerDashboard = () => {
     try {
       const response = await getAllCategories();
       if (Array.isArray(response)) {
-        setCategories(response);
+        setCategories(prev => {
+          if (JSON.stringify(prev) !== JSON.stringify(response))
+            return response;
+          return prev; // avoid unnecessary re-render
+        });
+
         await AsyncStorage.setItem('categories', JSON.stringify(response));
       } else {
         setCategories([]);
@@ -99,30 +111,22 @@ const CustomerDashboard = () => {
   const fetchStoreAndProfile = async () => {
     try {
       const userProfile = await getCustomerProfile(token);
-      console.log('customer profile in customerDashboard:', userProfile);
       await createProfile({
         firstName: userProfile.firstName || '',
         lastName: userProfile.lastName || '',
         email: userProfile.email || '',
         image: userProfile.profileImage || null,
-        dob: userProfile.dob || '', 
-        mobile: userProfile.mobileNumber || '', 
+        dob: userProfile.dob || '',
+        mobile: userProfile.mobileNumber || '',
       });
 
-      const stores = await fetchAllStores(token);
       const savedStoreString = await AsyncStorage.getItem('@selected_store');
-      const savedStore = savedStoreString ? JSON.parse(savedStoreString) : null;
-
-      if (stores.length === 1) {
-        saveStore(stores[0]);
-      } else if (
-        savedStore &&
-        stores.some(s => s.storeId === savedStore.storeId)
-      ) {
+      if (savedStoreString) {
+        const savedStore = JSON.parse(savedStoreString);
         saveStore(savedStore);
       }
     } catch (err) {
-      console.warn('Failed to fetch store/profile:', err.message);
+      console.warn('Failed to fetch profile/store:', err.message);
     }
   };
 
@@ -179,41 +183,50 @@ const CustomerDashboard = () => {
     })();
   }, [fetchCategories]);
 
-  const handleCategoryPress = category => {
-    safePush('ProductPage', {
-      categoryId: category.id,
-      categoryName: category.name,
-    });
-  };
+  const handleCategoryPress = useCallback(
+    category => {
+      safePush('ProductPage', {
+        categoryId: category.id,
+        categoryName: category.name,
+      });
+    },
+    [safePush],
+  );
 
-  const handleSearchSubmit = query => {
-    if (query.trim()) {
-      safePush('ProductPage', { search: query });
-    }
-  };
+  const handleSearchSubmit = useCallback(
+    query => {
+      if (query.trim()) {
+        safePush('ProductPage', { search: query });
+      }
+    },
+    [safePush],
+  );
 
-  const data = [
-    { type: 'search' },
-    { type: 'slider' },
-    ...(categories.length > 0
-      ? [{ type: 'categories', data: categories }]
-      : []),
-  ];
+  const data = useMemo(
+    () => [
+      { type: 'search' },
+      { type: 'slider' },
+      ...(categories.length > 0
+        ? [{ type: 'categories', data: categories }]
+        : []),
+    ],
+    [categories],
+  );
 
-  const renderItem = ({ item }) => {
-    if (item.type === 'slider') {
-      return <ProductSlider />;
-    }
-    if (item.type === 'categories') {
-      return (
-        <CategoryGridLayout
-          categories={item.data}
-          onPressCategory={handleCategoryPress}
-        />
-      );
-    }
-    return null;
-  };
+  const renderItem = useCallback(
+    ({ item }) => {
+      if (item.type === 'slider') return <ProductSlider />;
+      if (item.type === 'categories')
+        return (
+          <CategoryGridLayout
+            categories={item.data}
+            onPressCategory={handleCategoryPress}
+          />
+        );
+      return null;
+    },
+    [handleCategoryPress],
+  );
 
   return (
     <SafeAreaView style={styles.pageContainer} {...panResponder.panHandlers}>

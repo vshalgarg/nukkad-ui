@@ -432,6 +432,7 @@ const StorekeeperCreateProfile = () => {
                   onSelectState={val => {
                     setState(val);
                     setCity('');
+                    setPincode('');
                     setErrors(prev => ({
                       ...prev,
                       state: hasTriedSubmit ? (val ? false : true) : prev.state,
@@ -456,6 +457,7 @@ const StorekeeperCreateProfile = () => {
                   selectedCity={city}
                   onSelectCity={val => {
                     setCity(val);
+                    setPincode('');
                     setErrors(prev => ({
                       ...prev,
                       city: hasTriedSubmit ? (val ? false : true) : prev.city,
@@ -472,6 +474,7 @@ const StorekeeperCreateProfile = () => {
                   {strings.pincode} <Text style={innerStyles.mandatory}>*</Text>
                 </Text>
                 <CustomInput
+                  key={city}
                   ref={pincodeRef}
                   placeholder="Enter Pincode"
                   value={pincode}

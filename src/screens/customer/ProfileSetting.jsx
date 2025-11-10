@@ -52,7 +52,7 @@ const ProfileSetting = () => {
   const { confirmLogout } = useLogout();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  const { safePush } = useSafeRouter();
+  const { safePush, safeReplace } = useSafeRouter();
   const { role } = useAuth();
   const { profile: profileData, updateProfile, createProfile } = useProfile();
   const { showDialog } = useDialog();
@@ -186,7 +186,7 @@ const ProfileSetting = () => {
         await AsyncStorage.setItem('profileImage', updatedProfile.image);
       }
       setIsEditing(false);
-      safePush('CustomerDashboard', {
+      safeReplace('CustomerDashboard', {
         toast: JSON.stringify({
           type: 'success',
           title: 'Profile updated successfully!',

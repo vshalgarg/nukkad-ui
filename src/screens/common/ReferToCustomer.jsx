@@ -85,13 +85,14 @@ const ReferToCustomer = () => {
 
         if (role == 'CUSTOMER') {
           const response = await getMyStores(token);
-          console.log(response);
+          console.log('response', response);
           storesData = response;
         } else {
           const rawData = await AsyncStorage.getItem('storekeeperProfile');
           if (rawData) {
             const parsedData = JSON.parse(rawData);
             if (parsedData.storeQrId) {
+              console.log('parsedData', parsedData);
               storesData = [
                 {
                   storeId: parsedData.storeQrId,
@@ -102,15 +103,17 @@ const ReferToCustomer = () => {
             }
           }
         }
-
+        console.log('storeData', storesData);
         setStores(storesData);
 
         if (storesData.length > 0) {
           const selectedStoreJson = await AsyncStorage.getItem(
             '@selected_store',
           );
+          console.log('selectedStoreJson', selectedStoreJson);
           if (selectedStoreJson) {
             const currentStore = JSON.parse(selectedStoreJson);
+
             setSelectedStore(currentStore);
           } else {
             setSelectedStore(storesData[0]);
@@ -127,6 +130,7 @@ const ReferToCustomer = () => {
     fetchStores();
   }, []);
 
+  console.log('stores', stores, selectedStore);
   if (loading) {
     return (
       <View style={styles.pageContainer}>
@@ -193,12 +197,18 @@ const ReferToCustomer = () => {
                 options={{ format: 'png', quality: 0.9 }}
                 style={innerStyle.imageContainer}
               >
-                <QRCode
-                  value={String(selectedStore?.storeId || '')}
-                  size={200}
-                  color={Colors.secondary}
-                  backgroundColor={Colors.white}
-                />
+                {selectedStore?.storeId ? (
+                  <QRCode
+                    value={String(selectedStore.storeId)}
+                    size={200}
+                    color={Colors.secondary}
+                    backgroundColor={Colors.white}
+                  />
+                ) : (
+                  <Text style={{ color: 'gray' }}>
+                    Invalid or missing Store ID
+                  </Text>
+                )}
               </ViewShot>
 
               <View style={innerStyle.storeIdContainer}>

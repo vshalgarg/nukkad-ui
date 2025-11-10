@@ -61,6 +61,8 @@ const profileSchema = z.object({
     .string()
     .min(1, 'Landmark is required')
     .max(200, "Landmark can't be more than 200 characters"),
+  state: z.string().min(1, 'State is required'),
+  city: z.string().min(1, 'City is required'),
   pincode: z
     .string()
     .min(6, 'Pincode must be 6 digits long')
@@ -107,6 +109,7 @@ const StorekeeperProfileScreen = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [uploadingIndex, setUploadingIndex] = useState(null);
+
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     storeName: '',
@@ -176,14 +179,15 @@ const StorekeeperProfileScreen = () => {
   const handleStateChange = value => {
     setSelectedState(value);
     setSelectedCity('');
-    setProfile(prev => ({ ...prev, city: '' }));
-    setFieldErrors(prev => ({ ...prev, state: '', city: '' }));
+    setProfile(prev => ({ ...prev, city: '', pincode: '' }));
+    setFieldErrors(prev => ({ ...prev, state: '', city: '', pincode: '' }));
     setOpenDropdown(null); // ✅ closes dropdown immediately
   };
 
   const handleCityChange = value => {
     setSelectedCity(value);
-    setFieldErrors(prev => ({ ...prev, city: '' }));
+    setProfile(prev => ({ ...prev, pincode: '' }));
+    setFieldErrors(prev => ({ ...prev, city: '', pincode: '' }));
   };
 
   const handleChange = (key, value) => {
@@ -394,16 +398,18 @@ const StorekeeperProfileScreen = () => {
         <View style={styles.inputContainer}>
           <Text style={styles.label}>{label}</Text>
           {isEditing ? (
-            <CityDropdown
-              key={selectedState}
-              selectedState={selectedState}
-              selectedCity={selectedCity}
-              onSelectCity={handleCityChange}
-              error={hasError}
-              openDropdown={openDropdown}
-              setOpenDropdown={setOpenDropdown}
-              dropdownKey="city"
-            />
+            <View style={{ zIndex: 1000 }}>
+              <CityDropdown
+                key={selectedState}
+                selectedState={selectedState}
+                selectedCity={selectedCity}
+                onSelectCity={handleCityChange}
+                error={hasError}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                dropdownKey="city"
+              />
+            </View>
           ) : (
             <CustomInput
               value={selectedCity}
@@ -589,6 +595,7 @@ const styles = ScaledSheet.create({
     padding: '16@s',
     justifyContent: 'space-between',
     alignItems: 'center',
+    overflow: 'visible',
   },
   sectionTitle: {
     fontSize: Fonts.sizes.lg,

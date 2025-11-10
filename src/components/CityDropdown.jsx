@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Dimensions, Keyboard, Platform } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Colors from '../styles/colors';
@@ -18,68 +18,51 @@ const CityDropdown = ({
   dropdownKey,
 }) => {
   const [value, setValue] = useState(selectedCity || null);
-  const [items, setItems] = useState([]);
-
   const isOpen = openDropdown === dropdownKey;
 
-  const fetchCities = () => {
-    if (!selectedState) {
-      setItems([]);
-      setValue(null);
-      return;
-    }
-
-    try {
-      Keyboard.dismiss();
-      const state = statesData.states.find(s => s.name === selectedState);
-      if (state && Array.isArray(state.cities)) {
-        const mapped = state.cities.map(city => ({
-          label: city,
-          value: city,
-        }));
-        setItems(mapped);
-
-        if (selectedCity) {
-          const exists = mapped.find(i => i.value === selectedCity);
-          if (!exists) setValue(null);
-        }
-      } else {
-        setItems([]);
-        setValue(null);
-      }
-    } catch (err) {
-      console.error('Failed to fetch cities:', err);
-      setItems([]);
-      setValue(null);
-    }
-  };
+  const items = useMemo(() => {
+    if (!selectedState) return [];
+    const state = statesData.states.find(s => s.name === selectedState);
+    if (!state || !Array.isArray(state.cities)) return [];
+    return state.cities.map(city => ({ label: city, value: city }));
+  }, [selectedState]);
 
   useEffect(() => {
     if (selectedCity) {
-      setValue(selectedCity);
+      const exists = items.some(i => i.value === selectedCity);
+      setValue(exists ? selectedCity : null);
+    } else {
+      setValue(null);
     }
-    fetchCities();
-  }, [selectedState, selectedCity]);
+  }, [selectedCity, items]);
+
+  const handleOpen = useCallback(
+    o => {
+      Keyboard.dismiss();
+      setOpenDropdown(o ? dropdownKey : null);
+    },
+    [dropdownKey, setOpenDropdown],
+  );
+
+  const handleValueChange = useCallback(
+    val => {
+      setValue(val);
+      onSelectCity(val);
+    },
+    [onSelectCity],
+  );
+  const listMode = Platform.OS === 'android' ? 'SCROLLVIEW' : 'MODAL';
 
   return (
     <DropDownPicker
       open={isOpen}
       value={value}
       items={items}
-      setOpen={o => {
-        if (o) {
-          Keyboard.dismiss();
-          setOpenDropdown(dropdownKey);
-        } else {
-          setOpenDropdown(null);
-        }
-      }}
-      setValue={val => {
-        setValue(val);
-        onSelectCity(val);
-      }}
-      setItems={setItems}
-      listMode="SCROLLVIEW"
+      setOpen={handleOpen}
+      setValue={handleValueChange}
+      listMode={listMode}
+      openAnimationDuration={0}
+      closeAnimationDuration={0}
       scrollViewProps={{
         nestedScrollEnabled: true,
         keyboardShouldPersistTaps: 'handled',

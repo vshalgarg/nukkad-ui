@@ -340,6 +340,7 @@ const CustomerCreateProfile = () => {
                   onSelectState={val => {
                     setState(val);
                     setCity('');
+                    setPincode('');
                   }}
                   error={errors.state}
                   openDropdown={openDropdown}
@@ -354,6 +355,7 @@ const CustomerCreateProfile = () => {
                   selectedCity={city}
                   onSelectCity={val => {
                     setCity(val);
+                    setPincode('');
                   }}
                   openDropdown={openDropdown}
                   setOpenDropdown={setOpenDropdown}
@@ -362,6 +364,7 @@ const CustomerCreateProfile = () => {
 
                 <Text style={localStyles.label}>{strings.pincode}</Text>
                 <CustomInput
+                  key={city}
                   ref={pincodeRef}
                   value={pincode}
                   placeholder="Enter Pincode"

@@ -145,6 +145,7 @@ const MobileOtpScreen = () => {
       const userId = res?.userId;
       const returningUser = res.firstTimeLogin === 1502;
       if (returningUser) {
+        console.log('He is returing user');
         await AsyncStorage.setItem('ProfileCreated', 'true');
       }
 
@@ -158,8 +159,10 @@ const MobileOtpScreen = () => {
 
       if (role === 'CUSTOMER') {
         if (returningUser) {
+          console.log('Returing customser');
           try {
             const cartItems = await getCartItemsAPI(token);
+            console.log('finding cart items');
             const formattedItems = (cartItems || []).map(item => ({
               cartItemId: item.id,
               product: {
@@ -178,6 +181,7 @@ const MobileOtpScreen = () => {
           safePush('CustomerDashboard');
           showToast('success', strings.Welcome);
         } else {
+          console.log('New Customer is their');
           safePush('CustomerCreateProfile', { mobile, role });
         }
       } else {

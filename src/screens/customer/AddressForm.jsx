@@ -340,6 +340,7 @@ const AddressForm = () => {
                 onSelectState={val => {
                   setState(val);
                   setCity('');
+                  setPincode('');
                   setErrors(prev => ({
                     ...prev,
                     state: prev.state ? !val : false,
@@ -363,6 +364,7 @@ const AddressForm = () => {
                 selectedCity={city}
                 onSelectCity={val => {
                   setCity(val);
+                  setPincode('');
                   setErrors(prev => ({
                     ...prev,
                     city: prev.city ? !val : false,
@@ -380,6 +382,7 @@ const AddressForm = () => {
                 {strings.pincode} <Text style={formStyles.mandatory}>*</Text>
               </Text>
               <CustomInput
+                key={city}
                 ref={pincodeRef}
                 placeholder="Enter Your Pincode"
                 value={pincode}

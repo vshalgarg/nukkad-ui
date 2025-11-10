@@ -142,19 +142,27 @@ const RateStore = () => {
             ))}
           </View>
 
-          <TextInput
-            ref={feedbackRef}
-            style={styles.textArea}
-            placeholder={strings.feedbackPlaceholder}
-            multiline
-            value={feedback}
-            onChangeText={setFeedback}
-            maxLength={500}
-          />
+          <View style={styles.textAreaWrapper}>
+            <TextInput
+              ref={feedbackRef}
+              style={styles.textArea}
+              placeholder={strings.feedbackPlaceholder}
+              multiline
+              value={feedback}
+              onChangeText={setFeedback}
+              maxLength={500}
+            />
 
-          <Text style={styles.wordCount}>
-            {feedback.length} {strings.characters}
-          </Text>
+            {/* Character count in corner */}
+            <Text style={styles.wordCountInside}>{feedback.length}/500</Text>
+
+            {/* Inline warning when at limit */}
+            {feedback.length >= 500 && (
+              <Text style={styles.warningTextInside}>
+                You’ve reached the max limit.
+              </Text>
+            )}
+          </View>
         </View>
         {!isKeyboardVisible && (
           <View style={styles.btnContainer}>
@@ -213,22 +221,7 @@ const styles = StyleSheet.create({
   starButton: {
     padding: 5,
   },
-  textArea: {
-    borderWidth: 1,
-    borderColor: Colors.secondary,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: Fonts.sizes.base,
-    textAlignVertical: 'top',
-    height: 160,
-    backgroundColor: Colors.white,
-  },
-  wordCount: {
-    textAlign: 'right',
-    marginVertical: 8,
-    fontSize: 12,
-    color: Colors.secondaryText,
-  },
+
   btnContainer: {
     position: 'absolute',
     bottom: 10,
@@ -238,7 +231,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.white,
-    padding: '10',
+    padding: 10,
   },
   modalOverlay: {
     flex: 1,
@@ -270,5 +263,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 25,
     lineHeight: 20,
+  },
+  textAreaWrapper: {
+    position: 'relative',
+  },
+
+  textArea: {
+    borderWidth: 1,
+    borderColor: Colors.secondary,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: Fonts.sizes.base,
+    textAlignVertical: 'top',
+    height: 160,
+    backgroundColor: Colors.white,
+    paddingBottom: 30,
+  },
+
+  wordCountInside: {
+    position: 'absolute',
+    bottom: 8,
+    right: 12,
+    fontSize: 12,
+    color: Colors.secondaryText,
+  },
+
+  warningTextInside: {
+    position: 'absolute',
+    bottom: 8,
+    left: 12,
+    fontSize: 12,
+    color: Colors.error || '#D32F2F',
   },
 });
