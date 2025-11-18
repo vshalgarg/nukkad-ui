@@ -8,6 +8,7 @@ import {
   InteractionManager,
   Keyboard,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
@@ -23,6 +24,8 @@ import CustomInput from '../../components/CustomInput';
 import { showToast } from '../../utils/toastUtils';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import useKeyboardStatus from '../../hooks/useKeyboardStatus';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { decodeQrFromImage } from '../../utils/deleteQrFromImage.js';
 
 import {
   addCustomerStore,
@@ -77,6 +80,26 @@ export default function AddStore() {
     setDialogOpen(false);
     console.log(' Action cancelled');
   };
+
+  // const pickQrFromGallery = () => {
+  //   launchImageLibrary(
+  //     { mediaType: 'photo', includeBase64: true },
+  //     async response => {
+  //       if (response.didCancel || response.errorCode || !response.assets?.[0])
+  //         return;
+
+  //       const { uri, base64 } = response.assets[0];
+  //       console.log(uri, base64);
+  //       const result = await decodeQrFromImage({ uri, base64 });
+  //       console.log(result, '***result***');
+  //       if (!result) {
+  //         showToast('error', 'No QR code found');
+  //       } else {
+  //         handleQrCodeScanner({ data: result });
+  //       }
+  //     },
+  //   );
+  // };
 
   const persistStoreIfNew = async store => {
     if (!store?.storekeeperId) return;
@@ -216,101 +239,91 @@ export default function AddStore() {
   };
 
   return (
-    <View style={[globalStyles.pageContainer, { flex: 1 }]}>
-      <View style={[{ height: 80 }, innerStyle.backcontainer]}>
+    <View style={[{ flex: 1 }, globalStyles.pageContainer]}>
+      {/* HEADER */}
+      <View style={innerStyle.headerWrapper}>
         {!hideBackButton && (
-          <Pressable
-            onPress={handleSkip}
-            style={{
-              position: 'absolute',
-              left: 15,
-              top: '50%',
-              transform: [{ translateY: -12 }],
-              zIndex: 2,
-            }}
-          >
-            <Entypo name="chevron-left" size={25} color={Colors.secondary} />
+          <Pressable onPress={handleSkip} style={innerStyle.backButton}>
+            <Entypo name="chevron-left" size={26} color={Colors.secondary} />
           </Pressable>
         )}
 
-        <Text
-          style={[
-            textStyles.subheading,
-            {
-              textAlign: 'center',
-              textAlignVertical: 'center',
-              color: Colors.secondary,
-            },
-          ]}
-        >
-          {strings.addStore}
-        </Text>
+        <Text style={innerStyle.headerTitle}>{strings.addStore}</Text>
       </View>
 
-      <KeyboardAvoidingView behavior="none">
+      {/* BODY */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <ScrollView keyboardShouldPersistTaps="handled">
-          <View style={innerStyle.container}>
-            <View style={innerStyle.innercontainer}>
-              <Text style={innerStyle.text}>{strings.addStoreViaQR}</Text>
+          <View style={innerStyle.screenWrapper}>
+            {/* --- QR SCAN BOX --- */}
+            <View style={innerStyle.block}>
+              <Text style={innerStyle.blockTitle}>{strings.addStoreViaQR}</Text>
 
               {showScanner && (
-                <View style={innerStyle.cameraBox}>
+                <View style={innerStyle.cameraCard}>
                   <QRScannerBox ref={scannerRef} onScan={handleQrCodeScanner} />
                 </View>
               )}
 
-              <Text style={innerStyle.orText}>Or</Text>
-            </View>
+              <Text style={innerStyle.orLine}>OR</Text>
 
-            <View style={innerStyle.manual}>
-              <View style={innerStyle.StoreIdContainer}>
-                <Text style={innerStyle.text}>{strings.addStoreViaNumber}</Text>
-                <CustomInput
-                  style={innerStyle.inputArea}
-                  placeholder="Add Store Id"
-                  value={storeId}
-                  onTextChange={setStoreID}
-                  fixedPrefix="NKS"
-                  keyboardType="phone-pad"
-                  maxLength={14}
-                />
-              </View>
+              {/* <TouchableOpacity
+                onPress={pickQrFromGallery}
+                style={innerStyle.galleryButton}
+                activeOpacity={0.85}
+              >
+                <Entypo name="image" size={22} color={Colors.primary} />
+                <Text style={innerStyle.galleryText}>
+                  Select QR from Gallery
+                </Text>
+              </TouchableOpacity> */}
+            </View>
+            <Text style={innerStyle.orLine}>OR</Text>
+
+            {/* --- MANUAL STORE ID --- */}
+            <View style={innerStyle.manualBlock}>
+              <Text style={innerStyle.blockTitle}>
+                {strings.addStoreViaNumber}
+              </Text>
+
+              <CustomInput
+                placeholder="Enter Store ID"
+                value={storeId}
+                onTextChange={setStoreID}
+                fixedPrefix="NKS"
+                keyboardType="default"
+                maxLength={14}
+              />
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* --- BOTTOM BUTTONS --- */}
       {!isKeyboardVisible && (
-        <View style={innerStyle.btnContainer}>
+        <View
+          style={[
+            innerStyle.footer,
+            !hideBackButton && { justifyContent: 'center' }, // center only when skip is hidden
+          ]}
+        >
           <CustomButton title={strings.addStore} onPress={onPressAddStore} />
+
           {hideBackButton && (
             <CustomButton title={strings.skip} onPress={handleSkip} />
           )}
         </View>
       )}
 
+      {/* --- CONFIRM DIALOG --- */}
       <ConfirmDialog
         isOpen={isDialogOpen}
         message={
           <View style={{ marginVertical: 20 }}>
-            <Text
-              style={{
-                fontWeight: 'bold',
-                marginBottom: 5,
-                fontSize: Fonts.sizes.base,
-                color: Colors.secondary,
-              }}
-            >
+            <Text style={innerStyle.dialogText}>
               Store Name: {pendingStore || '-'}
             </Text>
-            <Text
-              style={{
-                fontWeight: 'bold',
-                marginBottom: 5,
-                fontSize: Fonts.sizes.base,
-                color: Colors.secondary,
-              }}
-            >
+            <Text style={innerStyle.dialogText}>
               StoreKeeperId: {pendingId || '-'}
             </Text>
           </View>
@@ -326,78 +339,112 @@ export default function AddStore() {
 
 const { height } = Dimensions.get('window');
 const boxHeight = height / 3;
-
 const innerStyle = ScaledSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10@s',
-    paddingBottom: `${height * 0.15}@vs`,
-    position: 'relative',
-  },
-  backcontainer: {
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  innercontainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontWeight: '600',
-    fontSize: Fonts.sizes.base,
-    marginBottom: '10@vs',
-    color: Colors.secondary,
-  },
-  backcontainer: {
+  headerWrapper: {
+    height: '80@vs',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
     position: 'relative',
   },
 
-  cameraBox: {
-    height: boxHeight,
-    width: boxHeight,
-    borderWidth: 4,
-    borderColor: Colors.primary,
-    borderRadius: '12@s',
-    marginBottom: '5%',
-    overflow: 'hidden',
-    zIndex: 1,
-  },
-  orText: {
-    fontWeight: '700',
-    fontSize: Fonts.sizes.xxl,
-    color: Colors.secondary,
-  },
-  manual: {
-    width: '100%',
-    paddingHorizontal: '15%',
-    marginTop: '5%',
-    color: Colors.secondary,
-  },
-  StoreIdContainer: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  label: {
-    textAlign: 'center',
-    fontSize: Fonts.sizes.base,
-    marginBottom: '15@vs',
-    color: Colors.secondary,
-  },
-  btnContainer: {
+  backButton: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    left: 15,
+    top: '50%',
+    transform: [{ translateY: -12 }],
+    zIndex: 5,
+  },
+
+  headerTitle: {
+    fontSize: Fonts.sizes.xl,
+    color: Colors.secondary,
+    fontWeight: '700',
+    opacity: 0.9,
+  },
+
+  screenWrapper: {
+    alignItems: 'center',
+    paddingTop: '10@vs',
+    gap: '20@s',
+  },
+
+  block: {
+    width: '90%',
+    backgroundColor: '#fff',
+    paddingVertical: '20@vs',
+    paddingHorizontal: '15@s',
+    borderRadius: '18@s',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 4,
+
+    alignItems: 'center',
+  },
+
+  manualBlock: {
+    width: '90%',
+    backgroundColor: '#fff',
+    padding: '20@s',
+    borderRadius: '18@s',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+
+  blockTitle: {
+    fontSize: Fonts.sizes.lg,
+    fontWeight: '700',
+    color: Colors.secondary,
+    marginBottom: '15@vs',
+  },
+
+  cameraCard: {
+    height: Dimensions.get('window').height / 3,
+    width: Dimensions.get('window').height / 3,
+    borderRadius: '22@s',
+    overflow: 'hidden',
+    backgroundColor: '#EEE',
+  },
+
+  galleryButton: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: '10@vs',
+    alignItems: 'center',
+    gap: '12@s',
+    paddingVertical: '14@vs',
+    paddingHorizontal: '22@s',
+    backgroundColor: '#F2F4F8',
+    borderRadius: '15@s',
+  },
+
+  galleryText: {
+    color: Colors.primary,
+    fontSize: Fonts.sizes.base,
+    fontWeight: '600',
+  },
+
+  orLine: {
+    marginVertical: '12@vs',
+    color: Colors.secondary,
+    fontSize: Fonts.sizes.lg,
+    fontWeight: '700',
+    opacity: 0.5,
+  },
+
+  footer: {
+    padding: '16@s',
+    backgroundColor: '#E9EDF6',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  dialogText: {
+    fontWeight: '700',
+    fontSize: Fonts.sizes.base,
+    color: Colors.secondary,
+    marginBottom: 6,
   },
 });

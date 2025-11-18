@@ -21,7 +21,8 @@ const SplashScreen = ({ navigation }) => {
             await getStorekeeperProfile(token);
             navigation.replace('StorekeeperDashboard');
           } catch (err) {
-            if (err?.response?.data?.responseCode === 1008) {
+            console.log('err', err?.data?.responseCode);
+            if (err?.data?.responseCode === 1008) {
               navigation.replace('StorekeeperCreateProfile');
             } else {
               navigation.replace('Home');

@@ -60,7 +60,7 @@ const RateStore = () => {
       return;
     }
 
-    const storeKeeperId = storeData?.storekeeperId || storeData?.storeId;
+    const storeKeeperId = storeData?.storekeeperId || storeData?.id;
     if (!storeKeeperId) {
       showToast('error', strings.noStoresFound, strings.noStoresFound2);
 
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
   modalMessage: {
     fontSize: Fonts.sizes.base,
-    color: Colors.primaryText,
+    color: Colors.secondaryText,
     textAlign: 'center',
     marginBottom: 25,
     lineHeight: 20,

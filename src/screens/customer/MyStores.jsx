@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   FlatList,
   Pressable,
@@ -15,64 +15,40 @@ import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
-
 import { useDialog } from '../../contexts/DialogContext';
-import {
-  getMyStores,
-} from '../../services/customer/getAllStoreService';
-
+import { getMyStores } from '../../services/customer/getAllStoreService';
 import { useAuth } from '../../contexts/authContext';
 import { useNavigation } from '@react-navigation/native';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getDefaultStore } from '../../services/customer/addStoreService';
 import { showToast } from '../../utils/toastUtils';
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
   const { token } = useAuth();
-  const { saveStore, storeData, removeStore, allStores, setStoresList } =
+  const { saveStore, storeData, removeStore, allStores, fetchAllStores } =
     useStore();
   const navigation = useNavigation();
-  const [stores, setStores] = useState([]);
-  const [selectedStoreTemp, setSelectedStoreTemp] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const [stores, setStores] = useState(allStores || []);
+  const [selectedStoreTemp, setSelectedStoreTemp] = useState(storeData || null);
+  const [loading, setLoading] = useState(!allStores?.length);
   const { showDialog } = useDialog();
+
+  // Fetch all stores from API (do NOT call defaultStore)
   const fetchStores = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await getMyStores(token);
-      setStores(response);
-      let defaultStore = null;
-      try {
-        defaultStore = await getDefaultStore();
-      } catch (e) {
-        console.log('No default store set yet');
-      }
+      const storesResponse = await fetchAllStores(token);
+      setStores(storesResponse);
 
-      console.log(defaultStore);
-      if (defaultStore) {
-        setSelectedStoreTemp(defaultStore);
-        saveStore(defaultStore);
-        return;
-      }
-
-      if (response.length === 1) {
-        saveStore(response[0]);
-        setSelectedStoreTemp(response[0]);
-        return;
-      }
-
-      if (storeData) {
-        setSelectedStoreTemp(storeData);
-        return;
-      }
-
-      const exists = await AsyncStorage.getItem('@selected_store');
-      if (exists) {
-        setSelectedStoreTemp(JSON.parse(exists));
+      // Only set selected if not yet selected
+      if (!selectedStoreTemp) {
+        if (storeData) {
+          setSelectedStoreTemp(storeData);
+        } else if (storesResponse.length === 1) {
+          setSelectedStoreTemp(storesResponse[0]);
+          saveStore(storesResponse[0]);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch stores:', err);
@@ -84,134 +60,123 @@ export default function MyStores() {
   useEffect(() => {
     fetchStores();
   }, []);
+
   useEffect(() => {
-    if (storeData) {
-      setSelectedStoreTemp(storeData);
-    }
+    if (storeData) setSelectedStoreTemp(storeData);
   }, [storeData]);
 
-  console.log('selectedStoreTemp', selectedStoreTemp);
-  const handleAddStore = () => {
-    safePush('AddStore');
-  };
+  const handleAddStore = () => safePush('AddStore');
 
-  const handleDelete = store => {
-    const idToDelete = store.id?.toString() || store.storekeeperId?.toString();
-
-    showDialog({
-      title: 'Delete Store',
-      message: `Are you sure you want to delete "${store.storeName}"?`,
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      onConfirm: async () => {
-        try {
-          await removeStore(idToDelete, token);
-
-          setStores(prev =>
-            prev.filter(
-              s =>
-                (s.id?.toString() || s.storekeeperId?.toString()) !==
-                idToDelete,
-            ),
-          );
-
-          if (
-            selectedStoreTemp?.storekeeperId === store.storekeeperId &&
-            stores.length === 1
-          ) {
-            setSelectedStoreTemp(null);
-            saveStore(null);
+  const handleDelete = useCallback(
+    store => {
+      const idToDelete =
+        store.id?.toString() || store.storekeeperId?.toString();
+      showDialog({
+        title: 'Delete Store',
+        message: `Are you sure you want to delete "${store.storeName}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          try {
+            await removeStore(idToDelete, token);
+            setStores(prev =>
+              prev.filter(
+                s =>
+                  (s.id?.toString() || s.storekeeperId?.toString()) !==
+                  idToDelete,
+              ),
+            );
+            if (
+              selectedStoreTemp?.storekeeperId === store.storekeeperId &&
+              stores.length === 1
+            ) {
+              setSelectedStoreTemp(null);
+              saveStore(null);
+            }
+          } catch (err) {
+            console.error('Delete failed:', err?.response?.data || err.message);
+            showToast('error', 'Cannot Delete Default Store');
           }
-
-          console.log(` Store "${store.storeName}" deleted successfully.`);
-        } catch (err) {
-          console.error(
-            ' Delete failed:',
-            err?.response?.data || err.message,
-          );
-          showToast('error', 'Cannot Delete Default Store');
-        }
-      },
-      onCancel: () => {
-        console.log(' Delete canceled for store:', store.storeName);
-      },
-    });
-  };
+        },
+        onCancel: () =>
+          console.log('Delete canceled for store:', store.storeName),
+      });
+    },
+    [selectedStoreTemp, stores],
+  );
 
   const handleChangeStore = async () => {
-    if (selectedStoreTemp) {
-      await saveStore(selectedStoreTemp); 
-    }
+    if (selectedStoreTemp) await saveStore(selectedStoreTemp);
     navigation.goBack();
   };
 
-  const handleSelectStoreTemp = store => {
-    setSelectedStoreTemp(store);
-  };
+  const handleSelectStoreTemp = store => setSelectedStoreTemp(store);
 
-  const renderItem = ({ item }) => {
-    const selectedId = String(
-      selectedStoreTemp?.storekeeperId ||
-        selectedStoreTemp?.id ||
-        selectedStoreTemp.storeId,
-    );
-    const itemId = String(item.storekeeperId || item.id);
-    const isSelected = selectedId === itemId;
+  const renderItem = useCallback(
+    ({ item }) => {
+      const selectedId = String(
+        selectedStoreTemp?.storekeeperId ||
+          selectedStoreTemp?.id ||
+          selectedStoreTemp?.storeId,
+      );
+      const itemId = String(item.storekeeperId || item.id);
+      const isSelected = selectedId === itemId;
 
-    return (
-      <Pressable
-        style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
-        onPress={() => handleSelectStoreTemp(item)}
-      >
-        <View style={innerStyle.radioContainer}>
-          <View style={innerStyle.dataColumn}>
-            <Text
-              style={innerStyle.shopName}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {item.storeName}
-            </Text>
-
-            <Text
-              style={innerStyle.address}
-              numberOfLines={3}
-              ellipsizeMode="tail"
-            >
-              {[
-                item.addressLine1,
-                item.addressLine2,
-                item.landmark,
-                item.city,
-                item?.country,
-                item?.pincode,
-              ]
-                .filter(Boolean)
-                .join(', ')}
-            </Text>
-          </View>
-
-          {!isSelected && (
-            <View style={innerStyle.iconColumn}>
-              <Pressable onPress={() => handleDelete(item)}>
-                <MaterialIcons
-                  name="delete-outline"
-                  size={24}
-                  color={Colors.secondary}
-                />
-              </Pressable>
+      return (
+        <Pressable
+          style={[innerStyle.card, isSelected && innerStyle.selectedCard]}
+          onPress={() => handleSelectStoreTemp(item)}
+        >
+          <View style={innerStyle.radioContainer}>
+            <View style={innerStyle.dataColumn}>
+              <Text
+                style={innerStyle.shopName}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {item.storeName}
+              </Text>
+              <Text
+                style={innerStyle.address}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
+                {[
+                  item.addressLine1,
+                  item.addressLine2,
+                  item.landmark,
+                  item.city,
+                  item.country,
+                  item.pincode,
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
+              </Text>
             </View>
-          )}
-        </View>
-      </Pressable>
-    );
-  };
+
+            {!isSelected && (
+              <View style={innerStyle.iconColumn}>
+                <Pressable onPress={() => handleDelete(item)}>
+                  <MaterialIcons
+                    name="delete-outline"
+                    size={24}
+                    color={Colors.secondary}
+                  />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </Pressable>
+      );
+    },
+    [selectedStoreTemp, handleDelete],
+  );
 
   return (
     <View style={styles.pageContainer}>
       <BackButton title={strings.myStores} />
       <View style={innerStyle.container}>
-        {loading ? (
+        {loading && !stores.length ? (
           <View style={innerStyle.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.primary} />
           </View>
@@ -222,7 +187,6 @@ export default function MyStores() {
               size={80}
               color={Colors.secondaryText}
             />
-
             <Text style={innerStyle.noStoresTitle}>
               {strings.noStoresFound}
             </Text>
@@ -273,40 +237,8 @@ export default function MyStores() {
 }
 
 const innerStyle = ScaledSheet.create({
-  container: {
-    flex: 1,
-    padding: '15@s',
-    backgroundColor: Colors.white,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noStores: {
-    fontSize: Fonts.sizes.lg,
-    color: Colors.secondaryText,
-    marginTop: '20@vs',
-    textAlign: 'center',
-  },
-  addStoreContainer: {
-    alignItems: 'center',
-    padding: '5@s',
-    marginVertical: '20@vs',
-  },
-  button: {
-    flexDirection: 'row',
-    backgroundColor: Colors.primary,
-    padding: '8@s',
-    paddingHorizontal: '15@s',
-    borderRadius: '50@s',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: Fonts.sizes.base,
-    marginLeft: '5@s',
-    color: 'white',
-  },
+  container: { flex: 1, padding: '15@s', backgroundColor: Colors.white },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   noStoresContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -314,7 +246,6 @@ const innerStyle = ScaledSheet.create({
     paddingHorizontal: '20@s',
     backgroundColor: Colors.white,
   },
-
   noStoresTitle: {
     fontSize: Fonts.sizes.xl,
     color: Colors.secondary,
@@ -322,7 +253,6 @@ const innerStyle = ScaledSheet.create({
     marginTop: '15@vs',
     textAlign: 'center',
   },
-
   noStoresSubTitle: {
     fontSize: Fonts.sizes.md,
     color: Colors.secondaryText,
@@ -331,7 +261,6 @@ const innerStyle = ScaledSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-
   addStoreButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,14 +274,12 @@ const innerStyle = ScaledSheet.create({
     shadowRadius: 4,
     elevation: 6,
   },
-
   addStoreButtonText: {
     fontSize: Fonts.sizes.base,
     color: Colors.white,
     marginLeft: '10@s',
     fontWeight: '600',
   },
-
   card: {
     marginTop: '16@vs',
     padding: '16@s',
@@ -369,26 +296,15 @@ const innerStyle = ScaledSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  selectedCard: {
-    borderColor: Colors.primary,
-  },
+  selectedCard: { borderColor: Colors.primary },
   radioContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
   },
-
-  dataColumn: {
-    flex: 1,
-    marginRight: '10@s',
-  },
-
-  iconColumn: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-
+  dataColumn: { flex: 1, marginRight: '10@s' },
+  iconColumn: { justifyContent: 'center', alignItems: 'flex-end' },
   shopName: {
     fontSize: Fonts.sizes.base,
     fontWeight: 'bold',
@@ -396,13 +312,11 @@ const innerStyle = ScaledSheet.create({
     marginBottom: '4@vs',
     flexShrink: 1,
   },
-
   address: {
     fontSize: Fonts.sizes.sm,
     color: Colors.secondaryText,
     flexShrink: 1,
   },
-
   btnContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

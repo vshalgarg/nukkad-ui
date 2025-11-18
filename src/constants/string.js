@@ -51,7 +51,7 @@ const strings = {
   skip: 'Skip',
   noStoresFound: 'No stores found',
   myStores: 'My Stores',
-  selectStoreToShare:'Select store to share',
+  selectStoreToShare: 'Select store to share',
 
   productCount: totalItems =>
     `${totalItems} item${totalItems > 1 ? 's' : ''} in cart`,
@@ -125,6 +125,7 @@ const strings = {
   default: 'Default',
   setDefault: 'Set as Default',
   defaultSetSuccess: 'Default address Selected',
+  failedToUploadQR: 'Failed to upload Qr Code',
   deleteSuccess: 'Qr Code Deleted',
   delete: 'Delete',
   confirm: 'Confirm',

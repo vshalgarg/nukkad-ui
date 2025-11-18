@@ -43,16 +43,13 @@ const SearchContainer = ({
       (async () => {
         try {
           const raw = await AsyncStorage.getItem(RECENT_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) setRecentSearches(parsed);
-          } else {
-            setRecentSearches([]);
-          }
+          const parsed = raw ? JSON.parse(raw) : [];
+          setRecentSearches(Array.isArray(parsed) ? parsed : []);
         } catch (e) {
           console.warn('Failed to load recent searches', e);
         }
       })();
+
       return () => {
         setFocused(false);
         setVisibleSuggestions([]);
@@ -68,7 +65,7 @@ const SearchContainer = ({
 
     const q = (queryInput || '').trim().toLowerCase();
 
-    if (q.length === 0) {
+    if (q === '') {
       setVisibleSuggestions(recentSearches);
     } else {
       const filtered = recentSearches.filter(r => r.toLowerCase().includes(q));
@@ -98,51 +95,60 @@ const SearchContainer = ({
 
   const saveRecent = async term => {
     try {
-      if (!term || !term.trim()) return;
       const t = term.trim();
-      const arr = [t, ...recentSearches.filter(r => r !== t)];
-      const sliced = arr.slice(0, MAX_RECENTS);
-      setRecentSearches(sliced);
+      if (!t) return;
+
+      const prev = JSON.parse(await AsyncStorage.getItem(RECENT_KEY)) || [];
+
+      const updated = [t, ...prev.filter(item => item !== t)];
+
+      const sliced = updated.slice(0, MAX_RECENTS);
+
       await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(sliced));
+
+      setRecentSearches(sliced);
     } catch (e) {
-      console.warn('Failed to save recent', e);
+      console.warn('Failed to save recent search', e);
     }
   };
-  useEffect(() => {
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      setFocused(false);
-    });
 
-    return () => hideSub.remove();
-  }, []);
+  const removeRecent = async term => {
+    try {
+      const updated = recentSearches.filter(r => r !== term);
 
-  const removeRecent = term => {
-    setRecentSearches(prev => prev.filter(r => r !== term));
-    setVisibleSuggestions(prev => prev.filter(r => r !== term));
-    AsyncStorage.setItem(
-      RECENT_KEY,
-      JSON.stringify(recentSearches.filter(r => r !== term)),
-    ).catch(e => console.warn(e));
+      setRecentSearches(updated);
+      setVisibleSuggestions(updated);
+
+      await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Remove failed', e);
+    }
   };
 
-  const clearAllRecents = () => {
-    setRecentSearches([]);
-    setVisibleSuggestions([]);
-    AsyncStorage.removeItem(RECENT_KEY).catch(e => console.warn(e));
+  const clearAllRecents = async () => {
+    try {
+      setRecentSearches([]);
+      setVisibleSuggestions([]);
+      await AsyncStorage.removeItem(RECENT_KEY);
+    } catch (e) {
+      console.warn('Clear all failed', e);
+    }
   };
 
   const handleClear = () => {
     setQueryInput('');
     onSearchSubmit?.('');
+    Keyboard.dismiss();
   };
 
   const handleSubmit = text => {
     const value = (text ?? queryInput ?? '').trim();
+
     setQueryInput(value);
     onSearchSubmit?.(value);
     saveRecent(value);
+
     setFocused(false);
-    setTimeout(() => Keyboard.dismiss(), 50);
   };
 
   const onSelectSuggestion = text => {
@@ -150,7 +156,6 @@ const SearchContainer = ({
     onSearchSubmit?.(text);
     saveRecent(text);
     setFocused(false);
-    setTimeout(() => Keyboard.dismiss(), 50);
   };
 
   return (

@@ -60,7 +60,7 @@ const ShoppingCart = () => {
   const [storeItems, setStoreItems] = useState([]);
   const [selectedStore, setSelectedStore] = useState(null);
 
-  const storeKeeperId = storeData?.storekeeperId || storeData?.storeId;
+  const storeKeeperId = storeData?.storekeeperId || storeData?.id;
 
   const selectedAddress =
     address.find(item => item.id.toString() === String(selectedAddressId)) ||
@@ -91,7 +91,7 @@ const ShoppingCart = () => {
         setSelectedStore(route.params.originalStoreId);
         setShowStoreDropdown(true);
       } else if (storeData) {
-        setSelectedStore(storeData.id||storeData.storeId);
+        setSelectedStore(storeData.id || storeData.storeId);
       } else {
         setSelectedStore(allStores[0].id);
       }

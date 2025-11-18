@@ -15,12 +15,13 @@ export const getStorekeeperProfile = async token => {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
-      request: profileData,
     });
 
-    throw new Error(
-      error.response?.data?.message || 'Failed to create storekeeper profile',
-    );
+    throw {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    };
   }
 };
 

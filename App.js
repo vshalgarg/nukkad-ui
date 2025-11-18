@@ -102,7 +102,6 @@ const AppContent = () => {
 
       <NavigationContainer
         onReady={() => {
-          // ✅ Hide bootsplash only when RN navigation is ready
           RNBootSplash.hide({ fade: true });
         }}
       >

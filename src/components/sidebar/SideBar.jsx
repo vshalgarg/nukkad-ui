@@ -45,7 +45,6 @@ const SideBar = ({ isVisible, onClose }) => {
   const email = profile?.email ?? '';
   const mobile = profile?.mobileNumber || profile?.mobile;
 
-
   useEffect(() => {
     Animated.timing(slideAnimation, {
       toValue: isVisible ? 0 : -screenWidth,
@@ -109,7 +108,7 @@ const SideBar = ({ isVisible, onClose }) => {
     userRole === 'STOREKEEPER'
       ? [
           { name: 'Payment Options', icon: 'card' },
-          { name: 'QR Code', icon: 'qr-code' },
+          { name: 'Payment QR Code', icon: 'qr-code' },
         ]
       : [];
 
@@ -126,7 +125,7 @@ const SideBar = ({ isVisible, onClose }) => {
       'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
       'My Stores': 'MyStores',
-      'QR Code': 'QRCodeScreen',
+      'Payment QR Code': 'QRCodeScreen',
     };
     if (menuName === 'My Orders' || menuName === 'Order History') {
       return 'Orders';
@@ -152,8 +151,6 @@ const SideBar = ({ isVisible, onClose }) => {
       await openLink(externalLinks[menuName]);
       return;
     }
-
-   
 
     const routeName = getRouteForMenuItem(menuName, userRole);
     if (routeName) {
@@ -181,7 +178,6 @@ const SideBar = ({ isVisible, onClose }) => {
                 resizeMode="cover"
               />
             ) : (
-             
               <Ionicons
                 name="person-circle-outline"
                 color="#000"
@@ -219,7 +215,7 @@ const SideBar = ({ isVisible, onClose }) => {
               }
             }}
           >
-            <Ionicons 
+            <Ionicons
               name="settings-sharp"
               size={24}
               color={Colors.secondaryText}

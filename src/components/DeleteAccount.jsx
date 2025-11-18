@@ -19,6 +19,8 @@ import { sendOtp, verifyOtp } from '../services/authApi';
 import { showToast } from '../utils/toastUtils';
 import { useSafeRouter } from '../hooks/useSafeRouter';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDialog } from '../contexts/DialogContext';
+import strings from '../constants/string';
 
 const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
   const [otp, setOtp] = useState('');
@@ -31,6 +33,7 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
 
   const timerRef = useRef(null);
   const { safePush } = useSafeRouter();
+  const { showDialog } = useDialog();
 
   const normalizePhone = raw => {
     if (!raw) return '';
@@ -88,6 +91,7 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
       const firebaseConfirmation = await auth().signInWithPhoneNumber(
         phoneForFirebase,
       );
+      console.log("firebaseConfirmation",firebaseConfirmation)
       setConfirmResult(firebaseConfirmation);
     } catch (error) {
       console.error('Send OTP Error:', error);
@@ -109,27 +113,23 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
 
     setTimeout(async () => {
       if (!otp || otp.length < 6) {
-        Alert.alert('Invalid OTP', 'Please enter the 6-digit OTP.');
+        showToast('error', strings.invalidOtp, strings.tryAgain);
         return;
       }
-
-      if (!confirmResult) {
-        Alert.alert('No OTP session', 'Please send OTP first.');
-        return;
-      }
-
       setLoading(true);
 
       try {
         const confirmation = await confirmResult.confirm(otp);
         const firebaseToken = await confirmation.user.getIdToken();
+        console.log(firebaseToken,"FirebaseToken")
         const result = await verifyOtp({
           mobile: phoneNumber,
           firebaseToken,
         });
 
+
         await AsyncStorage.clear();
-        showToast('success', 'Account deleted successfully');
+        showToast('success', 'Your Account has been deleted');
         onConfirm?.();
         safePush('Home');
       } catch (error) {
@@ -137,7 +137,8 @@ const DeleteAccountModal = ({ visible, phoneNumber, onCancel, onConfirm }) => {
           error?.response?.data?.message ||
           error?.message ||
           'Failed to delete account. Try again.';
-        Alert.alert('Error', message);
+
+        showToast('error','Please enter a correct otp');
       } finally {
         setLoading(false);
       }

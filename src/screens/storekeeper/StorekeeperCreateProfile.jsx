@@ -20,7 +20,6 @@ import Colors from '../../styles/colors';
 import textStyles from '../../styles/textStyles';
 import Fonts from '../../styles/font';
 import { useAuth } from '../../contexts/authContext';
-import { createStorekeeperProfile } from '../../services/storekeeper/storekeeperProfileService';
 import { storekeeperProfileSchema } from '../../schema/validation';
 import strings from '../../constants/string';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -28,6 +27,7 @@ import useBackHandlerControl from '../../hooks/useBackHandlerControl';
 import StateDropdown from '../../components/StateDropdown';
 import CityDropdown from '../../components/CityDropdown';
 import useKeyboardStatus from '../../hooks/useKeyboardStatus';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let pressLock = false;
 
@@ -80,8 +80,21 @@ const StorekeeperCreateProfile = () => {
         console.warn('Failed to parse toast params', e);
       }
     }
-    if (params.mobile) setContactNumber(params.mobile);
   }, [params]);
+  useEffect(() => {
+    const fetchMobile = async () => {
+      try {
+        const storedMobile = await AsyncStorage.getItem('mobileNo');
+        console.log('storedMobile', storedMobile);
+        if (storedMobile) {
+          setContactNumber(storedMobile);
+        }
+      } catch (error) {
+        console.error('Error fetching mobile number:', error);
+      }
+    };
+    fetchMobile();
+  }, []);
 
   const scrollToInput = ref => {
     if (ref?.current && scrollViewRef?.current) {

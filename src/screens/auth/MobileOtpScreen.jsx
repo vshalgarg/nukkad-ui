@@ -38,6 +38,8 @@ const MobileOtpScreen = () => {
   const [otp, setOtp] = useState('');
   const [otpEnabled, setOtpEnabled] = useState(false);
   const [sendOtpClicked, setSendOtpClicked] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+
   const [canResend, setCanResend] = useState(false);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
@@ -73,6 +75,7 @@ const MobileOtpScreen = () => {
   const sendOtpRequest = async (isResend = false) => {
     Keyboard.dismiss();
     try {
+      setIsSendingOtp(true);
       const role = userType === 'I AM CUSTOMER' ? 'CUSTOMER' : 'STOREKEEPER';
 
       await sendOtp(mobile, role);
@@ -105,6 +108,8 @@ const MobileOtpScreen = () => {
           'OTP could not be sent',
         );
       }
+    } finally {
+      setIsSendingOtp(false);
     }
   };
 
@@ -126,6 +131,7 @@ const MobileOtpScreen = () => {
       showToast('error', strings.invalidOtp, strings.tryAgain);
       return;
     }
+    console.log(mobile);
 
     try {
       setIsLoggingIn(true);
@@ -289,13 +295,16 @@ const MobileOtpScreen = () => {
           <CustomButton
             onPress={sendOtpClicked ? handleLogin : handleSendOtp}
             title={
-              isLoggingIn
+              isSendingOtp
+                ? 'Sending OTP...'
+                : isLoggingIn
                 ? 'Logging in...'
                 : sendOtpClicked
                 ? strings.login
                 : strings.sendOtp
             }
             disabled={
+              isSendingOtp ||
               isLoggingIn ||
               (sendOtpClicked ? !otpEnabled : mobile.length !== 10)
             }

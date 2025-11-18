@@ -114,6 +114,7 @@ const StorekeeperDashboard = () => {
 
   useEffect(() => {
     console.log(toast);
+
     if (toast) {
       try {
         const parsedToast = JSON.parse(toast);
@@ -122,10 +123,10 @@ const StorekeeperDashboard = () => {
         console.warn(' Failed to parse toast:', e.message);
       }
     }
+    fetchStorekeeperProfile();
   }, []);
   useFocusEffect(
     useCallback(() => {
-      fetchStorekeeperProfile();
       const currentStatus = statusTabs[formState].statuses[0];
       dispatch;
       setCurrentPage(0);

@@ -181,7 +181,6 @@ const PaymentOptions = () => {
 
               {imageUrl && (
                 <View style={innerStyle.actionRow}>
-                  {/* Set Default Button */}
                   <TouchableOpacity
                     style={[
                       innerStyle.secondaryBtn,

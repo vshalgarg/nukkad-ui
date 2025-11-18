@@ -5,7 +5,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { showToast } from '../utils/toastUtils';
 
 const api = axios.create({
-  baseURL: API_URL || 'http://192.168.1.100',
+  baseURL: API_URL ,
   headers: {
     clientName: CLIENT_NAME,
     clientSecret: CLIENT_SECRET,

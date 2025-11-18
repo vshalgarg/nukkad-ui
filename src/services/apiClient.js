@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showToast } from '../utils/toastUtils';
 
 const api = axios.create({
-  baseURL: API_URL || 'http://192.168.1.100',
+  baseURL: API_URL ,
   headers: {
     clientName: CLIENT_NAME,
     clientSecret: CLIENT_SECRET,

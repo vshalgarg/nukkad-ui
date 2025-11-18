@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { useAuth } from './authContext';
 import {
   getDefaultStore,
@@ -13,6 +12,7 @@ import {
 
 const StoreContext = createContext();
 const STORE_KEY = '@selected_store';
+const ALL_STORES_KEY = '@all_stores';
 
 export const StoreProvider = ({ children }) => {
   const { token, role } = useAuth();
@@ -20,148 +20,137 @@ export const StoreProvider = ({ children }) => {
   const [allStores, setAllStores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load selected store from AsyncStorage
   const loadStoreFromStorage = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORE_KEY);
       if (jsonValue) {
-        const parsedStore = JSON.parse(jsonValue);
-        setStoreData(parsedStore);
-        console.log('Loaded selected store from AsyncStorage:', parsedStore);
+        setStoreData(JSON.parse(jsonValue));
       }
     } catch (err) {
       console.error('Failed to load selected store:', err.message);
     }
   };
 
-  const fetchDefaultStore = async () => {
+  const fetchAllStores = async () => {
+    setIsLoading(true);
     try {
-      const defaultStore = await getDefaultStore();
-      if (defaultStore) {
-        setStoreData(defaultStore);
-        console.log('defaultStore', defaultStore);
-        await AsyncStorage.setItem(STORE_KEY, JSON.stringify(defaultStore));
-        console.log('Fetched and saved default store:', defaultStore);
+      let stores = [];
+      if (token && role === 'CUSTOMER') {
+        stores = await getMyStores(token);
       }
+      if (!Array.isArray(stores)) stores = [];
+      setAllStores(stores);
+      await AsyncStorage.setItem(ALL_STORES_KEY, JSON.stringify(stores));
+      return stores; // <-- add this
     } catch (err) {
-      console.error('Failed to fetch default store:', err.message);
+      console.error('Failed to fetch stores:', err.message);
+      return [];
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchAllStores = async authtoken => {
+  const fetchDefaultStore = async () => {
+    if (!token || role !== 'CUSTOMER') return;
     try {
-      const stores = await getMyStores(authtoken);
-      if (Array.isArray(stores)) {
-        setAllStores(stores);
-        console.log('Fetched all stores:', stores);
+      const defaultStore = await getDefaultStore().catch(() => null);
+      if (defaultStore) {
+        setStoreData(defaultStore);
+        await AsyncStorage.setItem(STORE_KEY, JSON.stringify(defaultStore));
       }
     } catch (err) {
-      console.error('Failed to fetch stores:', err.message);
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to fetch default store:', err.message);
     }
   };
 
   const saveStore = async store => {
     try {
       if (store) {
-        const storeId = store.id || store.storeId || store.storekeeperId;
-        await setDefaultStore(storeId);
-        await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
-        setStoreData(store);
-        console.log(
-          'Store saved as default to AsyncStorage and backend:',
-          store,
-        );
+        const storeId = store.id || store.storekeeperId;
+        if (storeId) {
+          await setDefaultStore(storeId);
+          await AsyncStorage.setItem(STORE_KEY, JSON.stringify(store));
+          setStoreData(store);
+        }
       } else {
         await AsyncStorage.removeItem(STORE_KEY);
         setStoreData(null);
-        console.log('Store removed from AsyncStorage');
       }
     } catch (err) {
       console.error('Failed to save selected store:', err.message);
     }
   };
 
-  const resetStore = async () => {
+  const removeStore = async storeId => {
     try {
-      await AsyncStorage.removeItem(STORE_KEY);
-      setStoreData(null);
-    } catch (err) {
-      console.error('Failed to reset selected store:', err.message);
-    }
-  };
+      if (!storeId || !token) return;
 
-  useEffect(() => {
-    const init = async () => {
-      await loadStoreFromStorage();
-      if (token && role === 'CUSTOMER') {
-        await fetchDefaultStore();
-      } else {
-        setIsLoading(false);
-      }
-    };
+      await deleteStore(storeId, token);
 
-    init();
-  }, []);
+      setAllStores(prev => {
+        const updated = prev.filter(
+          s =>
+            s.id?.toString() !== storeId?.toString() &&
+            s.storekeeperId?.toString() !== storeId?.toString() &&
+            s.storeId?.toString() !== storeId?.toString(),
+        );
 
-  const setStoresList = stores => {
-    if (Array.isArray(stores)) setAllStores(stores);
-  };
-  const removeStore = async (storeId, authtoken) => {
-    try {
-      await deleteStore(storeId, authtoken);
-      setAllStores(prevStores => {
-        console.log('Previous Stores:', prevStores, 'Deleting ID:', storeId);
+        AsyncStorage.setItem(ALL_STORES_KEY, JSON.stringify(updated));
 
-        const updatedStores = prevStores.filter(s => {
-          console.log('Comparing IDs:', {
-            storeIdField: s.storeId,
-            id: s.id,
-            storekeeperId: s.storekeeperId,
-            deletingId: storeId,
-          });
-
-          return s.id?.toString() !== storeId?.toString();
-        });
-        AsyncStorage.setItem('@all_stores', JSON.stringify(updatedStores));
         if (
-          storeData?.id?.toString() === storeId?.toString() ||
-          storeData?.storeId?.toString() === storeId?.toString()
+          storeData &&
+          [storeData.id, storeData.storekeeperId, storeData.storeId].some(
+            id => id?.toString() === storeId?.toString(),
+          )
         ) {
           AsyncStorage.removeItem(STORE_KEY);
           setStoreData(null);
           fetchDefaultStore();
         }
 
-        console.log(' Updated Stores After Deletion:', updatedStores);
-        return updatedStores;
+        return updated;
       });
-
-      console.log(
-        ` Store ${storeId} deleted successfully and context updated.`,
-      );
     } catch (err) {
-      console.error(' Failed to delete store:', err.message);
+      console.error('Failed to delete store:', err.message);
       throw err;
     }
   };
+
+  // Reset selected store
+  const resetStore = async () => {
+    try {
+      await AsyncStorage.removeItem(STORE_KEY);
+      setStoreData(null);
+    } catch (err) {
+      console.error('Failed to reset store:', err.message);
+    }
+  };
+
+  // Initialize context on mount
+  useEffect(() => {
+    const init = async () => {
+      await loadStoreFromStorage();
+      await fetchAllStores();
+      await fetchDefaultStore();
+      setIsLoading(false);
+    };
+    init();
+  }, [token]);
 
   return (
     <StoreContext.Provider
       value={{
         storeData,
-        setStoreData,
+        allStores,
         saveStore,
         resetStore,
-        loadStoreFromStorage,
-        allStores,
-        setStoresList,
-        isLoading,
         fetchAllStores,
         fetchDefaultStore,
         removeStore,
+        isLoading,
+        setStoresList: setAllStores,
+        setStoreData,
       }}
     >
       {children}

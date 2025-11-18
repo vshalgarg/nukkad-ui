@@ -7,7 +7,9 @@ module.exports = mergeConfig(defaultConfig, {
     babelTransformerPath: require.resolve('react-native-svg-transformer'),
   },
   resolver: {
-    assetExts: defaultConfig.resolver.assetExts.filter(ext => ext !== 'svg'),
+    assetExts: defaultConfig.resolver.assetExts
+      .filter(ext => ext !== 'svg')
+      .concat('wasm'),
     sourceExts: [...defaultConfig.resolver.sourceExts, 'svg'],
   },
 });

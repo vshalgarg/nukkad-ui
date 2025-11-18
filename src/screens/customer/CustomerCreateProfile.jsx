@@ -29,6 +29,7 @@ import { ScaledSheet } from 'react-native-size-matters';
 import DatePicker from '../../components/DatePicker';
 import StateDropdown from '../../components/StateDropdown';
 import CityDropdown from '../../components/CityDropdown';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let pressLock = false;
 
@@ -79,8 +80,20 @@ const CustomerCreateProfile = () => {
         console.warn('Failed to parse toast params', e);
       }
     }
-    if (params.mobile) setMobile(params.mobile);
   }, [params]);
+  useEffect(() => {
+    const fetchMobile = async () => {
+      try {
+        const storedMobile = await AsyncStorage.getItem('mobileNo');
+        if (storedMobile) {
+          setMobile(storedMobile);
+        }
+      } catch (error) {
+        console.error('Error fetching mobile number:', error);
+      }
+    };
+    fetchMobile();
+  }, []);
 
   const scrollToInput = ref => {
     if (ref?.current && scrollViewRef?.current?.scrollToFocusedInput) {
@@ -340,7 +353,6 @@ const CustomerCreateProfile = () => {
                   onSelectState={val => {
                     setState(val);
                     setCity('');
-                    setPincode('');
                   }}
                   error={errors.state}
                   openDropdown={openDropdown}
@@ -355,7 +367,6 @@ const CustomerCreateProfile = () => {
                   selectedCity={city}
                   onSelectCity={val => {
                     setCity(val);
-                    setPincode('');
                   }}
                   openDropdown={openDropdown}
                   setOpenDropdown={setOpenDropdown}
@@ -364,7 +375,6 @@ const CustomerCreateProfile = () => {
 
                 <Text style={localStyles.label}>{strings.pincode}</Text>
                 <CustomInput
-                  key={city}
                   ref={pincodeRef}
                   value={pincode}
                   placeholder="Enter Pincode"

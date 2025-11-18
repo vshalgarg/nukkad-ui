@@ -34,6 +34,8 @@ export const sendOtp = async (mobileNumber, role = null) => {
 // Verify OTP
 export const verifyOtp = async ({ mobile, firebaseToken }) => {
   const FcmToken = await AsyncStorage.getItem('FcmToken');
+  
+    await AsyncStorage.setItem('mobileNo', mobile);
   console.log('FCM TOKEN', FcmToken);
 
   const payload = {
