@@ -13,7 +13,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import ConfirmDialog from '../../components/ConfirmDialog.jsx';
-
+import RNQRGenerator from 'rn-qr-generator';
 import CustomButton from '../../components/CustomButton';
 import QRScannerBox from '../../components/QRScannerBox.jsx';
 import { useStore } from '../../contexts/storeContext';
@@ -25,17 +25,15 @@ import { showToast } from '../../utils/toastUtils';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import useKeyboardStatus from '../../hooks/useKeyboardStatus';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { decodeQrFromImage } from '../../utils/deleteQrFromImage.js';
-
 import {
   addCustomerStore,
   getStoreById,
 } from '../../services/customer/addStoreService.js';
-import textStyles from '../../styles/textStyles.js';
 import useBackHandlerControl from '../../hooks/useBackHandlerControl.jsx';
 import strings from '../../constants/string.js';
 import { ScaledSheet } from 'react-native-size-matters';
 import Entypo from 'react-native-vector-icons/Entypo';
+import ImageResizer from 'react-native-image-resizer';
 
 const STORAGE_KEY = '@scanned_stores';
 
@@ -81,25 +79,47 @@ export default function AddStore() {
     console.log(' Action cancelled');
   };
 
-  // const pickQrFromGallery = () => {
-  //   launchImageLibrary(
-  //     { mediaType: 'photo', includeBase64: true },
-  //     async response => {
-  //       if (response.didCancel || response.errorCode || !response.assets?.[0])
-  //         return;
+  const pickQrFromGallery = async () => {
+    launchImageLibrary(
+      { mediaType: 'photo', includeBase64: false },
+      async response => {
+        if (response.didCancel) return;
+        if (response.errorCode)
+          return showToast('error', 'Failed to pick image');
 
-  //       const { uri, base64 } = response.assets[0];
-  //       console.log(uri, base64);
-  //       const result = await decodeQrFromImage({ uri, base64 });
-  //       console.log(result, '***result***');
-  //       if (!result) {
-  //         showToast('error', 'No QR code found');
-  //       } else {
-  //         handleQrCodeScanner({ data: result });
-  //       }
-  //     },
-  //   );
-  // };
+        const uri = response.assets?.[0]?.uri;
+        if (!uri) return showToast('error', 'No image selected');
+
+        try {
+          const tiny = await ImageResizer.createResizedImage(
+            uri,
+            150, 
+            150, 
+            'JPEG',
+            60,
+            0,
+          );
+
+          const fastCheck = await RNQRGenerator.detect({ uri: tiny.uri });
+
+          if (!fastCheck.values || fastCheck.values.length === 0) {
+            return showToast('error', 'No QR code found in the image');
+          }
+
+          const qrData = fastCheck.values[0];
+
+          if (!qrData.startsWith('NKS')) {
+            return showToast('error', 'Please scan a valid QR code');
+          }
+
+          handleQrCodeScanner({ data: qrData });
+        } catch (err) {
+          console.log('QR detect error:', err);
+          showToast('error', 'Failed to read QR code from image');
+        }
+      },
+    );
+  };
 
   const persistStoreIfNew = async store => {
     if (!store?.storekeeperId) return;
@@ -267,7 +287,7 @@ export default function AddStore() {
 
               <Text style={innerStyle.orLine}>OR</Text>
 
-              {/* <TouchableOpacity
+              <TouchableOpacity
                 onPress={pickQrFromGallery}
                 style={innerStyle.galleryButton}
                 activeOpacity={0.85}
@@ -276,7 +296,7 @@ export default function AddStore() {
                 <Text style={innerStyle.galleryText}>
                   Select QR from Gallery
                 </Text>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
             </View>
             <Text style={innerStyle.orLine}>OR</Text>
 
