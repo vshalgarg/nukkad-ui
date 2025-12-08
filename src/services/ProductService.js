@@ -54,7 +54,6 @@ class ProductService {
       }
     );
 
-    console.log("***************************"+response)
     if (response.data && (response.data.success === false || response.data.responseCode === 1039)) {
       throw new Error(response.data.message || response.data.error || 'Excel import failed');
     }

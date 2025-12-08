@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import CategoryService from '../../services/categoryService';
+import CategoryService from '../../services/CategoryService';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Select, { components } from 'react-select';
 import { uploadImageToFirebase, deleteImagesFromFirebase } from '../../firebase/FirebaseService';
-import CategoryService from '../../services/categoryService';
+import CategoryService from '../../services/CategoryService';
 import ProductService from '../../services/ProductService';
 import { toast } from 'react-toastify';
 
