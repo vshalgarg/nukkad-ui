@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ProductService from '../../services/ProductService';
-import CategoryService from '../../services/categoryService';
+import CategoryService from '../../services/CategoryService';
 import ProductForm from './ProductForm';
 import { deleteImagesFromFirebase } from '../../firebase/FirebaseService';
 import { toast } from 'react-toastify';

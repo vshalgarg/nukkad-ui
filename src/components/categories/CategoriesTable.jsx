@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import CategoryService from '../../services/categoryService';
+import CategoryService from '../../services/CategoryService';
 import CategoryForm from './CategoryForm';
 import { deleteImagesFromFirebase } from '../../firebase/FirebaseService';
 import { toast } from 'react-toastify';
