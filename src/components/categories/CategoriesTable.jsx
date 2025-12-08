@@ -349,14 +349,14 @@ const handleCreateCategory = async (data) => {
                             </button>
 
                             {/* Delete Category */}
-                            <button
+                            {/* <button
                               onClick={() => deleteCategory(cat.id, cat.imageUrl)}
                               disabled={deleteLoading[cat.id]}
                               className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-all duration-200 flex items-center justify-center hover:shadow-md w-10 h-10 disabled:opacity-50 disabled:cursor-not-allowed"
                               title={deleteLoading[cat.id] ? 'Deleting...' : 'Delete Category'}
                             >
                               <TrashIcon className="w-5 h-5" />
-                            </button>
+                            </button> */}
                           </div>
                         </td>
                       </tr>
