@@ -1,4 +1,4 @@
-package com.nukkad
+package com.codemonks.nukkad
 
 import android.app.Application
 import com.facebook.react.PackageList

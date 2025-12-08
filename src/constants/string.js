@@ -15,7 +15,8 @@ const strings = {
   enterOtp: 'Enter 6 Digit Code Here',
   otpFailed: 'OTP Verification Failed',
   agreeTo: ' I agreed to ',
-  termsAndConditions: `Terms and conditions & ${'\n'}Privacy Policy`,
+  termsAndConditions: `Terms and conditions`,
+  privacyPolicy: `${'\n'}Privacy Policy`,
 
   Welcome: 'Welcome to Nukkad',
   myProfile: 'My Profile',

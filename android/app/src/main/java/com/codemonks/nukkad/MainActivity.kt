@@ -1,4 +1,4 @@
-package com.nukkad
+package com.codemonks.nukkad
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

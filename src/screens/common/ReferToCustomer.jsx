@@ -23,7 +23,8 @@ const ReferToCustomer = () => {
   const [currentRole, setCurrentRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const viewShotRef = useRef();
-  const playStoreUrl = 'https://www.google.com';
+  const playStoreUrl =
+    'https://play.google.com/store/apps/details?id=com.codemonks.nukkad';
   const { token } = useAuth();
 
   const isShareCancelled = err => {

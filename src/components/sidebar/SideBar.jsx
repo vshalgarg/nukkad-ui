@@ -56,7 +56,7 @@ const SideBar = ({ isVisible, onClose }) => {
   const sharePlayStoreLink = async () => {
     try {
       const playStoreLink =
-        'https://play.google.com/store/apps/details?id=com.your.app';
+        'https://play.google.com/store/apps/details?id=com.codemonks.nukkad';
 
       await Share.share({
         title: 'Check out this store app!',
@@ -68,7 +68,7 @@ const SideBar = ({ isVisible, onClose }) => {
       Share.open({
         title: 'Share App',
         message:
-          'Start Shopping On Nukkad App: https://play.google.com/store/apps/details?id=com.your.app',
+          'Start Shopping On Nukkad App: https://play.google.com/store/apps/details?id=com.codemonks.nukkad',
       });
     }
   };
@@ -135,9 +135,9 @@ const SideBar = ({ isVisible, onClose }) => {
   };
 
   const externalLinks = {
-    'Help and Support': 'https://support.google.com',
-    'Privacy Policy': 'https://policies.google.com/privacy',
-    'Terms & Conditions': 'https://policies.google.com/terms',
+    'Help and Support': 'https://codemonks.in/app/help-and-support.html',
+    'Privacy Policy': 'https://codemonks.in/app/privacy-policy.html',
+    'Terms & Conditions': 'https://codemonks.in/app/terms-and-condition.html',
   };
 
   const handleOptionClick = async menuName => {

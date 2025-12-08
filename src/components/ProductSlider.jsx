@@ -1,13 +1,11 @@
 import React, { useCallback, useRef } from 'react';
-import { Animated, Dimensions, Text, View } from 'react-native';
+import { Animated, Dimensions, Image, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-
-import Colors from '../styles/colors';
-import Fonts from '../styles/font';
 import { ScaledSheet } from 'react-native-size-matters';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+// Layout config
 const peekPercent = 0.05;
 const gapPercent = 0.025;
 const itemWidth = screenWidth * 0.85;
@@ -15,26 +13,14 @@ const sidePeek = screenWidth * peekPercent;
 const sideGap = screenWidth * gapPercent;
 const fullItemSpace = itemWidth + sideGap * 2;
 
+// Backend like data (ONLY IMAGE)
 const originalSlides = [
-  {
-    id: '1',
-    title: 'Enjoy the special offer upto 30%',
-    subtitle: 'From 14th June, 2022',
-    backgroundColor: '#D6A937',
-  },
-  {
-    id: '2',
-    title: 'New Arrivals',
-    subtitle: 'Trendy Collection',
-    backgroundColor: '#F69F8B',
-  },
-  {
-    id: '3',
-    title: 'Festive Offers',
-    subtitle: 'Buy 1 Get 1',
-    backgroundColor: '#005942',
-  },
+  { id: '1', image: 'https://picsum.photos/600/400' },
+  { id: '2', image: 'https://picsum.photos/601/400' },
+  { id: '3', image: 'https://picsum.photos/602/400' },
 ];
+
+// Loop slides
 const slides = [
   originalSlides[originalSlides.length - 1],
   ...originalSlides,
@@ -48,8 +34,10 @@ const AutoSlider = () => {
   const timerRef = useRef(null);
 
   const scrollToIndex = (index, animated = true) => {
-    const x = index * fullItemSpace;
-    scrollViewRef.current?.scrollTo({ x, animated });
+    scrollViewRef.current?.scrollTo({
+      x: index * fullItemSpace,
+      animated,
+    });
   };
 
   const startAutoScroll = () => {
@@ -71,6 +59,7 @@ const AutoSlider = () => {
     const offsetX = e.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / fullItemSpace);
 
+    // Fake first & last for infinite loop
     if (index === 0) {
       indexRef.current = originalSlides.length;
       setTimeout(() => scrollToIndex(indexRef.current, false), 20);
@@ -103,9 +92,9 @@ const AutoSlider = () => {
         horizontal
         bounces={false}
         showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={16}
         snapToInterval={fullItemSpace}
         decelerationRate="fast"
+        scrollEventThrottle={16}
         contentContainerStyle={{ paddingHorizontal: sidePeek }}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -121,18 +110,19 @@ const AutoSlider = () => {
               {
                 width: itemWidth,
                 marginHorizontal: sideGap,
-                backgroundColor: item.backgroundColor,
               },
             ]}
           >
-            <View style={styles.textContainer}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.subtitle}>{item.subtitle}</Text>
-            </View>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.fullImage}
+              resizeMode="cover"
+            />
           </View>
         ))}
       </Animated.ScrollView>
 
+      {/* ----------- INDICATOR DOTS ----------- */}
       <View style={styles.indicatorContainer}>
         {originalSlides.map((_, i) => {
           const inputRange = [
@@ -147,9 +137,9 @@ const AutoSlider = () => {
             extrapolate: 'clamp',
           });
 
-          const backgroundColor = scrollX.interpolate({
+          const opacity = scrollX.interpolate({
             inputRange,
-            outputRange: ['#D1D5DB', Colors.primary, '#D1D5DB'],
+            outputRange: [0.4, 1, 0.4],
             extrapolate: 'clamp',
           });
 
@@ -160,7 +150,7 @@ const AutoSlider = () => {
                 styles.indicatorDot,
                 {
                   width,
-                  backgroundColor,
+                  opacity,
                 },
               ]}
             />
@@ -173,42 +163,31 @@ const AutoSlider = () => {
 
 export default React.memo(AutoSlider);
 
+// ---------------- STYLES -----------------
+
 const styles = ScaledSheet.create({
   slideContainer: {
-    zIndex: 0,
     borderRadius: '16@s',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: '20@s',
+    overflow: 'hidden',
     height: '150@vs',
-    elevation: 0,
-    shadowColor: Colors.secondary,
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    elevation: 3,
+    backgroundColor: '#eee',
   },
-  textContainer: {
-    flex: 1,
-    marginRight: '10@s',
+
+  fullImage: {
+    width: '100%',
+    height: '100%',
   },
-  title: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.lg,
-    fontWeight: 'bold',
-    marginBottom: '8@vs',
-  },
-  subtitle: {
-    color: Colors.white,
-    fontSize: Fonts.sizes.sm,
-  },
+
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: '10@vs',
+    marginTop: '8@vs',
   },
+
   indicatorDot: {
     height: '4@vs',
+    backgroundColor: '#3B82F6',
     borderRadius: '4@s',
     marginHorizontal: '4@s',
   },

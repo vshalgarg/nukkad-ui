@@ -45,7 +45,7 @@ const CustomerDashboard = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
-  const { saveStore, fetchDefaultStore } = useStore();
+  const { saveStore, fetchDefaultStore, fetchAllStores } = useStore();
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const swipeEnabled = useRef(true);
   useEffect(() => {
@@ -65,8 +65,9 @@ const CustomerDashboard = () => {
   useEffect(() => {
     (async () => {
       try {
-        const store = await fetchDefaultStore(); 
-        if (store) saveStore(store); 
+        const store = await fetchDefaultStore();
+        if (store) saveStore(store);
+        const allStore = await fetchAllStores();
       } catch (err) {
         console.warn('Failed to fetch default store:', err.message);
       }
@@ -215,7 +216,7 @@ const CustomerDashboard = () => {
 
   const renderItem = useCallback(
     ({ item }) => {
-      if (item.type === 'slider') return <ProductSlider />;
+      // if (item.type === 'slider') return <ProductSlider />;
       if (item.type === 'categories')
         return (
           <CategoryGridLayout

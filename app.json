@@ -1,4 +1,7 @@
 {
   "name": "nukkad",
-  "displayName": "nukkad"
+  "displayName": "Nukkad",
+  "android": {
+    "package": "com.codemonks.nukkad"
+  }
 }

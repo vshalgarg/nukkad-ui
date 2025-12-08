@@ -83,7 +83,7 @@ const CartItem = ({ item, openDropdownId, setOpenDropdownId }) => {
     } else {
       formattedValue = val
         .replace(/[^0-9.]/g, '')
-        .replace(/^(\d*\.\d*).*$/, '$1'); 
+        .replace(/^(\d*\.\d*).*$/, '$1');
     }
 
     setAmountInput(formattedValue);

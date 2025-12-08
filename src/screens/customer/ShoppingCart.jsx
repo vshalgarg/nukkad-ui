@@ -50,6 +50,8 @@ const ShoppingCart = () => {
   const { showDialog } = useDialog();
 
   const dispatch = useDispatch();
+
+  const [openDropdownId, setOpenDropdownId] = useState(null);
   const cartItems = useSelector(state => state.cart.items);
   const [loading, setLoading] = useState(false);
   const [orderInProgress, setOrderInProgress] = useState(false);
@@ -311,7 +313,11 @@ const ShoppingCart = () => {
             item?.product?.id ? item.product.id.toString() : `fallback-${index}`
           }
           renderItem={({ item }) => (
-            <CartItem item={item} inputAccessoryViewID="qty" />
+            <CartItem
+              item={item}
+              openDropdownId={openDropdownId}
+              setOpenDropdownId={setOpenDropdownId}
+            />
           )}
           contentContainerStyle={{
             padding: Fonts.sizes.base,

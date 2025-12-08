@@ -315,11 +315,21 @@ const MobileOtpScreen = () => {
             {strings.agreeTo}
             <Text
               onPress={() =>
-                Linking.openURL('https://policies.google.com/terms?hl=en-US')
+                Linking.openURL(
+                  'https://codemonks.in/app/terms-and-condition.html',
+                )
               }
               style={localStyles.underline}
             >
               {strings.termsAndConditions}
+            </Text>
+            <Text
+              onPress={() =>
+                Linking.openURL('https://codemonks.in/app/privacy-policy.html')
+              }
+              style={localStyles.underline}
+            >
+              {strings.privacyPolicy}
             </Text>
           </Text>
         </View>

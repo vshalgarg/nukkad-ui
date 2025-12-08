@@ -1,30 +1,22 @@
-import { Dimensions, FlatList, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import CategoryCard from './CategoryCard';
 import React from 'react';
 import { ScaledSheet } from 'react-native-size-matters';
 
 const numColumns = 4;
-const screenWidth = Dimensions.get('window').width;
 const spacing = 10;
-const itemWidth = (screenWidth - spacing * (numColumns + 1)) / numColumns;
 
-const CategoryGridLayout = ({ categories, onPressCategory }) => {
+const CategoryGridLayout = ({ categories = [], onPressCategory }) => {
   return (
     <View style={styles.categoryContainer}>
       <FlatList
         data={categories}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
         numColumns={numColumns}
         showsVerticalScrollIndicator={false}
-        columnWrapperStyle={{
-          justifyContent: 'space-between',
-          paddingHorizontal: spacing,
-        }}
-        contentContainerStyle={{
-          paddingVertical: spacing,
-        }}
+        contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
-          <View style={[styles.gridItem, { width: itemWidth }]}>
+          <View style={styles.gridItem}>
             <CategoryCard category={item} onPress={onPressCategory} />
           </View>
         )}
@@ -35,12 +27,20 @@ const CategoryGridLayout = ({ categories, onPressCategory }) => {
 
 const styles = ScaledSheet.create({
   categoryContainer: {
-    marginTop: '10@vs',
+    flex: 1,
+    padding:'12@s'
   },
+
+  listContainer: {
+    paddingHorizontal: spacing,
+    paddingTop: spacing,
+  },
+
   gridItem: {
-    marginTop: '3@vs',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    flex: 1, // ✅ auto equal width
+    maxWidth: '25%', // ✅ 4 columns (100 / 4)
+    marginHorizontal: spacing/4,
+    marginBottom: spacing,
   },
 });
 

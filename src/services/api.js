@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     clientName: CLIENT_NAME,
     clientSecret: CLIENT_SECRET,
-    Accept: 'application/json',
+    Accept: 'application/json', 
   },
 });
 

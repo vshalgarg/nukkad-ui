@@ -21,17 +21,17 @@ const CategoryCard = ({ category, onPress }) => {
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    margin: 3,
+    height: 130,
     alignItems: 'center',
     borderRadius: 8,
-    paddingInlineEnd: 8,
-    paddingBlockStart: 20,
+    padding: 5,
   },
   image: {
     borderRadius: 5,
-    width: '100%',
+    width: 75,
     height: 75,
     marginBottom: 8,
+    objectFit: 'cover',
   },
   name: {
     textAlign: 'center',

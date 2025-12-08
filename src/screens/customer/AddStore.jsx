@@ -93,8 +93,8 @@ export default function AddStore() {
         try {
           const tiny = await ImageResizer.createResizedImage(
             uri,
-            150, 
-            150, 
+            150,
+            150,
             'JPEG',
             60,
             0,
@@ -273,7 +273,10 @@ export default function AddStore() {
 
       {/* BODY */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <ScrollView keyboardShouldPersistTaps="handled">
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <View style={innerStyle.screenWrapper}>
             {/* --- QR SCAN BOX --- */}
             <View style={innerStyle.block}>
@@ -361,7 +364,7 @@ const { height } = Dimensions.get('window');
 const boxHeight = height / 3;
 const innerStyle = ScaledSheet.create({
   headerWrapper: {
-    height: '80@vs',
+    height: '50@vs',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -385,7 +388,7 @@ const innerStyle = ScaledSheet.create({
   screenWrapper: {
     alignItems: 'center',
     paddingTop: '10@vs',
-    gap: '20@s',
+    gap: '5@s',
   },
 
   block: {
@@ -399,7 +402,6 @@ const innerStyle = ScaledSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 4,
-
     alignItems: 'center',
   },
 
@@ -409,6 +411,7 @@ const innerStyle = ScaledSheet.create({
     padding: '20@s',
     borderRadius: '18@s',
     shadowColor: '#000',
+    marginBottom: '16@s',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.07,
     shadowRadius: 6,
@@ -447,7 +450,7 @@ const innerStyle = ScaledSheet.create({
   },
 
   orLine: {
-    marginVertical: '12@vs',
+    marginVertical: '8@vs',
     color: Colors.secondary,
     fontSize: Fonts.sizes.lg,
     fontWeight: '700',
@@ -455,8 +458,7 @@ const innerStyle = ScaledSheet.create({
   },
 
   footer: {
-    padding: '16@s',
-    backgroundColor: '#E9EDF6',
+    padding: '12@s',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
