@@ -32,6 +32,14 @@ const styles = StyleSheet.create({
     height: 75,
     marginBottom: 8,
     objectFit: 'cover',
+    backgroundColor: '#fff',
+
+    elevation: 3,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   name: {
     textAlign: 'center',

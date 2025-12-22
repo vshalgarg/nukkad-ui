@@ -46,6 +46,8 @@ const CustomerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
   const { saveStore, fetchDefaultStore, fetchAllStores } = useStore();
+  const [refreshing, setRefreshing] = useState(false);
+
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const swipeEnabled = useRef(true);
   useEffect(() => {
@@ -108,6 +110,18 @@ const CustomerDashboard = () => {
       setLoading(false);
     }
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await fetchCategories(); 
+    } catch (err) {
+      console.warn('Refresh failed:', err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchCategories]);
+
 
   const fetchStoreAndProfile = async () => {
     try {
@@ -262,6 +276,8 @@ const CustomerDashboard = () => {
           }
           contentContainerStyle={{ paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       )}
 
