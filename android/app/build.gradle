@@ -82,6 +82,12 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
     namespace "com.codemonks.nukkad"
     defaultConfig {
          ndk {

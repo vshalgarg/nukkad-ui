@@ -91,6 +91,7 @@ const MobileOtpScreen = () => {
       const phoneNumber = `+91${mobile}`;
 
       const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+      
       setConfirmResult(confirmation);
     } catch (error) {
       console.error('Send OTP Error:', error);
