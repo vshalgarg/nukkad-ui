@@ -7,29 +7,49 @@ import CustomerTable from '../components/customer/CustomerTable';
 import StorekeeperTable from '../components/storekeeper/StorekeeperTable';
 
 const Dashboard = () => {
-  const [activeSection, setActiveSection] = useState(localStorage.getItem("activeSection") || "categories");
+  const [activeSection, setActiveSection] = useState(
+    localStorage.getItem('activeSection') || 'categories'
+  );
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("activeSection", activeSection);
+    localStorage.setItem('activeSection', activeSection);
   }, [activeSection]);
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'categories': return <CategoriesTable />;
-      case 'products': return <ProductsTable />;
-      case 'customers': return <CustomerTable />;
-      case 'storekeepers': return <StorekeeperTable />;
-      default: return <CategoriesTable />;
+      case 'categories':
+        return <CategoriesTable />;
+      case 'products':
+        return <ProductsTable />;
+      case 'customers':
+        return <CustomerTable />;
+      case 'storekeepers':
+        return <StorekeeperTable />;
+      default:
+        return <CategoriesTable />;
     }
   };
 
-  return (
-    <>
-      <Header />
-      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+ return (
+  <div className="min-h-screen w-full bg-slate-50
+">
+    <Header onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
+
+    <Sidebar
+      activeSection={activeSection}
+      setActiveSection={setActiveSection}
+      isOpen={sidebarOpen}
+      onClose={() => setSidebarOpen(false)}
+    />
+
+    <main className="pt-14 sm:pt-16 h-full overflow-auto lg:ml-64">
       {renderSection()}
-    </>
-  );
+    </main>
+  </div>
+);
+
 };
 
 export default Dashboard;

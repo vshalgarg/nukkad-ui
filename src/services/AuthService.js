@@ -1,6 +1,7 @@
 import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
+import { API_PATHS } from "../constants/apiEndpoints";
 
-const BASE_URL = "http://192.168.1.100/nukkad/api/admin";
 
 export const authService = {
   login: async (credentials) => {
@@ -8,10 +9,9 @@ export const authService = {
       console.log("🔄 Calling login API...", credentials);
 
       //const response = await axiosInstance.post(apiEndpoints.ADMIN_LOGIN, { items: products });
-      const response = await axios.post(
-        `${BASE_URL}/v1/login`,
-        credentials,
-        { headers: { "Content-Type": "application/json" } }
+      const response = await axiosInstance.post(
+        API_PATHS.ADMIN.LOGIN,
+        credentials
       );
 
       console.log("📥 API Response:", response.data);

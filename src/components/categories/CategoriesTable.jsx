@@ -24,7 +24,7 @@ const CategoriesTable = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
   const pageSize = 10;
-  
+
 
   const fetchCategories = async (pageNum = 0) => {
     setLoading(true);
@@ -171,34 +171,34 @@ const CategoriesTable = () => {
   };
 
 
-const handleCreateCategory = async (data) => {
-  try {
-    setLoading(true);
+  const handleCreateCategory = async (data) => {
+    try {
+      setLoading(true);
 
-    await CategoryService.createCategory(data);
+      await CategoryService.createCategory(data);
 
-    toast.success("Category created successfully!");
+      toast.success("Category created successfully!");
 
-    if (isSearchMode) {
-      await handleSearch();
-    } else {
-      await fetchCategories(0);
+      if (isSearchMode) {
+        await handleSearch();
+      } else {
+        await fetchCategories(0);
+      }
+
+      setShowForm(false);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Category already exists";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
-
-    setShowForm(false);
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || "Category already exists";
-    toast.error(errorMessage);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
-  if (viewMode === 'categories') {
-    fetchCategories();
-  }
-}, [viewMode]);
+    if (viewMode === 'categories') {
+      fetchCategories();
+    }
+  }, [viewMode]);
 
 
 
@@ -210,227 +210,243 @@ const handleCreateCategory = async (data) => {
       />
     );
   }
-  return (
-    <div className="ml-64 pt-20 px-8 bg-gradient-to-br from-green-50 to-emerald-50 min-h-screen">
-      <div className="max-w-7xl mx-auto ">
-        <div className="bg-white rounded-t-3xl shadow-2xl border border-green-200 overflow-hidden">
 
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3">
-            <div className="flex justify-between items-center">
+  return (
+    <div className="px-3 pt-4 sm:px-6 lg:px-8 bg-slate-50 min-h-full w-full">
+
+      <div className="w-full mx-auto">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col h-[calc(100vh-96px)] overflow-hidden">
+
+          {/* ================= HEADER ================= */}
+          <div className="bg-white
+ text-slate-700 border-b border-slate-200 px-6 py-4 shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-bold">Categories</h1>
-                <p className="text-green-100 text-base">Manage and organize your product categories</p>
+                <p className="text-sm">
+                  Manage and organize your product categories
+                </p>
               </div>
+
               <button
                 onClick={() => setShowForm(true)}
-                className="bg-white text-green-700 font-semibold px-4 py-2.5 rounded-xl text-sm hover:bg-green-50 transition shadow-md"
+                className="bg-teal-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-teal-700 transition shadow-sm"
               >
                 + Add Category
               </button>
             </div>
           </div>
 
-          {/*Search Bar */}
-          <div className="p-6 border-b border-gray-200 bg-white">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="relative w-full max-w-md">
-                <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search categories by name..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-sm"
-                />
-                {searchKeyword && (
-                  <button
-                    onClick={clearSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
+          {/* ================= SEARCH ================= */}
+          <div className="px-6 py-4 border-b bg-white shrink-0">
+            <div className="relative w-full sm:max-w-md">
+              <MagnifyingGlassIcon
+                className="absolute left-4 top-1/2 -translate-y-1/2
+                 w-5 h-5 text-gray-400 pointer-events-none"
+              />
+
+              <input
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
+                placeholder="Search categories..."
+                className="
+        w-full
+        pl-12 pr-12
+        py-3
+        border border-gray-300
+        rounded-xl
+        text-sm
+        focus:ring-2 focus:ring-teal-500
+        focus:border-teal-500
+        transition
+      "
+              />
+
+              {searchKeyword && (
                 <button
-                  onClick={handleSearch}
-                  disabled={isSearching || !searchKeyword.trim()}
-                  className="px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  onClick={clearSearch}
+                  className="
+          absolute right-4 top-1/2 -translate-y-1/2
+          text-gray-400 hover:text-gray-600
+        "
+                  title="Clear search"
                 >
-                  {isSearching ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <MagnifyingGlassIcon className="w-5 h-5" />
-                      Search
-                    </>
-                  )}
+                  <XMarkIcon className="w-5 h-5" />
                 </button>
-                {isSearchMode && (
-                  <button
-                    onClick={clearSearch}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition flex items-center gap-2"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                    Clear Search
-                  </button>
-                )}
-              </div>
+              )}
+
             </div>
-            {isSearchMode && (
-              <div className="mt-4 text-sm text-gray-600">
-                <p>
-                  Showing {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
-                  {searchKeyword && ` for "${searchKeyword}"`}
-                </p>
-              </div>
-            )}
           </div>
 
-          <div className="max-h-[65vh] overflow-y-auto">
-            {loading || isSearching ? (
-              <div className="p-20 text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
-                <p className="mt-4 text-gray-600">
-                  {isSearching ? 'Searching...' : 'Loading categories...'}
-                </p>
-              </div>
-            ) : displayData.length === 0 ? (
-              <div className="p-20 text-center text-gray-600">
-                <p className="text-2xl font-bold">
-                  {isSearchMode ? 'No categories found' : 'No categories found'}
-                </p>
-                <p className="mt-2">
-                  {isSearchMode
-                    ? 'Try a different search keyword'
-                    : 'Click "Add Category" to get started!'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <table className="w-full">
-                  <thead className="bg-green-50 sticky top-0">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase text-green-800">ID</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase text-green-800">Image</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase text-green-800">Name</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase text-green-800">Actions</th>
+
+          {/* ================= TABLE + SCROLL ================= */}
+          <div className="flex-1 overflow-hidden">
+
+            <div className="h-full overflow-auto">
+              <table
+                className="w-full border-collapse table-fixed"
+                style={{ tableLayout: 'fixed' }}
+              >
+                <thead className="sticky top-0 bg-slate-100 z-20 border-b border-slate-200">
+                  <tr>
+                    <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-bold uppercase text-green-800">
+                      ID
+                    </th>
+
+                    <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-bold uppercase text-green-800">
+                      Image
+                    </th>
+
+                    {/* Name – Always visible */}
+                    <th className="px-4 md:px-6 py-4 text-left text-xs font-bold uppercase text-green-800">
+                      Name
+                    </th>
+
+                    {/* Actions – Always visible */}
+                    <th className="px-2 md:px-6 py-4 text-left md:text-center text-xs font-bold uppercase text-green-800 w-[72px] md:w-auto">
+                      Actions
+                    </th>
+
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-gray-200">
+                  {displayData.map((cat) => (
+                    <tr key={cat.id} className="hover:bg-slate-50 transition">
+
+                      {/* ID – Desktop only */}
+                      <td className="hidden md:table-cell px-6 py-4 font-bold text-gray-800">
+                        {cat.id}
+                      </td>
+
+                      {/* Image – Desktop only */}
+                      <td className="hidden md:table-cell px-6 py-4">
+                        {cat.imageUrl ? (
+                          <img
+                            src={cat.imageUrl}
+                            alt={cat.name}
+                            className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-200 rounded-lg
+                          flex items-center justify-center
+                          text-xs text-gray-600">
+                            No Image
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Name – Always visible */}
+                      <td className="px-3 md:px-6 py-4 font-bold text-gray-800 w-full">
+                        <div className="truncate">
+                          {cat.name}
+                        </div>
+                      </td>
+
+                      {/* Actions – Always visible */}
+                      <td className="px-2 md:px-6 py-4 w-[72px] md:w-auto">
+                        <div className="flex items-center gap-2 justify-end md:justify-center">
+                          <button
+                            onClick={() => handleViewProducts(cat.id)}
+                            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center
+                       rounded-lg text-teal-600 hover:bg-teal-50
+                       hover:shadow-md transition"
+                            title="View Products"
+                          >
+                            <EyeIcon className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+
+                          <button
+                            onClick={() => deleteCategory(cat.id, cat.imageUrl)}
+                            disabled={deleteLoading[cat.id]}
+                            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center
+                       rounded-lg text-rose-600 hover:bg-rose-50
+                       hover:shadow-md transition disabled:opacity-50"
+                            title="Delete Category"
+                          >
+                            <TrashIcon className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                        </div>
+                      </td>
+
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {displayData.map((cat) => (
-                      <tr key={cat.id} className="hover:bg-green-50 transition">
-                        <td className="px-6 py-4 font-bold text-gray-800">{cat.id}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            {cat.imageUrl ? (
-                              <img src={cat.imageUrl} alt={cat.name} className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow" />
-                            ) : (
-                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-600">
-                                No Image
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 font-bold text-gray-800">{cat.name}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-5">
-                            {/* View Products */}
-                            <button
-                              onClick={() => handleViewProducts(cat.id)}
-                              className="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition-all duration-200 flex items-center justify-center hover:shadow-md w-10 h-10"
-                              title="View Products"
-                            >
-                              <EyeIcon className="w-5 h-5" />
-                            </button>
+                  ))}
+                </tbody>
 
-                            {/* Delete Category */}
-                            {/* <button
-                              onClick={() => deleteCategory(cat.id, cat.imageUrl)}
-                              disabled={deleteLoading[cat.id]}
-                              className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-all duration-200 flex items-center justify-center hover:shadow-md w-10 h-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title={deleteLoading[cat.id] ? 'Deleting...' : 'Delete Category'}
-                            >
-                              <TrashIcon className="w-5 h-5" />
-                            </button> */}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              </table>
+            </div>
 
-                {/* Show pagination only when not in search mode */}
-                {!isSearchMode && displayData.length > 0 && (
-                  <div className="flex justify-center items-center gap-2 py-4 bg-white border-t border-gray-200">
-                    <button
-                      onClick={goToPreviousPage}
-                      disabled={page === 0}
-                      className="px-4 py-2 text-xs rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 transition"
-                    >
-                      Prev
-                    </button>
-                    {paginationRange.map((p, i) =>
-                      p === '...' ? (
-                        <span key={i} className="px-2 text-gray-500">...</span>
-                      ) : (
-                        <button
-                          key={i}
-                          onClick={() => fetchCategories(p)}
-                          className={`px-3 py-2 text-xs rounded transition ${page === p
-                            ? 'bg-green-600 text-white font-bold'
-                            : 'bg-gray-200 hover:bg-gray-300'
-                            }`}
-                        >
-                          {p + 1}
-                        </button>
-                      )
-                    )}
-                    <button
-                      onClick={goToNextPage}
-                      disabled={page + 1 === totalPages}
-                      className="px-4 py-2 text-xs rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 transition"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </>
+            {/* ================= PAGINATION ================= */}
+            {!isSearchMode && displayData.length > 0 && (
+              <div className="border-t bg-white sticky bottom-0">
+                <div className="flex justify-center items-center gap-2 py-4">
+                  <button
+                    onClick={goToPreviousPage}
+                    disabled={page === 0}
+                    className="px-4 py-2 text-xs rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 transition"
+                  >
+                    Prev
+                  </button>
+
+                  {paginationRange.map((p, i) =>
+                    p === '...' ? (
+                      <span key={i} className="px-2 text-gray-500">...</span>
+                    ) : (
+                      <button
+                        key={i}
+                        onClick={() => fetchCategories(p)}
+                        className={`px-3 py-2 text-xs rounded transition ${page === p
+                          ? 'bg-teal-600 text-white font-bold'
+                          : 'bg-gray-200 hover:bg-gray-300'
+                          }`}
+                      >
+                        {p + 1}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    onClick={goToNextPage}
+                    disabled={page + 1 === totalPages}
+                    className="px-4 py-2 text-xs rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 transition"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
             )}
+
           </div>
         </div>
       </div>
 
+      {/* ================= FORM ================= */}
       <CategoryForm
         isOpen={showForm}
         onClose={() => setShowForm(false)}
-       onSubmit={handleCreateCategory}
-       loading={loading}
+        onSubmit={handleCreateCategory}
+        loading={loading}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* ================= DELETE MODAL ================= */}
       {deleteConfirm.open && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-red-200">
-            <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <TrashIcon className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">Delete Category?</h3>
-              <p className="text-gray-600 mt-2">
-                Are you sure you want to delete <span className="font-semibold">"{deleteConfirm.name}"</span>?
-                <br />
-                <span className="text-sm text-red-600">This action cannot be undone.</span>
-              </p>
-            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Delete Category?
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete <b>"{deleteConfirm.name}"</b>?
+            </p>
 
-            <div className="flex gap-3 justify-center">
+            <div className="flex justify-end gap-3">
               <button
-                onClick={() => setDeleteConfirm({ open: false, id: null, imageUrl: null, name: '' })}
+                onClick={() =>
+                  setDeleteConfirm({ open: false, id: null, imageUrl: null, name: '' })
+                }
                 className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition"
               >
                 Cancel
@@ -438,16 +454,9 @@ const handleCreateCategory = async (data) => {
               <button
                 onClick={confirmDelete}
                 disabled={deleteLoading[deleteConfirm.id]}
-                className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition disabled:opacity-70 flex items-center gap-2"
+                className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition disabled:opacity-70"
               >
-                {deleteLoading[deleteConfirm.id] ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    Deleting...
-                  </>
-                ) : (
-                  'Delete'
-                )}
+                Delete
               </button>
             </div>
           </div>
@@ -455,6 +464,7 @@ const handleCreateCategory = async (data) => {
       )}
     </div>
   );
+
 };
 
 export default CategoriesTable;
