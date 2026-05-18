@@ -47,7 +47,7 @@ const CategoryForm = ({ onSubmit, isOpen, onClose }) => {
 
     setLoading(true);
     try {
-      const filePath = `categories/${file.name}_${Date.now()}`;
+      const filePath = `category_dev/${file.name}_${Date.now()}`;
       const imageUrl = await uploadImageToFirebase(file, filePath);
 
       await onSubmit({ name, imageUrl });
