@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "521051283768",
+    "project_id": "nukkad-app-ad9c9",
+    "storage_bucket": "nukkad-app-ad9c9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521051283768:android:27c52c88aa99a53000e1cd",
+        "android_client_info": {
+          "package_name": "com.codemonks.nukkad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJpGWoK-Qaq3ZIEPDL5ZPACOqjYVWkmIE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
