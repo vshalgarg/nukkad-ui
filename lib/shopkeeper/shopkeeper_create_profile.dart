@@ -73,8 +73,12 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
     return await ref.getDownloadURL();
   }
   Future<void> saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
+    print("SAVE PROFILE CLICKED");
+    if (!_formKey.currentState!.validate()){
+      print("FORM VALIDATION FAILED");
+    return;
+  }
+    print("FORM VALIDATION PASSED");
     setState(() => isLoading = true);
 
     try {
@@ -84,6 +88,8 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
         final url = await uploadImage(File(img.path));
         imageUrls.add(url);
       }
+      print("NAME CTRL => '${nameCtrl.text}'");
+      print("STORE CTRL => '${storeNameCtrl.text}'");
 
       final body = {
         "name": nameCtrl.text.trim(),
@@ -98,12 +104,11 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
         "pincode": pincodeCtrl.text.trim(),
         "imageUrls": imageUrls
       };
-
+      print("CALLING CREATE STOREKEEPER API");
       final success = await ShopkeeperService.createStorekeeper(body);
-
+      print("API SUCCESS => $success");
       if (success) {
         final prefs = await SharedPreferences.getInstance();
-
         await prefs.setString(
           'shopkeeper_name',
           nameCtrl.text.trim(),
@@ -113,10 +118,12 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
           'shopkeeper_store_name',
           storeNameCtrl.text.trim(),
         );
-        LocalStorageService.setProfileCompleted(true);
-        LocalStorageService.setUserName(nameCtrl.text.trim());
-        LocalStorageService.setStoreName(storeNameCtrl.text.trim());
-
+        print("AFTER SAVE NAME => ${prefs.getString('shopkeeper_name')}");
+        print("AFTER SAVE SHOP => ${prefs.getString('shopkeeper_store_name')}");
+       await LocalStorageService.setProfileCompleted(true);
+        await LocalStorageService.setName(nameCtrl.text.trim());
+        await LocalStorageService.setStoreName(storeNameCtrl.text.trim());
+        print("PROFILE DATA SAVED SUCCESSFULLY");
         if (!mounted) return;
 
         Navigator.pushReplacement(
@@ -127,7 +134,7 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
         );
 
       } else {
-
+        print("API RETURNED FALSE");
         throw Exception("Shopkeeper creation failed");
 
       }
@@ -142,8 +149,11 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
 
     }
 
-    setState(() => isLoading = false);
-
+    finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
   Widget buildLabel(String text, {bool required = false}) {
     return Padding(
@@ -230,6 +240,9 @@ class _ShopkeeperFormState extends State<ShopkeeperForm> {
                     CustomTextField(
                       hint: 'Enter name',
                       controller: nameCtrl,
+                        onChanged: (value) {
+                          print("NAME CHANGED => $value");
+                        }
                     ),
                     const SizedBox(height: 16),
                     buildLabel('Store Name', required: true),

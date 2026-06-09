@@ -30,6 +30,7 @@ class CustomTextField extends StatelessWidget {
           : null,
       readOnly: readOnly,
       onTap: onTap,
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hint,
         contentPadding:

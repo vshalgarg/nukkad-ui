@@ -5,6 +5,7 @@ import 'package:codemonks_nukkad/customer/customer_dashboard.dart';
 import 'package:codemonks_nukkad/customer/customer_create_profile.dart';
 import 'package:codemonks_nukkad/shopkeeper/shopkeeper_dashboard.dart';
 import 'package:codemonks_nukkad/shopkeeper/shopkeeper_create_profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../common/logger.dart';
 import '../db/local_storage.dart';
 import '../services/auth_service.dart';
@@ -149,7 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
           firebaseToken: firebaseToken,
           deviceToken: deviceToken,
         );
-
+        print("FULL RESPONSE => $response");
+        print("NAME => ${response['name']}");
+        print("STORE NAME => ${response['storeName']}");
         log.d("Backend response: $response");
         await LocalStorageService.setName(
           response['name'] ?? '',
@@ -157,6 +160,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await LocalStorageService.setStoreName(
           response['storeName'] ?? '',
+        );
+        final prefs = await SharedPreferences.getInstance();
+
+        await prefs.setString(
+          'shopkeeper_name',
+          response['name'] ?? '',
+        );
+
+        await prefs.setString(
+          'shopkeeper_store_name',
+          response['storeName'] ?? '',
+        );
+
+        print(
+          "LOGIN SAVED NAME => ${prefs.getString('shopkeeper_name')}",
+        );
+
+        print(
+          "LOGIN SAVED SHOP => ${prefs.getString('shopkeeper_store_name')}",
         );
         //  Extract response
         int firstTimeLogin = response['firstTimeLogin'];

@@ -18,6 +18,7 @@ import '../screens/payment_qr_screen.dart';
 import '../screens/shopkeeper_profile.dart';
 import '../screens/shopkeeper_refer_to_customer.dart';
 import '../services/order_service.dart' as OrderService;
+import '../services/shopkeeper_profile_service.dart';
 import '../services/store_storage.dart';
 
 class ShopkeeperDashboard extends StatefulWidget {
@@ -77,6 +78,8 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
             .fetchOrders("PENDING");
       });
     });
+    print("Dashboard HashCode: ${hashCode}");
+
     loadUserData();
   }
   Future<void> pickImageForProfile() async {
@@ -117,21 +120,39 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
     }
   }
   Future<void> loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final profile = await ShopkeeperService.getProfile();
 
-    final imagePath = prefs.getString('profile_image');
+      if (profile != null) {
+        final prefs = await SharedPreferences.getInstance();
 
-    if (imagePath != null && File(imagePath).existsSync()) {
-      profileImage = File(imagePath);
+        await prefs.setString(
+          'shopkeeper_name',
+          profile.name,
+        );
+
+        await prefs.setString(
+          'shopkeeper_store_name',
+          profile.storeName,
+        );
+
+        final imagePath = prefs.getString('profile_image');
+
+        if (imagePath != null && File(imagePath).existsSync()) {
+          profileImage = File(imagePath);
+        }
+
+        setState(() {
+          name = profile.name;
+          shopName = profile.storeName;
+        });
+
+        print("PROFILE NAME => ${profile.name}");
+        print("PROFILE STORE => ${profile.storeName}");
+      }
+    } catch (e) {
+      print("LOAD PROFILE ERROR => $e");
     }
-
-    setState(() {
-      name = prefs.getString('shopkeeper_name') ?? '';
-      shopName = prefs.getString('shopkeeper_store_name') ?? '';
-    });
-
-    log.i("NAME = $name");
-    log.i("SHOP NAME = $shopName");
   }
   @override
   Widget build(BuildContext context) {
@@ -442,6 +463,8 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
   Widget _buildDrawer() {
     log.i("NAME: $name");
     log.i("SHOP NAME: $shopName");
+    print("Drawer HashCode: ${hashCode}");
+    print("Drawer Values: $name | $shopName");
     return Drawer(
       child: Column(
         children: [
@@ -468,8 +491,9 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => StoreDetailScreen()),
-                );
-              },
+                ).then((_) {loadUserData();
+              });
+                },
             ),
           ),
 
@@ -555,7 +579,7 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text("Reject Order",style: TextStyle(color: Colors.white),),
+          title: const Text("Reject Order",style: TextStyle(color: Colors.black),),
           content: const Text("Are you sure you want to reject this order?"),
           actions: [
             TextButton(

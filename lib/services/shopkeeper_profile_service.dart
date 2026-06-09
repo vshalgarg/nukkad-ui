@@ -22,6 +22,7 @@ class ShopkeeperService {
     if (response.statusCode == 200) {
       final data =
       StorekeeperModel.fromJson(jsonDecode(response.body));
+      await LocalStorageService.setName(data.name);
       await LocalStorageService.setStoreName(data.storeName);
       await LocalStorageService.saveStoreQrId(data.storeQrId);
       await LocalStorageService.setStoreKeeperId(data.id);
