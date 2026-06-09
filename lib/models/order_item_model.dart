@@ -16,7 +16,7 @@ class OrderItemModel {
     required this.imageUrls,
     this.isInStock = true,
    required this.price,
-  }) : priceController = TextEditingController();
+  }) : priceController = TextEditingController(  text: price?.toString() ?? '',);
 
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -34,7 +34,7 @@ class OrderItemModel {
           .map((e) => e.toString())
           .toList(),
 
-      isInStock: json['isInStock'] == true,
+      isInStock: json['isInStock'] ?? true,
     );
   }
 }

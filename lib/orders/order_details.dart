@@ -112,7 +112,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text("Cancel"),
+                        child: const Text("Cancel",style: TextStyle(color:Colors.white),),
                       ),
                     ),
 
@@ -130,7 +130,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text("Dispatch"),
+                        child: const Text("Dispatch",style: TextStyle(color:Colors.white),),
                       ),
                     ),
                   ],
@@ -171,8 +171,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       if (item.isInStock) {
         items.add({
           "itemId": item.itemId,
-          "price":
-          double.tryParse(item.priceController.text) ?? 0,
+          "price": double.tryParse(item.priceController.text) ?? "",
         });
       }
     }
